@@ -2,13 +2,13 @@
 
 [La version française suit.](#---------------------------------------------------------------------)
 
-![Lint, format, and test workflow](https://github.com/maxneuvians/valentine/actions/workflows/ci_code.yml/badge.svg)
+![Lint, format, and test workflow](https://github.com/canada-ca/valentine/actions/workflows/ci_code.yml/badge.svg)
 
 Valentine is a real-time collaborative threat modeling tool that combines human expertise with generative AI to streamline the security design process while maintaining simplicity and rigor.
 
 ![Screenshot of a data flow diagram in Valentine](screenshots/data_flow_diagram.png)
 
-IMPORTANT: This project is undergoing active development and may experience breaking changes. This project is also still missing feature and has bugs. Please review the [issues](https://github.com/maxneuvians/valentine/issues) for more information. If you have any specific questions, please contact [max.neuvians@tbs-sct.gc.ca](mailto:max.neuvians@tbs-sct.gc.ca).
+IMPORTANT: This project is undergoing active development and may experience breaking changes. This project is also still missing feature and has bugs. Please review the [issues](https://github.com/canada-ca/valentine/issues) for more information. If you have any specific questions, please contact [max.neuvians@tbs-sct.gc.ca](mailto:max.neuvians@tbs-sct.gc.ca).
 
 ## Features
 
@@ -37,7 +37,7 @@ While Valentine streamlines the threat modeling process, it recognizes that comp
 Valentine's flexibility allows it to be used for threat modeling both individual features and entire systems, without imposing a rigid workflow on teams. This adaptability enables organizations to integrate security thinking into their development process in a way that suits their specific needs and maturity level.
 
 ## Quickstart using codespaces
-1. [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/maxneuvians/valentine)
+1. [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/canada-ca/valentine)
 2. `make setup`
 3. `make dev`
 
@@ -109,7 +109,7 @@ Valentine est un outil collaboratif de modélisation des menaces en temps réel 
 
 ![Capture d’écran d’un diagramme de flux de données dans Valentine](screenshots/data_flow_diagram.png)
 
-IMPORTANT : Ce projet est en cours de développement et peut subir des modifications importantes. Il manque encore des fonctionnalités à ce projet et il comporte des bogues. Veuillez examiner les [problèmes](https://github.com/maxneuvians/valentine/issues) pour plus de renseignements. Si vous avez des questions spécifiques, veuillez contacter : [max.neuvians@tbs-sct.gc.ca](mailto:max.neuvians@tbs-sct.gc.ca).
+IMPORTANT : Ce projet est en cours de développement et peut subir des modifications importantes. Il manque encore des fonctionnalités à ce projet et il comporte des bogues. Veuillez examiner les [problèmes](https://github.com/canada-ca/valentine/issues) pour plus de renseignements. Si vous avez des questions spécifiques, veuillez contacter : [max.neuvians@tbs-sct.gc.ca](mailto:max.neuvians@tbs-sct.gc.ca).
 
 ## Fonctionnalités
 
@@ -140,7 +140,7 @@ La flexibilité de Valentine lui permet d’être utilisé pour la modélisation
 
 ## Relance de système en utilisant GitHub Codespaces
 
-1. [![Ouvrir dans GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/maxneuvians/valentine)
+1. [![Ouvrir dans GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/canada-ca/valentine)
 2. `make setup`
 3. `make dev`
 
