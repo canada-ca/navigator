@@ -25,6 +25,13 @@ config :langchain, openai_key: System.get_env("OPENAI_API_KEY")
 config :langchain, azure_openai_endpoint: System.get_env("AZURE_OPENAI_ENDPOINT")
 config :langchain, azure_openai_key: System.get_env("AZURE_OPENAI_KEY")
 
+config :ueberauth, Ueberauth.Strategy.Cognito,
+  auth_domain: System.get_env("COGNITO_DOMAIN"),
+  client_id: System.get_env("COGNITO_CLIENT_ID"),
+  client_secret: System.get_env("COGNITO_CLIENT_SECRET"),
+  user_pool_id: System.get_env("COGNITO_USER_POOL_ID"),
+  aws_region: System.get_env("COGNITO_AWS_REGION")
+
 config :ueberauth, Ueberauth.Strategy.Google.OAuth,
   client_id: System.get_env("GOOGLE_CLIENT_ID"),
   client_secret: System.get_env("GOOGLE_CLIENT_SECRET")

@@ -51,6 +51,7 @@ config :phoenix, :json_library, Jason
 
 config :ueberauth, Ueberauth,
   providers: [
+    cognito: {Ueberauth.Strategy.Cognito, []},
     google: {Ueberauth.Strategy.Google, []}
   ]
 

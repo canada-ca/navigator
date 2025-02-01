@@ -84,18 +84,26 @@ AZURE_OPENAI_ENDPOINT=
 AZURE_OPENAI_KEY=
 ```
 
-## Optional Google Auth
+## Optional Auth
 
-You can use Google as your IDP if you set the following environment variables:
+You can use several different providers as your IDP if you set the following environment variables:
 
+AWS Cognito:
+```
+COGNITO_DOMAIN=<your-domain>.amazoncognito.com
+COGNITO_CLIENT_ID=your-client-id
+COGNITO_CLIENT_SECRET=your-client-secret
+COGNITO_USER_POOL_ID=your-user-pool-id
+COGNITO_AWS_REGION=your-aws-region
+```
+
+Google Auth:
 ```
 GOOGLE_CLIENT_ID=your-client-id
 GOOGLE_CLIENT_SECRET=your-client-secret
 ```
 
-You can get these by creating a new project in the Google Developer Console and creating OAuth 2.0 credentials.
-
-In this case to access the `/workspaces` route you need to be authenticated with Google, but visiting `/auth/google`. Currently nothing is done with the user information from Google, but you can use it to restrict access to the app.
+In this case to access the `/workspaces` route you need to be authenticated with the IDP, but visiting `/auth/:provider`. Currently nothing is done with the user information from the provider, but you can use it to restrict access to the app.
 
 ## License
 
@@ -185,19 +193,26 @@ AZURE_OPENAI_ENDPOINT=
 AZURE_OPENAI_KEY=
 ```
 
-## Authentification facultative avec Google Authentification
+## Authentification facultative
 
-Vous pouvez utiliser Google comme fournisseur d'identité si vous définissez les variables d'environnement suivantes :
+Vous pouvez utiliser différents fournisseurs d'identité (IDP) si vous définissez les variables d'environnement suivantes :
 
+AWS Cognito:
+```
+COGNITO_DOMAIN=<votre-domaine>.amazoncognito.com
+COGNITO_CLIENT_ID=vote-client-id
+COGNITO_CLIENT_SECRET=votre-client-secret
+COGNITO_USER_POOL_ID=votre-user-pool-id
+COGNITO_AWS_REGION=votre-aws-region
+```
+
+Google Auth :
 ```
 GOOGLE_CLIENT_ID=votre-client-id
 GOOGLE_CLIENT_SECRET=votre-client-secret
-
 ```
 
-Vous pouvez les obtenir en créant un nouveau projet sur Google Developer Console et en créant des identifiants OAuth 2.0.
-
-Dans ce cas, pour accéder à la route `/workspaces`, voous devez vous authentifier avec Google en visitant `/auth/google`. Actuellement, rien n’est fait avec l’information utilisateur provenant de Google, mais vous pouvez l’utiliser pour limiter l’accès à l’application.
+Dans ce cas, pour accéder à la route `/workspaces`, vous devez vous authentifier avec l'IDP en visitant `/auth/:provider`. Actuellement, rien n'est fait avec l'information utilisateur provenant du fournisseur, mais vous pouvez l'utiliser pour limiter l'accès à l'application.
 
 ## Licence
 

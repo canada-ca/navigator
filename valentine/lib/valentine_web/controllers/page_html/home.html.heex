@@ -8,7 +8,9 @@
 
       <div class="d-flex flex-column flex-md-row flex-justify-center mb-6">
         <%= if @auth do %>
-          <a href="/auth/google" class="btn btn-large btn-primary mr-md-3 mb-2 mb-md-0">Login</a>
+          <a href={"/auth/#{@auth}"} class="btn btn-large btn-primary mr-md-3 mb-2 mb-md-0">
+            Login
+          </a>
         <% else %>
           <a href="/workspaces" class="btn btn-large btn-primary mr-md-3 mb-2 mb-md-0">
             Go to workspaces

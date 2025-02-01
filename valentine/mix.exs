@@ -59,6 +59,7 @@ defmodule Valentine.MixProject do
       {:inflex, "~> 2.0.0"},
       {:csv, "~> 3.2"},
       {:ueberauth_google, "~> 0.10"},
+      {:ueberauth_cognito, "~> 0.3"},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
     ]
   end

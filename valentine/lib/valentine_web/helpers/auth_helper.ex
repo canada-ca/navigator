@@ -36,15 +36,31 @@ defmodule ValentineWeb.Helpers.AuthHelper do
     end
   end
 
-  defp auth_active?() do
-    with client_id when is_binary(client_id) <- System.get_env("GOOGLE_CLIENT_ID"),
-         client_secret when is_binary(client_secret) <- System.get_env("GOOGLE_CLIENT_SECRET"),
-         true <- String.length(client_id) > 0,
-         true <- String.length(client_secret) > 0 do
-      true
-    else
-      _ -> false
-    end
+  defp all_env_vars_present?(vars) do
+    Enum.all?(vars, fn var ->
+      case System.get_env(var) do
+        v when is_binary(v) -> String.length(v) > 0
+        _ -> false
+      end
+    end)
+  end
+
+  def auth_active?() do
+    cognito_auth_active?() || google_auth_active?()
+  end
+
+  defp cognito_auth_active?() do
+    all_env_vars_present?([
+      "COGNITO_DOMAIN",
+      "COGNITO_CLIENT_ID",
+      "COGNITO_CLIENT_SECRET",
+      "COGNITO_USER_POOL_ID",
+      "COGNITO_AWS_REGION"
+    ])
+  end
+
+  defp google_auth_active?() do
+    all_env_vars_present?(["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"])
   end
 
   defp generate_user_id() do
