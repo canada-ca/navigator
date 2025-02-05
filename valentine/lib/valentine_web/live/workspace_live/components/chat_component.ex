@@ -310,7 +310,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
     cond do
       Application.get_env(:langchain, :openai_key) ->
         %{
-          model: "gpt-4o-mini",
+          model: Application.get_env(:langchain, :model),
           max_completion_tokens: 100_000
         }
 

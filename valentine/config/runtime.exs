@@ -24,6 +24,7 @@ end
 config :langchain, openai_key: System.get_env("OPENAI_API_KEY")
 config :langchain, azure_openai_endpoint: System.get_env("AZURE_OPENAI_ENDPOINT")
 config :langchain, azure_openai_key: System.get_env("AZURE_OPENAI_KEY")
+config :langchain, model: System.get_env("OPENAI_MODEL", "gpt-4o-mini")
 
 config :ueberauth, Ueberauth.Strategy.Cognito,
   auth_domain: System.get_env("COGNITO_DOMAIN"),
