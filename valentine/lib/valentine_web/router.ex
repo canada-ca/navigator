@@ -30,6 +30,9 @@ defmodule ValentineWeb.Router do
 
     get "/cognito", AuthController, :request
     get "/cognito/callback", AuthController, :callback
+
+    get "/microsoft", AuthController, :request
+    get "/microsoft/callback", AuthController, :callback
   end
 
   scope "/", ValentineWeb do

@@ -4,6 +4,30 @@ defmodule ValentineWeb.Helpers.AuthHelperTest do
   alias ValentineWeb.Helpers.AuthHelper
 
   setup do
+    System.put_env("GOOGLE_CLIENT_ID", "")
+    System.put_env("GOOGLE_CLIENT_SECRET", "")
+    System.put_env("COGNITO_DOMAIN", "")
+    System.put_env("COGNITO_CLIENT_ID", "")
+    System.put_env("COGNITO_CLIENT_SECRET", "")
+    System.put_env("COGNITO_USER_POOL_ID", "")
+    System.put_env("COGNITO_AWS_REGION", "")
+    System.put_env("MICROSOFT_TENANT_ID", "")
+    System.put_env("MICROSOFT_CLIENT_ID", "")
+    System.put_env("MICROSOFT_CLIENT_SECRET", "")
+
+    on_exit(fn ->
+      System.delete_env("GOOGLE_CLIENT_ID")
+      System.delete_env("GOOGLE_CLIENT_SECRET")
+      System.delete_env("COGNITO_DOMAIN")
+      System.delete_env("COGNITO_CLIENT_ID")
+      System.delete_env("COGNITO_CLIENT_SECRET")
+      System.delete_env("COGNITO_USER_POOL_ID")
+      System.delete_env("COGNITO_AWS_REGION")
+      System.delete_env("MICROSOFT_TENANT_ID")
+      System.delete_env("MICROSOFT_CLIENT_ID")
+      System.delete_env("MICROSOFT_CLIENT_SECRET")
+    end)
+
     socket = %Phoenix.LiveView.Socket{
       private: %{
         lifecycle: %{handle_event: []}
@@ -50,9 +74,6 @@ defmodule ValentineWeb.Helpers.AuthHelperTest do
                {"cache-control", "max-age=0, private, must-revalidate"},
                {"location", "/"}
              ]
-
-      System.put_env("GOOGLE_CLIENT_ID", "")
-      System.put_env("GOOGLE_CLIENT_SECRET", "")
     end
 
     test "continues if user_id is not nil", %{conn: conn} do
@@ -67,19 +88,13 @@ defmodule ValentineWeb.Helpers.AuthHelperTest do
 
       assert resp_conn.status == nil
       assert resp_conn == conn
-
-      System.put_env("GOOGLE_CLIENT_ID", "")
-      System.put_env("GOOGLE_CLIENT_SECRET", "")
     end
   end
 
   describe "on_mount/4" do
-    test "sets the current_user to a random ID if GOOGLE env variables are not set", %{
+    test "sets the current_user to a random ID if no auth env variables are not set", %{
       socket: socket
     } do
-      System.put_env("GOOGLE_CLIENT_ID", "")
-      System.put_env("GOOGLE_CLIENT_SECRET", "")
-
       {:cont, socket} = AuthHelper.on_mount(:default, %{}, %{}, socket)
 
       assert socket.assigns[:current_user] != nil
@@ -92,9 +107,6 @@ defmodule ValentineWeb.Helpers.AuthHelperTest do
       {:halt, socket} = AuthHelper.on_mount(:default, %{"user_id" => nil}, %{}, socket)
 
       assert socket.redirected == {:redirect, %{status: 302, to: "/"}}
-
-      System.put_env("GOOGLE_CLIENT_ID", "")
-      System.put_env("GOOGLE_CLIENT_SECRET", "")
     end
 
     test "continues and assigns the user_id to current_user", %{socket: socket} do
@@ -105,9 +117,6 @@ defmodule ValentineWeb.Helpers.AuthHelperTest do
 
       assert socket.assigns[:current_user] == "user_id"
       assert socket.redirected == nil
-
-      System.put_env("GOOGLE_CLIENT_ID", "")
-      System.put_env("GOOGLE_CLIENT_SECRET", "")
     end
   end
 end

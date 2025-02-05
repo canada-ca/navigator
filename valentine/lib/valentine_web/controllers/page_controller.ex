@@ -18,6 +18,7 @@ defmodule ValentineWeb.PageController do
     cond do
       cognito_auth_active?() -> :cognito
       google_auth_active?() -> :google
+      microsoft_auth_active?() -> :microsoft
       true -> false
     end
   end
@@ -34,5 +35,13 @@ defmodule ValentineWeb.PageController do
 
   defp google_auth_active?() do
     all_env_vars_present?(["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"])
+  end
+
+  defp microsoft_auth_active?() do
+    all_env_vars_present?([
+      "MICROSOFT_TENANT_ID",
+      "MICROSOFT_CLIENT_ID",
+      "MICROSOFT_CLIENT_SECRET"
+    ])
   end
 end

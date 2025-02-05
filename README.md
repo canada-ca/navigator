@@ -103,6 +103,14 @@ GOOGLE_CLIENT_ID=your-client-id
 GOOGLE_CLIENT_SECRET=your-client-secret
 ```
 
+Microsoft Entra ID:
+```
+MICROSOFT_CLIENT_ID=your-client-id
+MICROSOFT_CLIENT_SECRET=your-client-secret
+MICROSOFT_TENANT_ID=your-tenant-id
+```
+
+
 In this case to access the `/workspaces` route you need to be authenticated with the IDP, but visiting `/auth/:provider`. Currently nothing is done with the user information from the provider, but you can use it to restrict access to the app.
 
 ## License
@@ -210,6 +218,13 @@ Google Auth :
 ```
 GOOGLE_CLIENT_ID=votre-client-id
 GOOGLE_CLIENT_SECRET=votre-client-secret
+```
+
+Microsoft Entra ID:
+```
+MICROSOFT_CLIENT_ID=votre-client-id
+MICROSOFT_CLIENT_SECRET=votre-client-secret
+MICROSOFT_TENANT_ID=votre-tenant-id
 ```
 
 Dans ce cas, pour accéder à la route `/workspaces`, vous devez vous authentifier avec l'IDP en visitant `/auth/:provider`. Actuellement, rien n'est fait avec l'information utilisateur provenant du fournisseur, mais vous pouvez l'utiliser pour limiter l'accès à l'application.

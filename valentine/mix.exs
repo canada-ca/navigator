@@ -19,7 +19,7 @@ defmodule Valentine.MixProject do
   def application do
     [
       mod: {Valentine.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :ueberauth_microsoft]
     ]
   end
 
@@ -60,6 +60,7 @@ defmodule Valentine.MixProject do
       {:csv, "~> 3.2"},
       {:ueberauth_google, "~> 0.10"},
       {:ueberauth_cognito, "~> 0.3"},
+      {:ueberauth_microsoft, "~> 0.23"},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
     ]
   end

@@ -46,7 +46,7 @@ defmodule ValentineWeb.Helpers.AuthHelper do
   end
 
   def auth_active?() do
-    cognito_auth_active?() || google_auth_active?()
+    cognito_auth_active?() || google_auth_active?() || microsoft_auth_active?()
   end
 
   defp cognito_auth_active?() do
@@ -61,6 +61,14 @@ defmodule ValentineWeb.Helpers.AuthHelper do
 
   defp google_auth_active?() do
     all_env_vars_present?(["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"])
+  end
+
+  defp microsoft_auth_active?() do
+    all_env_vars_present?([
+      "MICROSOFT_TENANT_ID",
+      "MICROSOFT_CLIENT_ID",
+      "MICROSOFT_CLIENT_SECRET"
+    ])
   end
 
   defp generate_user_id() do

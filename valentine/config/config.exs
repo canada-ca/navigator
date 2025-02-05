@@ -52,7 +52,8 @@ config :phoenix, :json_library, Jason
 config :ueberauth, Ueberauth,
   providers: [
     cognito: {Ueberauth.Strategy.Cognito, []},
-    google: {Ueberauth.Strategy.Google, []}
+    google: {Ueberauth.Strategy.Google, []},
+    microsoft: {Ueberauth.Strategy.Microsoft, []}
   ]
 
 # Import environment specific config. This must remain at the bottom
