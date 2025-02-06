@@ -22,6 +22,16 @@ defmodule ValentineWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :raw do
+    plug :accepts, ["html", "json"]
+  end
+
+  scope "/", ValentineWeb do
+    pipe_through :raw
+
+    get "/version", VersionController, :index
+  end
+
   scope "/auth", ValentineWeb do
     pipe_through :browser
 

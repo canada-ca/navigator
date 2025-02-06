@@ -1,10 +1,13 @@
-phony: cover dev install setup test
+phony: cover dev docker install setup test
 
 cover:
 	cd valentine && mix test --cover
 
 dev:
 	cd valentine && mix phx.server
+
+docker: 
+	docker build --build-arg GIT_SHA=$(shell git rev-parse HEAD) -t valentine valentine/.
 
 install:
 	cd valentine && mix deps.get
