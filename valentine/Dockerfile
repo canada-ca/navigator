@@ -68,6 +68,9 @@ RUN mix compile
 # Changes to config/runtime.exs don't require recompiling the code
 COPY config/runtime.exs config/
 
+ARG GIT_SHA
+ENV GIT_SHA=$GIT_SHA
+
 COPY rel rel
 RUN mix release
 
@@ -93,7 +96,7 @@ RUN chown nobody /app
 ENV MIX_ENV="prod"
 
 ARG GIT_SHA
-ENV GIT_SHA=${GIT_SHA}
+ENV GIT_SHA=$GIT_SHA
 
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/valentine ./
