@@ -13,7 +13,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.PresenceIndicatorComponent do
       <ul>
         <%= for {{key, %{metas: metas}}, index} <- @presence |> Enum.with_index() do %>
           <li :if={is_active(hd(metas), @active_module, @workspace_id)} title={get_name(key, index)}>
-            <.counter style={"color: #{get_colour(index)}; background-color: #{get_colour(index)}; #{get_border(key, @current_user)}"}>
+            <.counter style={"color: #{get_colour(@current_user)}; background-color: #{get_colour(@current_user)}; #{get_border(key, @current_user)}"}>
               {index}
             </.counter>
           </li>
@@ -43,21 +43,13 @@ defmodule ValentineWeb.WorkspaceLive.Components.PresenceIndicatorComponent do
     end
   end
 
-  defp get_colour(index) when index > 8, do: get_colour(index - 9)
-
-  defp get_colour(index) do
-    [
-      "#2cbe4e",
-      "#f9826c",
-      "#fbbc05",
-      "#f96233",
-      "#f24e1e",
-      "#dbab09",
-      "#b08800",
-      "#735c0f",
-      "#3f2c00"
-    ]
-    |> Enum.at(index)
+  defp get_colour(id) do
+    id
+    |> String.downcase()
+    |> hash_string()
+    |> hash_to_hsl()
+    |> hsl_to_rgb()
+    |> rgb_to_hex()
   end
 
   defp get_name("||" <> _key, index) do
@@ -81,4 +73,60 @@ defmodule ValentineWeb.WorkspaceLive.Components.PresenceIndicatorComponent do
   end
 
   defp get_name(key, _index), do: key
+
+  defp hash_string(str) do
+    str
+    |> String.to_charlist()
+    |> Enum.reduce(0, fn char, acc ->
+      # Similar to Java's string hash function
+      rem(acc * 31 + char, 2_147_483_647)
+    end)
+    |> abs()
+  end
+
+  defp hash_to_hsl(hash) do
+    # Hue: 0-360 degrees
+    hue = rem(hash, 360)
+    # Saturation: 60-90%
+    saturation = 60 + rem(hash, 30)
+    # Lightness: 45-65%
+    lightness = 45 + rem(hash, 20)
+
+    {hue, saturation, lightness}
+  end
+
+  defp hsl_to_rgb({h, s, l}) do
+    s = s / 100
+    l = l / 100
+
+    chroma = (1 - abs(2 * l - 1)) * s
+    x = chroma * (1 - abs(rem(trunc(h / 60), 2) - 1))
+    m = l - chroma / 2
+
+    {r1, g1, b1} = get_rgb_components(h, chroma, x)
+
+    r = round((r1 + m) * 255)
+    g = round((g1 + m) * 255)
+    b = round((b1 + m) * 255)
+
+    {r, g, b}
+  end
+
+  defp get_rgb_components(h, c, x) when h < 60, do: {c, x, 0}
+  defp get_rgb_components(h, c, x) when h < 120, do: {x, c, 0}
+  defp get_rgb_components(h, c, x) when h < 180, do: {0, c, x}
+  defp get_rgb_components(h, c, x) when h < 240, do: {0, x, c}
+  defp get_rgb_components(h, c, x) when h < 300, do: {x, 0, c}
+  defp get_rgb_components(_, c, x), do: {c, 0, x}
+
+  def rgb_to_hex({r, g, b}) do
+    "##{to_hex(r)}#{to_hex(g)}#{to_hex(b)}"
+  end
+
+  defp to_hex(n) do
+    n
+    |> Integer.to_string(16)
+    |> String.pad_leading(2, "0")
+    |> String.upcase()
+  end
 end

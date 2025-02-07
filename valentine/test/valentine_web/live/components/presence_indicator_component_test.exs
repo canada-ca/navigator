@@ -145,7 +145,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.PresenceIndicatorComponentTest d
         current_user: "some_user"
       )
 
-    assert html =~ "color: #2cbe4e; background-color: #2cbe4e;"
+    assert html =~ "color: #D34AD3; background-color: #D34AD3;"
   end
 
   test "renders a presence with an anonymous username if it starts with ||" do
