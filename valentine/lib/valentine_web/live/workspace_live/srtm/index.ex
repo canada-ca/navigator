@@ -3,8 +3,7 @@ defmodule ValentineWeb.WorkspaceLive.SRTM.Index do
   use PrimerLive
 
   alias Valentine.Composer
-
-  @nist_id_regex ~r/^[A-Za-z]{2}-\d+(\.\d+)?$/
+  alias Valentine.Composer.Workspace
 
   @impl true
   def mount(%{"workspace_id" => workspace_id} = _params, _session, socket) do
@@ -121,18 +120,6 @@ defmodule ValentineWeb.WorkspaceLive.SRTM.Index do
     Composer.list_controls_by_tags(filters)
   end
 
-  defp get_tagged_controls(collection) do
-    collection
-    |> Enum.filter(&(&1.tags != nil))
-    |> Enum.reduce(%{}, fn item, acc ->
-      item.tags
-      |> Enum.filter(&Regex.match?(@nist_id_regex, &1))
-      |> Enum.reduce(acc, fn tag, acc ->
-        Map.update(acc, tag, [item], &(&1 ++ [item]))
-      end)
-    end)
-  end
-
   defp get_workspace(id) do
     Composer.get_workspace!(id,
       mitigations: [:assumptions, :threats],
@@ -145,9 +132,9 @@ defmodule ValentineWeb.WorkspaceLive.SRTM.Index do
   defp item_content(item), do: item.content
 
   defp map_controls(controls, workspace) do
-    assumed_controls = get_tagged_controls(workspace.assumptions)
-    mitigated_controls = get_tagged_controls(workspace.mitigations)
-    threat_controls = get_tagged_controls(workspace.threats)
+    assumed_controls = Workspace.get_tagged_with_controls(workspace.assumptions)
+    mitigated_controls = Workspace.get_tagged_with_controls(workspace.mitigations)
+    threat_controls = Workspace.get_tagged_with_controls(workspace.threats)
     allocated_controls(controls, assumed_controls, mitigated_controls, threat_controls)
   end
 

@@ -61,6 +61,7 @@ defmodule ValentineWeb.Router do
     get "/workspaces/:workspace_id/export/mitigations", WorkspaceController, :export_mitigations
     get "/workspaces/:workspace_id/export/threats", WorkspaceController, :export_threats
     get "/workspaces/:workspace_id/threat_model/pdf", WorkspaceController, :pdf
+    get "/workspaces/:workspace_id/srtm/excel", WorkspaceController, :excel
 
     get "/logout", SessionController, :logout
     post "/session", SessionController, :create
@@ -134,7 +135,6 @@ defmodule ValentineWeb.Router do
            :mitigations
 
       live "/workspaces/:workspace_id/threat_model", WorkspaceLive.ThreatModel.Index, :index
-      live "/workspaces/:workspace_id/threat_model/pdf", WorkspaceLive.ThreatModel.Index, :pdf
 
       live "/workspaces/:workspace_id/reference_packs", WorkspaceLive.ReferencePacks.Index, :index
 

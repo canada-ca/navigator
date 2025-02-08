@@ -9,6 +9,8 @@ defmodule Valentine.Composer.Workspace do
              :name
            ]}
 
+  @nist_id_regex ~r/^[A-Za-z]{2}-\d+(\.\d+)?$/
+
   schema "workspaces" do
     field :name, :string
     field :cloud_profile, :string
@@ -34,5 +36,17 @@ defmodule Valentine.Composer.Workspace do
     workspace
     |> cast(attrs, [:name, :cloud_profile, :cloud_profile_type, :url])
     |> validate_required([:name])
+  end
+
+  def get_tagged_with_controls(collection) do
+    collection
+    |> Enum.filter(&(&1.tags != nil))
+    |> Enum.reduce(%{}, fn item, acc ->
+      item.tags
+      |> Enum.filter(&Regex.match?(@nist_id_regex, &1))
+      |> Enum.reduce(acc, fn tag, acc ->
+        Map.update(acc, tag, [item], &(&1 ++ [item]))
+      end)
+    end)
   end
 end
