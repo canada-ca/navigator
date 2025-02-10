@@ -55,7 +55,6 @@ defmodule ValentineWeb.Router do
     pipe_through :browser
     pipe_through :authenticated
 
-    # TODO: Wrap in auth
     get "/workspaces/:workspace_id/export", WorkspaceController, :export
     get "/workspaces/:workspace_id/export/assumptions", WorkspaceController, :export_assumptions
     get "/workspaces/:workspace_id/export/mitigations", WorkspaceController, :export_mitigations
