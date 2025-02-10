@@ -48,7 +48,7 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
               form={f}
               name="cloud_profile"
               options={[
-                [key: gettext("None selected"), value: "None selected"],
+                [key: gettext("None selected"), value: ""],
                 [key: gettext("CCCS Low Profile for Cloud"), value: "CCCS Low Profile for Cloud"],
                 [
                   key: gettext("CCCS Medium Profile for Cloud"),
@@ -63,7 +63,7 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
               form={f}
               name="cloud_profile_type"
               options={[
-                [key: gettext("None selected"), value: "None selected"],
+                [key: gettext("None selected"), value: ""],
                 [key: gettext("CSP Full Stack"), value: "CSP Full Stack"],
                 [key: gettext("CSP Stacked PaaS"), value: "CSP Stacked PaaS"],
                 [key: gettext("CSP Stacked SaaS"), value: "CSP Stacked SaaS"],
