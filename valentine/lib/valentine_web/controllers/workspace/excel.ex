@@ -83,7 +83,11 @@ defmodule ValentineWeb.Workspace.Excel do
 
   defp generate_sheets(controls) do
     [
-      Sheet.with_name("Control summary")
+      %Sheet{
+        name: "Control summary",
+        rows: generate_summary(controls)
+      }
+      |> Sheet.set_col_width("A", 18.0)
       | Enum.map(controls, fn {k, v} ->
           %Sheet{name: k, rows: generate_rows(v)}
           |> Sheet.set_pane_freeze(1, 9)
@@ -97,6 +101,50 @@ defmodule ValentineWeb.Workspace.Excel do
           |> Sheet.set_col_width("H", 18.0)
           |> Sheet.set_col_width("I", 18.0)
         end)
+    ]
+  end
+
+  defp generate_summary(controls) do
+    [
+      [
+        [
+          "Control status",
+          bold: true,
+          border: [right: [style: :double, color: "#cc3311"]]
+        ]
+        | Enum.map(controls, fn {k, _} ->
+            [k, bold: true, border: [bottom: [style: :double, color: "#cc3311"]]]
+          end)
+      ],
+      [
+        ["Satisfied", bold: true, border: [right: [style: :double, color: "#cc3311"]]]
+        | Enum.map(controls, fn {_, v} ->
+            [
+              Enum.map(v, fn c -> if(c.mitigations != nil, do: length(c.mitigations), else: 0) end)
+              |> Enum.sum()
+            ]
+          end)
+      ],
+      [
+        ["Out of scope", bold: true, border: [right: [style: :double, color: "#cc3311"]]]
+        | Enum.map(controls, fn {_, v} ->
+            [
+              Enum.map(v, fn c -> if(c.assumptions == nil, do: 1, else: 0) end)
+              |> Enum.sum()
+            ]
+          end)
+      ],
+      [
+        ["Risk Register", bold: true, border: [right: [style: :double, color: "#cc3311"]]]
+        | Enum.map(controls, fn {_, v} ->
+            [
+              Enum.map(v, fn c ->
+                if(c.threats != nil && c.mitigations == nil, do: length(c.threats), else: 0)
+              end)
+              |> Enum.sum()
+            ]
+          end)
+      ]
     ]
   end
 
