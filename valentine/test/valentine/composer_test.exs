@@ -1078,4 +1078,79 @@ defmodule Valentine.ComposerTest do
       assert %Ecto.Changeset{} = Composer.change_control(control)
     end
   end
+
+  describe "users" do
+    alias Valentine.Composer.User
+
+    import Valentine.ComposerFixtures
+
+    @invalid_attrs %{email: "an invalid email"}
+
+    test "list_users/0 returns all users" do
+      user = user_fixture()
+      assert Composer.list_users() == [user]
+    end
+
+    test "get_user/1 returns the user with given id" do
+      user = user_fixture()
+
+      assert Composer.get_user(user.email) ==
+               user
+    end
+
+    test "create_user/1 with valid data creates a user" do
+      valid_attrs = %{
+        email: "some.user@localhost"
+      }
+
+      assert {:ok, %User{} = user} =
+               Composer.create_user(valid_attrs)
+
+      assert user.email == "some.user@localhost"
+    end
+
+    test "create_user/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Composer.create_user(@invalid_attrs)
+    end
+
+    test "update_user/2 with valid data updates the user" do
+      user = user_fixture()
+
+      updated_at = user.updated_at
+
+      update_attrs = %{
+        updated_at: DateTime.utc_now() |> DateTime.add(1, :day)
+      }
+
+      assert {:ok, %User{} = user} =
+               Composer.update_user(user, update_attrs)
+
+      assert user.email == user.email
+      assert user.updated_at != updated_at
+    end
+
+    test "update_user/2 with invalid data returns error changeset" do
+      user = user_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Composer.update_user(user, @invalid_attrs)
+
+      assert user ==
+               Composer.get_user(user.email)
+    end
+
+    test "delete_user/1 deletes the user" do
+      user = user_fixture()
+
+      assert {:ok, %User{}} =
+               Composer.delete_user(user)
+
+      assert Composer.get_user(user.email) == nil
+    end
+
+    test "change_user/1 returns a user changeset" do
+      user = user_fixture()
+      assert %Ecto.Changeset{} = Composer.change_user(user)
+    end
+  end
 end

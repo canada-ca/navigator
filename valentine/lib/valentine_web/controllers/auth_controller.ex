@@ -9,6 +9,14 @@ defmodule ValentineWeb.AuthController do
   end
 
   def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{} = auth}} = conn, _params) do
+    case Valentine.Composer.get_user(auth.info.email) do
+      nil ->
+        {:ok, _user} = Valentine.Composer.create_user(%{email: auth.info.email})
+
+      user ->
+        Valentine.Composer.update_user(user, %{updated_at: DateTime.utc_now()})
+    end
+
     conn
     |> clear_session()
     |> put_session(:user_id, auth.info.email)

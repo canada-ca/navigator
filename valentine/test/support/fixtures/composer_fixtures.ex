@@ -181,4 +181,18 @@ defmodule Valentine.ComposerFixtures do
 
     control
   end
+
+  @doc """
+  Generate a user.
+  """
+  def user_fixture(attrs \\ %{}) do
+    {:ok, user} =
+      attrs
+      |> Enum.into(%{
+        email: "some.user@localhost"
+      })
+      |> Valentine.Composer.create_user()
+
+    user
+  end
 end
