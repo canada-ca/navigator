@@ -64,34 +64,4 @@ defmodule ValentineWeb.WorkspaceLive.Index do
   def handle_info({ValentineWeb.WorkspaceLive.FormComponent, {:saved, _workspace}}, socket) do
     {:noreply, assign(socket, :workspaces, Composer.list_workspaces())}
   end
-
-  @impl true
-  def handle_info({:execute_skill, %{"id" => id, "data" => data, "type" => type}}, socket) do
-    data = if data != "", do: Jason.decode!(data), else: %{}
-
-    case {type, data} do
-      {"create", %{"name" => name}} ->
-        case Composer.create_workspace(%{"name" => name}) do
-          {:ok, _workspace} ->
-            {:noreply,
-             socket
-             |> notify_chat(id, :success, gettext("Workspace created successfully"))
-             |> put_flash(:info, gettext("Workspace created successfully"))
-             |> assign(:workspaces, Composer.list_workspaces())}
-
-          {:error, _} ->
-            {:noreply, socket |> notify_chat(id, :error, gettext("Failed to create workspace"))}
-        end
-
-      {"create", %{}} ->
-        {:noreply,
-         socket
-         |> notify_chat(
-           id,
-           :unknown,
-           gettext("The user was given the option of creating a new workspace")
-         )
-         |> push_patch(to: ~p"/workspaces/new")}
-    end
-  end
 end

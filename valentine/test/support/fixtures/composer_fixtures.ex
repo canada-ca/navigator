@@ -22,7 +22,9 @@ defmodule Valentine.ComposerFixtures do
         name: "some name",
         cloud_profile: "some cloud_profile",
         cloud_profile_type: "some cloud_profile_type",
-        url: "some url"
+        url: "some url",
+        owner: "some owner",
+        permissions: %{}
       })
       |> Valentine.Composer.create_workspace()
 

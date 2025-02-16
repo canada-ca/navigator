@@ -2,8 +2,8 @@ defmodule ValentineWeb.WorkspaceLive.Import.TcImport do
   alias Valentine.Composer
   alias Valentine.Repo
 
-  def build_workspace(data) do
-    with {:ok, workspace} <- create_base_workspace(data),
+  def build_workspace(data, owner) do
+    with {:ok, workspace} <- create_base_workspace(data, owner),
          :ok <- create_application_info(workspace.id, data),
          :ok <- create_architecture(workspace.id, data),
          crosswalks <- create_core_elements(workspace.id, data),
@@ -12,10 +12,10 @@ defmodule ValentineWeb.WorkspaceLive.Import.TcImport do
     end
   end
 
-  def process_tc_file(path) do
+  def process_tc_file(path, owner) do
     with {:ok, json} <- File.read(path),
          {:ok, data} <- validate(json),
-         {:ok, result} <- build_workspace(data) do
+         {:ok, result} <- build_workspace(data, owner) do
       {:ok, {:ok, result}}
     else
       {:error, msg} when is_binary(msg) -> {:ok, {:error, msg}}
@@ -35,9 +35,9 @@ defmodule ValentineWeb.WorkspaceLive.Import.TcImport do
 
   # Private functions
 
-  defp create_base_workspace(data) do
+  defp create_base_workspace(data, owner) do
     name = get_in(data, ["applicationInfo", "name"]) || "Untitled Workspace"
-    Composer.create_workspace(%{name: name})
+    Composer.create_workspace(%{name: name, owner: owner})
   end
 
   defp create_application_info(workspace_id, data) do

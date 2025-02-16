@@ -134,7 +134,9 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
   end
 
   defp save_workspace(socket, :new, workspace_params) do
-    case Composer.create_workspace(workspace_params) do
+    case Composer.create_workspace(
+           Map.merge(workspace_params, %{"owner" => socket.assigns.current_user})
+         ) do
       {:ok, workspace} ->
         notify_parent({:saved, workspace})
 

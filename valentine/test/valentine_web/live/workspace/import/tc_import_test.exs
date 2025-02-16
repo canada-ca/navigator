@@ -109,7 +109,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.TcImportTest do
     end
 
     test "creates a workspace with all components", %{data: data} do
-      assert {:ok, workspace} = TcImport.build_workspace(data)
+      assert {:ok, workspace} = TcImport.build_workspace(data, "some owner")
 
       # Verify workspace
       assert workspace.name == "Test Application"
@@ -176,7 +176,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.TcImportTest do
         "mitigationLinks" => []
       }
 
-      assert {:ok, workspace} = TcImport.build_workspace(minimal_data)
+      assert {:ok, workspace} = TcImport.build_workspace(minimal_data, "some owner")
       assert workspace.name == "Untitled Workspace"
     end
   end
@@ -190,17 +190,17 @@ defmodule ValentineWeb.WorkspaceLive.Import.TcImportTest do
 
     test "successfully imports valid JSON file", %{path: path} do
       File.write!(path, @valid_json)
-      assert {:ok, {:ok, workspace}} = TcImport.process_tc_file(path)
+      assert {:ok, {:ok, workspace}} = TcImport.process_tc_file(path, "some owner")
       assert workspace.name == "Test Application"
     end
 
     test "handles missing file gracefully" do
-      assert {:ok, {:error, _}} = TcImport.process_tc_file("nonexistent.json")
+      assert {:ok, {:error, _}} = TcImport.process_tc_file("nonexistent.json", "some owner")
     end
 
     test "handles invalid JSON file", %{path: path} do
       File.write!(path, "invalid json")
-      assert {:ok, {:error, "Invalid JSON"}} = TcImport.process_tc_file(path)
+      assert {:ok, {:error, "Invalid JSON"}} = TcImport.process_tc_file(path, "some owner")
     end
   end
 end

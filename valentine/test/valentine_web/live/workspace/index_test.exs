@@ -131,28 +131,5 @@ defmodule ValentineWeb.WorkspaceLive.IndexTest do
 
       assert updated_socket.assigns.workspaces == [workspace]
     end
-
-    test "handles skill execution when the create type is passed with a name and create a new workspace",
-         %{socket: socket} do
-      {:noreply, updated_socket} =
-        ValentineWeb.WorkspaceLive.Index.handle_info(
-          {:execute_skill,
-           %{"id" => "1", "data" => "{\"name\": \"workspace\"}", "type" => "create"}},
-          socket
-        )
-
-      assert length(updated_socket.assigns.workspaces) == 2
-    end
-
-    test "handles skill execution when the create type is send with no name and pushes the new workspace path",
-         %{socket: socket} do
-      {:noreply, updated_socket} =
-        ValentineWeb.WorkspaceLive.Index.handle_info(
-          {:execute_skill, %{"id" => "1", "data" => "", "type" => "create"}},
-          socket
-        )
-
-      assert updated_socket.redirected == {:live, :patch, %{kind: :push, to: "/workspaces/new"}}
-    end
   end
 end

@@ -139,7 +139,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.HelperTest do
 
     test "successfully imports valid JSON file", %{path: path} do
       File.write!(path, @valid_tc_json)
-      assert {:ok, {:ok, workspace}} = Helper.import_file(path, path)
+      assert {:ok, {:ok, workspace}} = Helper.import_file(path, path, "some owner")
       assert workspace.name == "Test TC Application"
     end
   end
@@ -153,7 +153,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.HelperTest do
 
     test "successfully imports valid JSON file", %{path: path} do
       File.write!(path, @valid_json)
-      assert {:ok, {:ok, workspace}} = Helper.import_file(path, path)
+      assert {:ok, {:ok, workspace}} = Helper.import_file(path, path, "some owner")
       assert workspace.name == "Test Application"
     end
   end

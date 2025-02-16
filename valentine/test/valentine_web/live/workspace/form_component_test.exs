@@ -102,6 +102,7 @@ defmodule ValentineWeb.WorkspaceLive.FormComponentTest do
         Map.put(socket, :assigns, %{
           __changed__: %{},
           action: :new,
+          current_user: "some user",
           workspace: %Valentine.Composer.Workspace{},
           flash: %{},
           patch: "/workspace/s"
@@ -112,7 +113,7 @@ defmodule ValentineWeb.WorkspaceLive.FormComponentTest do
           "save",
           %{
             "workspace" => %{
-              name: "some name"
+              "name" => "some name"
             }
           },
           socket
@@ -129,6 +130,7 @@ defmodule ValentineWeb.WorkspaceLive.FormComponentTest do
           action: :new,
           workspace: %Valentine.Composer.Workspace{},
           flash: %{},
+          current_user: "some user",
           patch: "/workspaces"
         })
 
@@ -137,7 +139,7 @@ defmodule ValentineWeb.WorkspaceLive.FormComponentTest do
           "save",
           %{
             "workspace" => %{
-              name: nil
+              "name" => nil
             }
           },
           socket

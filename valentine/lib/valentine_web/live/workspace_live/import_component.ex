@@ -65,7 +65,7 @@ defmodule ValentineWeb.WorkspaceLive.ImportComponent do
   def handle_event("save", _params, socket) do
     [{result, msg}] =
       consume_uploaded_entries(socket, :import, fn %{path: path}, %{client_name: client_name} ->
-        Helper.import_file(path, client_name)
+        Helper.import_file(path, client_name, socket.assigns.current_user)
       end)
 
     if result == :ok do

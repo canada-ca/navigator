@@ -25,7 +25,9 @@ defmodule Valentine.ComposerTest do
         name: "some name",
         cloud_profile: "some cloud_profile",
         cloud_profile_type: "some cloud_profile_type",
-        url: "some url"
+        url: "some url",
+        owner: "some owner",
+        permissions: %{}
       }
 
       assert {:ok, %Workspace{} = workspace} = Composer.create_workspace(valid_attrs)
@@ -33,6 +35,8 @@ defmodule Valentine.ComposerTest do
       assert workspace.cloud_profile == "some cloud_profile"
       assert workspace.cloud_profile_type == "some cloud_profile_type"
       assert workspace.url == "some url"
+      assert workspace.owner == "some owner"
+      assert workspace.permissions == %{}
     end
 
     test "create_workspace/1 with invalid data returns error changeset" do
@@ -46,7 +50,9 @@ defmodule Valentine.ComposerTest do
         name: "some updated name",
         cloud_profile: "some updated cloud_profile",
         cloud_profile_type: "some updated cloud_profile_type",
-        url: "some updated url"
+        url: "some updated url",
+        owner: "some updated owner",
+        permissions: %{some: "permissions"}
       }
 
       assert {:ok, %Workspace{} = workspace} = Composer.update_workspace(workspace, update_attrs)
@@ -54,6 +60,8 @@ defmodule Valentine.ComposerTest do
       assert workspace.cloud_profile == "some updated cloud_profile"
       assert workspace.cloud_profile_type == "some updated cloud_profile_type"
       assert workspace.url == "some updated url"
+      assert workspace.owner == "some updated owner"
+      assert workspace.permissions == %{some: "permissions"}
     end
 
     test "update_workspace/2 with invalid data returns error changeset" do

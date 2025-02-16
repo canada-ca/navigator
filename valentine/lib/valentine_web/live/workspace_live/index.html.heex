@@ -58,6 +58,7 @@
   id={@workspace.id || :new}
   action={@live_action}
   workspace={@workspace}
+  current_user={@current_user}
   patch={~p"/workspaces"}
 />
 
@@ -66,5 +67,6 @@
   module={ValentineWeb.WorkspaceLive.ImportComponent}
   id={:import}
   workspace={@workspace}
+  current_user={@current_user}
   patch={~p"/workspaces"}
 />

@@ -90,7 +90,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImportTest do
     end
 
     test "creates a workspace with all components", %{data: data} do
-      assert {:ok, workspace} = JsonImport.build_workspace(data["workspace"])
+      assert {:ok, workspace} = JsonImport.build_workspace(data["workspace"], "some owner")
 
       # Verify workspace
       assert workspace.name == "Test Application"
@@ -159,7 +159,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImportTest do
         "threats" => []
       }
 
-      assert {:ok, workspace} = JsonImport.build_workspace(minimal_data)
+      assert {:ok, workspace} = JsonImport.build_workspace(minimal_data, "some owner")
       assert workspace.name == "Untitled Workspace"
     end
   end
@@ -173,17 +173,17 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImportTest do
 
     test "successfully imports valid JSON file", %{path: path} do
       File.write!(path, @valid_json)
-      assert {:ok, {:ok, workspace}} = JsonImport.process_json_file(path)
+      assert {:ok, {:ok, workspace}} = JsonImport.process_json_file(path, "some owner")
       assert workspace.name == "Test Application"
     end
 
     test "handles missing file gracefully" do
-      assert {:ok, {:error, _}} = JsonImport.process_json_file("nonexistent.json")
+      assert {:ok, {:error, _}} = JsonImport.process_json_file("nonexistent.json", "some owner")
     end
 
     test "handles invalid JSON file", %{path: path} do
       File.write!(path, "invalid json")
-      assert {:ok, {:error, "Invalid JSON"}} = JsonImport.process_json_file(path)
+      assert {:ok, {:error, "Invalid JSON"}} = JsonImport.process_json_file(path, "some owner")
     end
   end
 end

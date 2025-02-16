@@ -28,14 +28,17 @@ defmodule Valentine.Composer.Workspace do
     has_many :mitigations, Valentine.Composer.Mitigation, on_delete: :delete_all
     has_many :threats, Valentine.Composer.Threat, on_delete: :delete_all
 
+    field :owner, :string
+    field :permissions, :map, default: %{}
+
     timestamps(type: :utc_datetime)
   end
 
   @doc false
   def changeset(workspace, attrs) do
     workspace
-    |> cast(attrs, [:name, :cloud_profile, :cloud_profile_type, :url])
-    |> validate_required([:name])
+    |> cast(attrs, [:name, :cloud_profile, :cloud_profile_type, :url, :owner, :permissions])
+    |> validate_required([:name, :owner, :permissions])
   end
 
   def get_tagged_with_controls(collection) do
