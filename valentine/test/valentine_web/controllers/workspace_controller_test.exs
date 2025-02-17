@@ -7,7 +7,10 @@ defmodule ValentineWeb.WorkspaceControllerTest do
        %{conn: conn} do
     workspace = workspace_fixture()
 
-    conn = get(conn, ~p"/workspaces/#{workspace.id}/export")
+    conn =
+      conn
+      |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+      |> get(~p"/workspaces/#{workspace.id}/export")
 
     assert conn.status == 200
 
@@ -29,7 +32,10 @@ defmodule ValentineWeb.WorkspaceControllerTest do
 
     assumption = assumption_fixture(%{workspace_id: workspace.id})
 
-    conn = get(conn, ~p"/workspaces/#{workspace.id}/export/assumptions")
+    conn =
+      conn
+      |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+      |> get(~p"/workspaces/#{workspace.id}/export/assumptions")
 
     assert conn.status == 200
 
@@ -61,7 +67,10 @@ defmodule ValentineWeb.WorkspaceControllerTest do
 
     mitigation = mitigation_fixture(%{workspace_id: workspace.id})
 
-    conn = get(conn, ~p"/workspaces/#{workspace.id}/export/mitigations")
+    conn =
+      conn
+      |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+      |> get(~p"/workspaces/#{workspace.id}/export/mitigations")
 
     assert conn.status == 200
 
@@ -94,7 +103,10 @@ defmodule ValentineWeb.WorkspaceControllerTest do
 
     threat = threat_fixture(%{workspace_id: workspace.id})
 
-    conn = get(conn, ~p"/workspaces/#{workspace.id}/export/threats")
+    conn =
+      conn
+      |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+      |> get(~p"/workspaces/#{workspace.id}/export/threats")
 
     assert conn.status == 200
 

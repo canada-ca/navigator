@@ -16,6 +16,7 @@ defmodule ValentineWeb.Router do
 
   pipeline :authenticated do
     plug ValentineWeb.Helpers.AuthHelper
+    plug ValentineWeb.Helpers.RbacHelper
   end
 
   pipeline :api do
