@@ -286,6 +286,22 @@
           />
         </:item>
       </.side_nav>
+
+      <.side_nav :if={@workspace_id} aria_label="collaboration" class="mt-4" is_border>
+        <:item
+          is_selected={@active_module == "Collaboration"}
+          navigate={~p"/workspaces/#{@workspace_id}/collaboration"}
+          class="d-flex flex-items-center flex-justify-between"
+        >
+          <span><.octicon name="people-16" /> {gettext("Collaboration")}</span>
+          <ValentineWeb.WorkspaceLive.Components.PresenceIndicatorComponent.render
+            current_user={@current_user}
+            presence={@presence}
+            active_module="Collaboration"
+            workspace_id={@workspace_id}
+          />
+        </:item>
+      </.side_nav>
     </:sidebar>
   </.layout>
   <.live_component

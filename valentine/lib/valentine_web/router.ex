@@ -150,6 +150,8 @@ defmodule ValentineWeb.Router do
       live "/workspaces/:workspace_id/srtm", WorkspaceLive.SRTM.Index, :index
 
       live "/workspaces/:workspace_id/controls", WorkspaceLive.Controls.Index, :index
+
+      live "/workspaces/:workspace_id/collaboration", WorkspaceLive.Collaboration.Index, :index
     end
   end
 

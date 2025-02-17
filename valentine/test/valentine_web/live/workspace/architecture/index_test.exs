@@ -43,7 +43,7 @@ defmodule ValentineWeb.WorkspaceLive.Architecture.IndexTest do
   end
 
   describe "handle_params/3 assigns the page title to :index action" do
-    test "assigns the page title to 'Data flow diagram' when live_action is :index" do
+    test "assigns the page title to 'Architecture' when live_action is :index" do
       socket = %Phoenix.LiveView.Socket{
         assigns: %{
           __changed__: %{},
