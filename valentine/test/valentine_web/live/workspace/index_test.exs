@@ -11,6 +11,7 @@ defmodule ValentineWeb.WorkspaceLive.IndexTest do
       %Phoenix.LiveView.Socket{
         assigns: %{
           __changed__: %{},
+          current_user: workspace.owner,
           live_action: nil,
           filters: %{},
           flash: %{}

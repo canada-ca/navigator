@@ -35,6 +35,28 @@ defmodule Valentine.Composer do
   end
 
   @doc """
+  Returns the list of workspaces that a specific identity has permissions to access.
+
+  ## Parameters
+    * identity - The identity of the user to filter workspaces by
+
+  ## Examples
+
+      iex> list_workspaces_by_identity("some.owner@localhost")
+      [%Workspace{}, ...]
+
+      iex> list_workspaces_by_identity("some.collaborator@localhost")
+      [%Workspace{}, ...]
+  """
+
+  def list_workspaces_by_identity(identity) do
+    from(w in Workspace,
+      where: w.owner == ^identity or fragment("? \\? ?", w.permissions, ^identity)
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Gets a single workspace.
 
   Raises `Ecto.NoResultsError` if the Workspace does not exist.

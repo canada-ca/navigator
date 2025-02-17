@@ -19,6 +19,8 @@ defmodule ValentineWeb.WorkspaceLive.IndexViewTest do
       conn: conn,
       workspace: workspace
     } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+
       {:ok, _index_live, html} = live(conn, ~p"/workspaces")
 
       assert html =~ "Listing Workspaces"
@@ -50,6 +52,8 @@ defmodule ValentineWeb.WorkspaceLive.IndexViewTest do
       conn: conn,
       workspace: workspace
     } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+
       {:ok, index_live, _html} = live(conn, ~p"/workspaces")
 
       assert index_live
@@ -74,6 +78,8 @@ defmodule ValentineWeb.WorkspaceLive.IndexViewTest do
       conn: conn,
       workspace: workspace
     } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+
       {:ok, index_live, _html} = live(conn, ~p"/workspaces")
 
       assert index_live

@@ -9,7 +9,7 @@ defmodule ValentineWeb.WorkspaceLive.Index do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:workspaces, Composer.list_workspaces())}
+     |> assign(:workspaces, Composer.list_workspaces_by_identity(socket.assigns.current_user))}
   end
 
   @impl true
@@ -52,7 +52,7 @@ defmodule ValentineWeb.WorkspaceLive.Index do
          |> put_flash(:info, gettext("Workspace deleted successfully"))
          |> assign(
            :workspaces,
-           Composer.list_workspaces()
+           Composer.list_workspaces_by_identity(socket.assigns.current_user)
          )}
 
       {:error, _} ->
@@ -62,6 +62,11 @@ defmodule ValentineWeb.WorkspaceLive.Index do
 
   @impl true
   def handle_info({ValentineWeb.WorkspaceLive.FormComponent, {:saved, _workspace}}, socket) do
-    {:noreply, assign(socket, :workspaces, Composer.list_workspaces())}
+    {:noreply,
+     assign(
+       socket,
+       :workspaces,
+       Composer.list_workspaces_by_identity(socket.assigns.current_user)
+     )}
   end
 end

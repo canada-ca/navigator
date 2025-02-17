@@ -43,7 +43,7 @@ defmodule Valentine.Composer.Workspace do
 
   def check_workspace_permissions(workspace, identity) do
     case workspace.owner do
-      ^identity -> :owner
+      ^identity -> "owner"
       _ -> workspace.permissions |> Map.get(identity)
     end
   end

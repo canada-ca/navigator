@@ -15,6 +15,20 @@ defmodule Valentine.ComposerTest do
       assert Composer.list_workspaces() == [workspace]
     end
 
+    test "list_workspaces_by_identity/1 returns all workspaces for a owner" do
+      workspace = workspace_fixture()
+      workspace_fixture(%{owner: "another owner"})
+      assert Composer.list_workspaces_by_identity(workspace.owner) == [workspace]
+    end
+
+    test "list_workspaces_by_identity/1 returns all workspaces for a collaborator" do
+      workspace =
+        workspace_fixture(%{owner: "another owner", permissions: %{"collaborator" => "read"}})
+
+      workspace_fixture(%{owner: "another owner"})
+      assert Composer.list_workspaces_by_identity("collaborator") == [workspace]
+    end
+
     test "get_workspace!/1 returns the workspace with given id" do
       workspace = workspace_fixture()
       assert Composer.get_workspace!(workspace.id) == workspace
@@ -83,7 +97,7 @@ defmodule Valentine.ComposerTest do
 
     test "check_workspace_permissions/2 returns the permission for the identity" do
       workspace = workspace_fixture(%{owner: "some owner"})
-      assert Composer.check_workspace_permissions(workspace.id, "some owner") == :owner
+      assert Composer.check_workspace_permissions(workspace.id, "some owner") == "owner"
     end
   end
 

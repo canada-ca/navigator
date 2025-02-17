@@ -17,7 +17,7 @@ defmodule ValentineWeb.Helpers.RbacHelperTest do
           }
         )
 
-      assert socket.assigns.workspace_permission == :owner
+      assert socket.assigns.workspace_permission == "owner"
     end
 
     test "paths that do not contain a workspace_id parameter do not check rbac_permissions" do
