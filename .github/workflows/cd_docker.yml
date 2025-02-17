@@ -1,4 +1,4 @@
-name: Build and upload the container to GitHub Container Registry
+name: Build and upload the container to CDS Container Registry
 on:
   workflow_dispatch:
   push:
@@ -30,16 +30,14 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@5a88a04c91d5c6f97aae0d9be790e64d9b1d47b7 # v1.7.1
+        uses: aws-actions/amazon-ecr-login@v2
         with:
           registry-type: public
 
       - name: Build docker image
         working-directory: ./valentine
         run: |
-          docker build \ 
-          -t $REGISTRY/$IMAGE_NAME:$GITHUB_SHA \
-          -t $REGISTRY/$IMAGE_NAME:latest .
+          docker build -t $REGISTRY/$IMAGE_NAME:$GITHUB_SHA -t $REGISTRY/$IMAGE_NAME:latest .
 
       - name: Push docker image to AWS ECR
         run: |
