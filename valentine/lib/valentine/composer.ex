@@ -123,6 +123,22 @@ defmodule Valentine.Composer do
   end
 
   @doc """
+  Checks if a user is the owner of the workspace or if their identity is in the permissions map. Returns the permission level if the user is the owner or has a permission level, otherwise returns nil.
+
+  ## Examples
+
+      iex> check_workspace_permissions(workspace_id, "some.owner@localhost")
+      :owner
+
+      iex> check_workspace_permissions(workspace_id, "some.collaborator@localhost")
+      :write
+  """
+  def check_workspace_permissions(workspace_id, identity) do
+    workspace = get_workspace!(workspace_id)
+    Workspace.check_workspace_permissions(workspace, identity)
+  end
+
+  @doc """
   Returns the list of threats.
 
   ## Examples

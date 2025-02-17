@@ -20,6 +20,8 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.IndexViewTest do
       mitigation: mitigation,
       workspace_id: workspace_id
     } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{workspace_id}/mitigations")
 
       assert html =~ "Listing Mitigations"
@@ -27,6 +29,8 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.IndexViewTest do
     end
 
     test "saves new mitigations", %{conn: conn, workspace_id: workspace_id} do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace_id}/mitigations")
 
       assert index_live |> element("button", "New Mitigation") |> render_click() =~
@@ -52,6 +56,8 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.IndexViewTest do
       mitigation: mitigation,
       workspace_id: workspace_id
     } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace_id}/mitigations")
 
       assert index_live
@@ -77,6 +83,8 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.IndexViewTest do
       mitigation: mitigation,
       workspace_id: workspace_id
     } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace_id}/mitigations")
 
       assert index_live

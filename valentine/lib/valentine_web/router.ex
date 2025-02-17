@@ -68,6 +68,7 @@ defmodule ValentineWeb.Router do
     live_session :authenticated,
       on_mount: [
         ValentineWeb.Helpers.AuthHelper,
+        ValentineWeb.Helpers.RbacHelper,
         ValentineWeb.Helpers.ChatHelper,
         ValentineWeb.Helpers.ControlHelper,
         ValentineWeb.Helpers.FlashHelper,
@@ -79,9 +80,9 @@ defmodule ValentineWeb.Router do
       live "/workspaces", WorkspaceLive.Index, :index
       live "/workspaces/import", WorkspaceLive.Index, :import
       live "/workspaces/new", WorkspaceLive.Index, :new
-      live "/workspaces/:id/edit", WorkspaceLive.Index, :edit
+      live "/workspaces/:workspace_id/edit", WorkspaceLive.Index, :edit
 
-      live "/workspaces/:id", WorkspaceLive.Show, :show
+      live "/workspaces/:workspace_id", WorkspaceLive.Show, :show
 
       live "/workspaces/:workspace_id/assumptions", WorkspaceLive.Assumption.Index, :index
       live "/workspaces/:workspace_id/assumptions/new", WorkspaceLive.Assumption.Index, :new

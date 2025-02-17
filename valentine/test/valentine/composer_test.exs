@@ -80,6 +80,11 @@ defmodule Valentine.ComposerTest do
       workspace = workspace_fixture()
       assert %Ecto.Changeset{} = Composer.change_workspace(workspace)
     end
+
+    test "check_workspace_permissions/2 returns the permission for the identity" do
+      workspace = workspace_fixture(%{owner: "some owner"})
+      assert Composer.check_workspace_permissions(workspace.id, "some owner") == :owner
+    end
   end
 
   describe "threats" do

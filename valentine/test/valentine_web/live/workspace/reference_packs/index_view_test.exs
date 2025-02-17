@@ -20,6 +20,8 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.IndexViewTest do
       reference_pack_item: reference_pack_item,
       workspace_id: workspace_id
     } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{workspace_id}/reference_packs")
 
       assert html =~ "Reference packs"
@@ -33,6 +35,8 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.IndexViewTest do
       conn: conn,
       workspace_id: workspace_id
     } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace_id}/reference_packs")
 
       assert index_live
@@ -48,6 +52,8 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.IndexViewTest do
       reference_pack_item: reference_pack_item,
       workspace_id: workspace_id
     } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace_id}/reference_packs")
 
       assert index_live

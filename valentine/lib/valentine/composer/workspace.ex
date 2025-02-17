@@ -41,6 +41,13 @@ defmodule Valentine.Composer.Workspace do
     |> validate_required([:name, :owner, :permissions])
   end
 
+  def check_workspace_permissions(workspace, identity) do
+    case workspace.owner do
+      ^identity -> :owner
+      _ -> workspace.permissions |> Map.get(identity)
+    end
+  end
+
   def get_tagged_with_controls(collection) do
     collection
     |> Enum.filter(&(&1.tags != nil))

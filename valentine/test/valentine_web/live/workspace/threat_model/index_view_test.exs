@@ -13,6 +13,8 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.IndexViewTest do
     setup [:create_workspace]
 
     test "displays the threat model", %{conn: conn, workspace: workspace} do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+
       {:ok, _index_live, html} =
         live(conn, ~p"/workspaces/#{workspace.id}/threat_model")
 

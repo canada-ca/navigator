@@ -18,6 +18,8 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
       conn: conn,
       workspace: workspace
     } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{workspace.id}")
 
       assert html =~ "Show Workspace"
@@ -25,6 +27,8 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
     end
 
     test "display workspace cloud profile", %{conn: conn, workspace: workspace} do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{workspace.id}")
 
       assert html =~ "Profile"
@@ -32,6 +36,8 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
     end
 
     test "display workspace cloud profile type", %{conn: conn, workspace: workspace} do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{workspace.id}")
 
       assert html =~ "Type"
@@ -39,6 +45,8 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
     end
 
     test "display mitigation status", %{conn: conn, mitigation: mitigation} do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{mitigation.workspace_id}")
 
       assert html =~ "Mitigation status"
@@ -46,6 +54,8 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
     end
 
     test "display threat prioritization", %{conn: conn, threat: threat} do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{threat.workspace_id}")
 
       assert html =~ "Threats prioritization"
@@ -53,6 +63,8 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
     end
 
     test "display threat stride", %{conn: conn, threat: threat} do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{threat.workspace_id}")
 
       assert html =~ "Threat STRIDE"

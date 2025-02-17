@@ -13,6 +13,8 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowViewTest do
     setup [:create_threat]
 
     test "displays threat", %{conn: conn, threat: threat} do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       {:ok, _show_live, html} =
         live(conn, ~p"/workspaces/#{threat.workspace_id}/threats/#{threat.id}")
 

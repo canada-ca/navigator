@@ -23,7 +23,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.WorkspaceComponent do
             is_icon_button
             is_danger
             aria-label="Delete"
-            phx-click={JS.push("delete", value: %{id: @workspace.id})}
+            phx-click={JS.push("delete", value: %{workspace_id: @workspace.id})}
             data-confirm={gettext("Are you sure?")}
             id={"delete-workspace-#{@workspace.id}"}
           >

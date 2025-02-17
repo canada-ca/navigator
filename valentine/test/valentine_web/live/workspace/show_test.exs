@@ -29,7 +29,7 @@ defmodule ValentineWeb.WorkspaceLive.ShowTest do
 
       {:noreply, updated_socket} =
         ValentineWeb.WorkspaceLive.Show.handle_params(
-          %{"id" => workspace.id},
+          %{"workspace_id" => workspace.id},
           "",
           socket
         )
@@ -42,7 +42,7 @@ defmodule ValentineWeb.WorkspaceLive.ShowTest do
 
       {:noreply, updated_socket} =
         ValentineWeb.WorkspaceLive.Show.handle_params(
-          %{"id" => workspace.id},
+          %{"workspace_id" => workspace.id},
           "",
           socket
         )

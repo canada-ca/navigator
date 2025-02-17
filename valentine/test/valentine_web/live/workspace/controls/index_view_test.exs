@@ -20,6 +20,8 @@ defmodule ValentineWeb.WorkspaceLive.Controls.IndexViewTest do
       control: control,
       workspace_id: workspace_id
     } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       {:ok, _index_live, html} =
         live(
           conn,

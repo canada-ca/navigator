@@ -20,6 +20,8 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.ShowViewTest do
       reference_pack_item: reference_pack_item,
       workspace_id: workspace_id
     } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       {:ok, _index_live, html} =
         live(
           conn,
@@ -40,6 +42,8 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.ShowViewTest do
       conn: conn,
       workspace_id: workspace_id
     } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
       reference_pack_item =
         reference_pack_item_fixture(
           data: %{"content" => "some content", "tags" => ["tag1", "tag2"]}

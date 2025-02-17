@@ -69,7 +69,7 @@ defmodule ValentineWeb.WorkspaceLive.IndexTest do
 
       {:noreply, updated_socket} =
         ValentineWeb.WorkspaceLive.Index.handle_params(
-          %{"id" => workspace.id},
+          %{"workspace_id" => workspace.id},
           "",
           socket
         )
@@ -83,7 +83,7 @@ defmodule ValentineWeb.WorkspaceLive.IndexTest do
 
       {:noreply, updated_socket} =
         ValentineWeb.WorkspaceLive.Index.handle_params(
-          %{"id" => workspace.id},
+          %{"workspace_id" => workspace.id},
           "",
           socket
         )
@@ -98,7 +98,7 @@ defmodule ValentineWeb.WorkspaceLive.IndexTest do
       {:noreply, updated_socket} =
         ValentineWeb.WorkspaceLive.Index.handle_event(
           "delete",
-          %{"id" => workspace.id},
+          %{"workspace_id" => workspace.id},
           socket
         )
 
@@ -112,7 +112,7 @@ defmodule ValentineWeb.WorkspaceLive.IndexTest do
         {:noreply, updated_socket} =
           ValentineWeb.WorkspaceLive.Index.handle_event(
             "delete",
-            %{"id" => workspace.id},
+            %{"workspace_id" => workspace.id},
             socket
           )
 

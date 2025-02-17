@@ -17,10 +17,10 @@ defmodule ValentineWeb.WorkspaceLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  defp apply_action(socket, :edit, %{"id" => id}) do
+  defp apply_action(socket, :edit, %{"workspace_id" => workspace_id}) do
     socket
     |> assign(:page_title, gettext("Edit Workspace"))
-    |> assign(:workspace, Composer.get_workspace!(id))
+    |> assign(:workspace, Composer.get_workspace!(workspace_id))
   end
 
   defp apply_action(socket, :import, _params) do
@@ -42,8 +42,8 @@ defmodule ValentineWeb.WorkspaceLive.Index do
   end
 
   @impl true
-  def handle_event("delete", %{"id" => id}, socket) do
-    workspace = Composer.get_workspace!(id)
+  def handle_event("delete", %{"workspace_id" => workspace_id}, socket) do
+    workspace = Composer.get_workspace!(workspace_id)
 
     case Composer.delete_workspace(workspace) do
       {:ok, _} ->
