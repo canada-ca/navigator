@@ -7,7 +7,7 @@ on:
 
 env:
   GITHUB_SHA: ${{ github.sha }}
-  REGISTRY: public.ecr.aws/cds-snc/valentine
+  REGISTRY: public.ecr.aws/cds-snc
   IMAGE_NAME: valentine
 
 permissions:
