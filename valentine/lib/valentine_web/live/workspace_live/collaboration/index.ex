@@ -11,8 +11,10 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.Index do
 
     {:ok,
      socket
-     |> assign(:workspace, workspace)
-     |> assign(:users, users)}
+     |> assign(:current_user, socket.assigns.current_user)
+     |> assign(:permission, socket.assigns.workspace_permission)
+     |> assign(:users, users)
+     |> assign(:workspace, workspace)}
   end
 
   @impl true
@@ -23,5 +25,19 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, gettext("Collaboration"))
+  end
+
+  @impl true
+  def handle_event("update_permission", %{"email" => email, "permission" => permission}, socket) do
+    if socket.assigns.workspace_permission == "owner" do
+      {:ok, workspace} =
+        Composer.update_workspace_permissions(socket.assigns.workspace, email, permission)
+
+      {:noreply,
+       socket
+       |> assign(:workspace, workspace)}
+    else
+      {:noreply, socket}
+    end
   end
 end

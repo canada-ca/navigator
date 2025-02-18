@@ -84,6 +84,39 @@ defmodule Valentine.ComposerTest do
       assert workspace == Composer.get_workspace!(workspace.id)
     end
 
+    test "update_workspace_permissions/2 with none permission removes an identity and updates the workspace permissions" do
+      workspace =
+        workspace_fixture(%{
+          permissions: %{"identity" => "permission", "another" => "permission"}
+        })
+
+      assert {:ok, %Workspace{} = workspace} =
+               Composer.update_workspace_permissions(workspace, "identity", "none")
+
+      assert workspace.permissions == %{"another" => "permission"}
+    end
+
+    test "update_workspace_permissions/2 with valid data updates the workspace permissions" do
+      workspace = workspace_fixture()
+
+      assert {:ok, %Workspace{} = workspace} =
+               Composer.update_workspace_permissions(workspace, "identity", "permission")
+
+      assert workspace.permissions == %{"identity" => "permission"}
+    end
+
+    test "update_workspace_permissions/2 with overwrites existing permissions" do
+      workspace =
+        workspace_fixture(%{
+          permissions: %{"identity" => "permission"}
+        })
+
+      assert {:ok, %Workspace{} = workspace} =
+               Composer.update_workspace_permissions(workspace, "identity", "another_permission")
+
+      assert workspace.permissions == %{"identity" => "another_permission"}
+    end
+
     test "delete_workspace/1 deletes the workspace" do
       workspace = workspace_fixture()
       assert {:ok, %Workspace{}} = Composer.delete_workspace(workspace)

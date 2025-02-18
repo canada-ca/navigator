@@ -1,3 +1,63 @@
 <.subhead>
   {gettext("Collaboration")}
 </.subhead>
+
+<%= if @permission != "owner" do %>
+  <.box>
+    <.blankslate is_large>
+      <:octicon name="hubot-24" />
+      <h3>
+        {gettext("You are not the owner of this workspace.")}
+      </h3>
+      <p>
+        {gettext(
+          "Your current permission level is: %{permission}",
+          permission: @permission
+        )}
+      </p>
+    </.blankslate>
+  </.box>
+<% else %>
+  <h3>{gettext("You are the owner of this workspace.")}</h3>
+
+  <.box id="users" row_id={fn r -> "user-#{r.id}" end} class="mt-4">
+    <:header>{gettext("Users available for collaboration")}</:header>
+    <:row :for={user <- @users} class="d-flex flex-items-center flex-justify-between">
+      <div style="width:100%">
+        <div class="clearfix">
+          <div class="float-left">
+            {user.email}
+          </div>
+          <div class="float-right">
+            <%= if user.email == @current_user do %>
+              {gettext("This is you")}
+            <% else %>
+              <form
+                id={"form-for-#{user.email}"}
+                phx-change="update_permission"
+                phx-value-email={user.email}
+              >
+                <.radio_tabs id_prefix={user.email}>
+                  <:radio_button
+                    name="permission"
+                    value="write"
+                    label={gettext("Write")}
+                    checked={@workspace.permissions[user.email] == "write"}
+                  >
+                  </:radio_button>
+                  <:radio_button
+                    name="permission"
+                    value="none"
+                    label={gettext("None")}
+                    checked={@workspace.permissions[user.email] == nil}
+                  >
+                  </:radio_button>
+                </.radio_tabs>
+              </form>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </:row>
+  </.box>
+<% end %>

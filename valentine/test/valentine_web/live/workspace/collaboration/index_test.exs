@@ -14,7 +14,9 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.IndexTest do
         touched: false,
         live_action: nil,
         flash: %{},
-        workspace_id: workspace.id
+        current_user: user.email,
+        workspace_id: workspace.id,
+        workspace_permission: "owner"
       }
     }
 
@@ -29,7 +31,8 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.IndexTest do
   describe "mount/3" do
     test "mounts the component and assigns the correct assigns", %{
       workspace_id: workspace_id,
-      socket: socket
+      socket: socket,
+      user: user
     } do
       {:ok, socket} =
         ValentineWeb.WorkspaceLive.Collaboration.Index.mount(
@@ -38,8 +41,10 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.IndexTest do
           socket
         )
 
+      assert socket.assigns.current_user == user.email
       assert socket.assigns.workspace_id == workspace_id
       assert length(socket.assigns.users) == 2
+      assert socket.assigns.permission == "owner"
     end
   end
 
@@ -58,6 +63,54 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.IndexTest do
         ValentineWeb.WorkspaceLive.Collaboration.Index.handle_params(nil, nil, socket)
 
       assert socket.assigns.page_title == "Collaboration"
+    end
+  end
+
+  describe "handle_event/3" do
+    test "does nothing if the user is not the owner" do
+      workspace = workspace_fixture()
+
+      socket = %Phoenix.LiveView.Socket{
+        assigns: %{
+          __changed__: %{},
+          live_action: nil,
+          flash: %{},
+          workspace_permission: "member",
+          workspace: workspace
+        }
+      }
+
+      {:noreply, socket} =
+        ValentineWeb.WorkspaceLive.Collaboration.Index.handle_event(
+          "update_permission",
+          %{"email" => "some.other.user@localhost", "permission" => "member"},
+          socket
+        )
+
+      assert socket.assigns.workspace == workspace
+    end
+
+    test "updates the workspace permission if the user is the owner" do
+      workspace = workspace_fixture()
+
+      socket = %Phoenix.LiveView.Socket{
+        assigns: %{
+          __changed__: %{},
+          live_action: nil,
+          flash: %{},
+          workspace_permission: "owner",
+          workspace: workspace
+        }
+      }
+
+      {:noreply, socket} =
+        ValentineWeb.WorkspaceLive.Collaboration.Index.handle_event(
+          "update_permission",
+          %{"email" => "some.other.user@localhost", "permission" => "member"},
+          socket
+        )
+
+      assert socket.assigns.workspace.permissions == %{"some.other.user@localhost" => "member"}
     end
   end
 end

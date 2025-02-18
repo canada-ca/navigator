@@ -116,6 +116,33 @@ defmodule Valentine.Composer do
   end
 
   @doc """
+    Updates workspace permissions.
+
+    ## Parameters
+      * workspace - The workspace to update
+      * indentity - The identity of the user to update permissions for
+      * permission - The new permission level for the user
+
+    ## Examples
+
+        iex> update_workspace_permissions(workspace, "some.owner@localhost", "owner")
+        %Workspace{permissions: %{"some.owner@localhost" => "owner"}}
+  """
+  def update_workspace_permissions(%Workspace{} = workspace, indentity, permission) do
+    case permission do
+      "none" ->
+        workspace
+        |> Workspace.changeset(%{permissions: Map.delete(workspace.permissions, indentity)})
+        |> Repo.update()
+
+      p ->
+        workspace
+        |> Workspace.changeset(%{permissions: Map.put(workspace.permissions, indentity, p)})
+        |> Repo.update()
+    end
+  end
+
+  @doc """
   Deletes a workspace.
 
   ## Examples
