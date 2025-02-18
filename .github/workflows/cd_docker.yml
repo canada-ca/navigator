@@ -35,9 +35,10 @@ jobs:
           registry-type: public
 
       - name: Build docker image
-        working-directory: ./valentine
         run: |
-          docker build -t $REGISTRY/$IMAGE_NAME:$GITHUB_SHA -t $REGISTRY/$IMAGE_NAME:latest .
+          make build
+          docker tag valentine $REGISTRY/$IMAGE_NAME:latest
+          docker tag valentine $REGISTRY/$IMAGE_NAME:$GITHUB_SHA
 
       - name: Push docker image to AWS ECR
         run: |
