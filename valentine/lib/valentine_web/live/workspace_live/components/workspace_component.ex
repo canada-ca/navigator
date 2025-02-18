@@ -10,7 +10,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.WorkspaceComponent do
         <div class="float-left">
           <.link navigate={~p"/workspaces/#{@workspace}"}>{@workspace.name}</.link>
         </div>
-        <div class="float-right">
+        <div :if={@current_user == @workspace.owner} class="float-right">
           <.button
             is_icon_button
             aria-label="Edit"

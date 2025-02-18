@@ -56,12 +56,15 @@ defmodule ValentineWeb.WorkspaceLive.FormComponentTest do
       assert socket.assigns.changeset.valid? == true
     end
 
-    test "updates an existing workspace", %{socket: socket} do
+    test "updates an existing workspace if the owner is editing", %{socket: socket} do
+      workspace = workspace_fixture()
+
       socket =
         Map.put(socket, :assigns, %{
           __changed__: %{},
           action: :edit,
-          workspace: workspace_fixture(),
+          workspace: workspace,
+          current_user: workspace.owner,
           flash: %{},
           patch: "/workspaces"
         })
@@ -77,12 +80,38 @@ defmodule ValentineWeb.WorkspaceLive.FormComponentTest do
       assert socket.assigns.patch == socket.assigns.patch
     end
 
-    test "returns a changeset for an existing workspace", %{socket: socket} do
+    test "does not update an existing workspace if the owner is not editing", %{socket: socket} do
+      workspace = workspace_fixture()
+
       socket =
         Map.put(socket, :assigns, %{
           __changed__: %{},
           action: :edit,
-          workspace: workspace_fixture(),
+          workspace: workspace,
+          current_user: "some user",
+          flash: %{},
+          patch: "/workspaces"
+        })
+
+      {:noreply, socket} =
+        FormComponent.handle_event(
+          "save",
+          %{"workspace" => %{content: "some updated content"}},
+          socket
+        )
+
+      assert socket.assigns.flash["error"] == "You are not the owner of this workspace"
+    end
+
+    test "returns a changeset for an existing workspace", %{socket: socket} do
+      workspace = workspace_fixture()
+
+      socket =
+        Map.put(socket, :assigns, %{
+          __changed__: %{},
+          action: :edit,
+          workspace: workspace,
+          current_user: workspace.owner,
           flash: %{},
           patch: "/workspaces"
         })

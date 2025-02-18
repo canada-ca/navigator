@@ -45,18 +45,22 @@ defmodule ValentineWeb.WorkspaceLive.Index do
   def handle_event("delete", %{"workspace_id" => workspace_id}, socket) do
     workspace = Composer.get_workspace!(workspace_id)
 
-    case Composer.delete_workspace(workspace) do
-      {:ok, _} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("Workspace deleted successfully"))
-         |> assign(
-           :workspaces,
-           Composer.list_workspaces_by_identity(socket.assigns.current_user)
-         )}
+    if workspace.owner == socket.assigns.current_user do
+      case Composer.delete_workspace(workspace) do
+        {:ok, _} ->
+          {:noreply,
+           socket
+           |> put_flash(:info, gettext("Workspace deleted successfully"))
+           |> assign(
+             :workspaces,
+             Composer.list_workspaces_by_identity(socket.assigns.current_user)
+           )}
 
-      {:error, _} ->
-        {:noreply, socket |> put_flash(:error, gettext("Failed to delete workspace"))}
+        {:error, _} ->
+          {:noreply, socket |> put_flash(:error, gettext("Failed to delete workspace"))}
+      end
+    else
+      {:noreply, socket |> put_flash(:error, gettext("You are not the owner of this workspace"))}
     end
   end
 

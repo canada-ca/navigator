@@ -119,17 +119,21 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
   end
 
   defp save_workspace(socket, :edit, workspace_params) do
-    case Composer.update_workspace(socket.assigns.workspace, workspace_params) do
-      {:ok, workspace} ->
-        notify_parent({:saved, workspace})
+    if socket.assigns.workspace.owner == socket.assigns.current_user do
+      case Composer.update_workspace(socket.assigns.workspace, workspace_params) do
+        {:ok, workspace} ->
+          notify_parent({:saved, workspace})
 
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("Workspace updated successfully"))
-         |> push_patch(to: socket.assigns.patch)}
+          {:noreply,
+           socket
+           |> put_flash(:info, gettext("Workspace updated successfully"))
+           |> push_patch(to: socket.assigns.patch)}
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :changeset, changeset)}
+        {:error, %Ecto.Changeset{} = changeset} ->
+          {:noreply, assign(socket, :changeset, changeset)}
+      end
+    else
+      {:noreply, put_flash(socket, :error, gettext("You are not the owner of this workspace"))}
     end
   end
 

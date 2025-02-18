@@ -106,6 +106,19 @@ defmodule ValentineWeb.WorkspaceLive.IndexTest do
       assert updated_socket.assigns.flash["info"] =~ "deleted successfully"
     end
 
+    test "does not delete if the user is not the owner", %{socket: socket, workspace: workspace} do
+      socket = put_in(socket.assigns.current_user, "not the owner")
+
+      {:noreply, updated_socket} =
+        ValentineWeb.WorkspaceLive.Index.handle_event(
+          "delete",
+          %{"workspace_id" => workspace.id},
+          socket
+        )
+
+      assert updated_socket.assigns.flash["error"] =~ "not the owner"
+    end
+
     test "handles delete error", %{socket: socket, workspace: workspace} do
       with_mock Composer,
         get_workspace!: fn _workspace_id -> workspace end,

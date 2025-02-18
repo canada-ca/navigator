@@ -53,7 +53,7 @@
 </.box>
 
 <.live_component
-  :if={@live_action in [:new, :edit]}
+  :if={@live_action == :new || (@live_action == :edit && @workspace.owner == @current_user)}
   module={ValentineWeb.WorkspaceLive.FormComponent}
   id={@workspace.id || :new}
   action={@live_action}
