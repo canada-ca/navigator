@@ -111,7 +111,7 @@ MICROSOFT_TENANT_ID=your-tenant-id
 ```
 
 
-In this case to access the `/workspaces` route you need to be authenticated with the IDP, but visiting `/auth/:provider`. Currently nothing is done with the user information from the provider, but you can use it to restrict access to the app.
+In this case to access the `/workspaces` route you need to be authenticated with the IDP, but visiting `/:provider/auth`.
 
 ## License
 
@@ -227,7 +227,7 @@ MICROSOFT_CLIENT_SECRET=votre-client-secret
 MICROSOFT_TENANT_ID=votre-tenant-id
 ```
 
-Dans ce cas, pour accéder à la route `/workspaces`, vous devez vous authentifier avec l'IDP en visitant `/auth/:provider`. Actuellement, rien n'est fait avec l'information utilisateur provenant du fournisseur, mais vous pouvez l'utiliser pour limiter l'accès à l'application.
+Dans ce cas, pour accéder à la route `/workspaces`, vous devez vous authentifier avec l'IDP en visitant `/:provider/auth`.
 
 ## Licence
 
