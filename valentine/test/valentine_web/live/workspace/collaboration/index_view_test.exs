@@ -41,9 +41,10 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.IndexViewTest do
       assert html =~ some_user.email
     end
 
-    test "states that a collaborator is not the owner", %{
+    test "states that a collaborator is not the owner and shares the owner", %{
       conn: conn,
       workspace_id: workspace_id,
+      user: user,
       some_user: some_user
     } do
       conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: some_user.email})
@@ -56,6 +57,7 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.IndexViewTest do
 
       assert html =~ "You are not the owner of this workspace."
       assert html =~ "write"
+      assert html =~ user.email
     end
 
     test "allows a owner to change the permssion level for a collaborator", %{

@@ -7,7 +7,9 @@
     <.blankslate is_large>
       <:octicon name="hubot-24" />
       <h3>
-        {gettext("You are not the owner of this workspace.")}
+        {gettext("You are not the owner of this workspace. %{owner} is the owner.",
+          owner: @workspace.owner
+        )}
       </h3>
       <p>
         {gettext(
