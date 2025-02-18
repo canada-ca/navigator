@@ -36,7 +36,7 @@ jobs:
 
       - name: Build docker image
         run: |
-          make build
+          make docker
           docker tag valentine $REGISTRY/$IMAGE_NAME:latest
           docker tag valentine $REGISTRY/$IMAGE_NAME:$GITHUB_SHA
 
