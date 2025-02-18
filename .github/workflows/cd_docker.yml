@@ -44,3 +44,18 @@ jobs:
         run: |
           docker push $REGISTRY/$IMAGE_NAME:$GITHUB_SHA
           docker push $REGISTRY/$IMAGE_NAME:latest
+
+  deploy-staging:
+    needs: build-and-push-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure aws credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: arn:aws:iam::975050085632:role/github-restart-cluster-role
+          role-session-name: ValentineGitHubActions
+          aws-region: "ca-central-1"
+
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service --cluster valentine-cluster --service valentine-service --force-new-deployment > /dev/null 2>&1
