@@ -22,6 +22,22 @@
 <% else %>
   <h3>{gettext("You are the owner of this workspace.")}</h3>
 
+  <p class="mt-2">
+    {gettext("You can set the following permissions:")}
+    <ul>
+      <li>
+        {gettext("Write: Can edit any aspect of the threat model.")}
+      </li>
+      <li>
+        {gettext("None: Cannot see or edit the threat model.")}
+      </li>
+    </ul>
+  </p>
+
+  <p>
+    {gettext("User will become available once the log in for the first time.")}
+  </p>
+
   <.box id="users" row_id={fn r -> "user-#{r.id}" end} class="mt-4">
     <:header>{gettext("Users available for collaboration")}</:header>
     <:row :for={user <- @users} class="d-flex flex-items-center flex-justify-between">
