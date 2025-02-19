@@ -62,6 +62,7 @@ defmodule Valentine.MixProject do
       {:ueberauth_cognito, "~> 0.3"},
       {:ueberauth_microsoft, "~> 0.23"},
       {:elixlsx, "~> 0.6.0"},
+      {:logger_formatter_json, "~> 0.8"},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
     ]
   end
