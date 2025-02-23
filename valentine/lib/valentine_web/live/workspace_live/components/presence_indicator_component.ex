@@ -87,10 +87,10 @@ defmodule ValentineWeb.WorkspaceLive.Components.PresenceIndicatorComponent do
   defp hash_to_hsl(hash) do
     # Hue: 0-360 degrees
     hue = rem(hash, 360)
-    # Saturation: 60-90%
-    saturation = 60 + rem(hash, 30)
-    # Lightness: 45-65%
-    lightness = 45 + rem(hash, 20)
+    # Saturation: 25-90%
+    saturation = 25 + rem(hash, 65)
+    # Lightness: 35-85%
+    lightness = 35 + rem(hash, 50)
 
     {hue, saturation, lightness}
   end
