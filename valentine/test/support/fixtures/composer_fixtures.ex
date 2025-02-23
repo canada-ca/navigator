@@ -102,8 +102,14 @@ defmodule Valentine.ComposerFixtures do
     mitigation
   end
 
-  def data_flow_diagram_fixture() do
-    workspace = workspace_fixture()
+  def data_flow_diagram_fixture(attr \\ %{}) do
+    workspace =
+      if attr[:workspace_id] do
+        Valentine.Composer.get_workspace!(attr[:workspace_id])
+      else
+        workspace_fixture()
+      end
+
     Valentine.Composer.DataFlowDiagram.get(workspace.id)
   end
 

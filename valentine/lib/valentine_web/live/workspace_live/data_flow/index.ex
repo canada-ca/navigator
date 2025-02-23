@@ -65,6 +65,14 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
   def handle_event("save", _params, socket) do
     DataFlowDiagram.save(socket.assigns.workspace_id)
 
+    log(
+      :info,
+      socket.assigns.current_user,
+      "save",
+      socket.assigns.workspace_id,
+      "data_flow_diagram"
+    )
+
     broadcast("workspace_dataflow:#{socket.assigns.workspace_id}", %{
       event: :saved,
       payload: %{}

@@ -18,6 +18,14 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Index do
   def handle_event("delete", %{"id" => collection_id, "type" => collection_type}, socket) do
     Composer.delete_reference_pack_collection(collection_id, collection_type)
 
+    log(
+      :info,
+      socket.assigns.current_user,
+      "delete",
+      %{workspace: socket.assigns.workspace_id, collection: collection_id},
+      "reference_pack"
+    )
+
     {:noreply,
      socket
      |> put_flash(:info, gettext("Reference pack deleted successfully"))

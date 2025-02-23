@@ -74,6 +74,7 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.ShowTest do
           __changed__: %{},
           live_action: nil,
           flash: %{},
+          current_user: workspace.owner,
           workspace_id: workspace.id,
           selected_references: [reference_pack_item.id]
         }

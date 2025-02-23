@@ -8,6 +8,8 @@ defmodule ValentineWeb.WorkspaceController do
 
     case ValentineWeb.Workspace.Excel.generate(workspace) do
       {:ok, {_filename, excel}} ->
+        log(:info, get_session(conn, :user_id), "downloaded excel", workspace.id, "workspace")
+
         send_download(
           conn,
           {:binary, excel},
@@ -26,6 +28,8 @@ defmodule ValentineWeb.WorkspaceController do
     workspace = get_workspace(workspace_id)
     {:ok, pdf} = ValentineWeb.Workspace.Pdf.generate(workspace)
 
+    log(:info, get_session(conn, :user_id), "downloaded pdf", workspace.id, "workspace")
+
     send_download(
       conn,
       {:binary, Base.decode64!(pdf)},
@@ -37,6 +41,8 @@ defmodule ValentineWeb.WorkspaceController do
   def export(conn, %{"workspace_id" => workspace_id}) do
     workspace = get_workspace(workspace_id)
     json = ValentineWeb.Workspace.Json.serialize_workspace(workspace)
+
+    log(:info, get_session(conn, :user_id), "exported json", workspace.id, "workspace")
 
     send_download(
       conn,
@@ -61,6 +67,8 @@ defmodule ValentineWeb.WorkspaceController do
         end)
     }
 
+    log(:info, get_session(conn, :user_id), "exported assumptions", workspace.id, "workspace")
+
     send_download(
       conn,
       {:binary, Jason.encode!(assumptions)},
@@ -84,6 +92,8 @@ defmodule ValentineWeb.WorkspaceController do
         end)
     }
 
+    log(:info, get_session(conn, :user_id), "exported mitigations", workspace.id, "workspace")
+
     send_download(
       conn,
       {:binary, Jason.encode!(mitigations)},
@@ -106,6 +116,8 @@ defmodule ValentineWeb.WorkspaceController do
           |> Map.delete(:mitigations)
         end)
     }
+
+    log(:info, get_session(conn, :user_id), "exported threats", workspace.id, "workspace")
 
     send_download(
       conn,

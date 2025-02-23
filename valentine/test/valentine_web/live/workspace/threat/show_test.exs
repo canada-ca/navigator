@@ -17,6 +17,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
         changes: nil,
         live_action: nil,
         flash: %{},
+        current_user: workspace.owner,
         threat: nil,
         toggle_goals: false,
         workspace_id: nil

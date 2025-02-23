@@ -48,6 +48,8 @@ defmodule ValentineWeb.WorkspaceLive.Index do
     if workspace.owner == socket.assigns.current_user do
       case Composer.delete_workspace(workspace) do
         {:ok, _} ->
+          log(:info, socket.assigns.current_user, "deleted", workspace.id, "workspace")
+
           {:noreply,
            socket
            |> put_flash(:info, gettext("Workspace deleted successfully"))

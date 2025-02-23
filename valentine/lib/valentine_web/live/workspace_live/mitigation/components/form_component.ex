@@ -89,6 +89,14 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponent do
       {:ok, mitigation} ->
         notify_parent({:saved, mitigation})
 
+        log(
+          :info,
+          socket.assigns.current_user,
+          "update",
+          %{mitigation: mitigation.id, workspace: mitigation.workspace_id},
+          "mitigation"
+        )
+
         {:noreply,
          socket
          |> put_flash(:info, gettext("Mitigation updated successfully"))
@@ -103,6 +111,14 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponent do
     case Composer.create_mitigation(mitigation_params) do
       {:ok, mitigation} ->
         notify_parent({:saved, mitigation})
+
+        log(
+          :info,
+          socket.assigns.current_user,
+          "create",
+          %{mitigation: mitigation.id, workspace: mitigation.workspace_id},
+          "mitigation"
+        )
 
         {:noreply,
          socket

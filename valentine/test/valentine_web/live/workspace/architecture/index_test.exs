@@ -4,22 +4,24 @@ defmodule ValentineWeb.WorkspaceLive.Architecture.IndexTest do
   import Valentine.ComposerFixtures
 
   setup do
-    architecture = architecture_fixture()
+    workspace = workspace_fixture()
+    architecture = architecture_fixture(workspace_id: workspace.id)
 
     socket = %Phoenix.LiveView.Socket{
       assigns: %{
         __changed__: %{},
         touched: false,
+        current_user: workspace.owner,
         live_action: nil,
         flash: %{},
-        workspace_id: architecture.workspace_id
+        workspace_id: workspace.id
       }
     }
 
     %{
       architecture: architecture,
       socket: socket,
-      workspace_id: architecture.workspace_id
+      workspace_id: workspace.id
     }
   end
 

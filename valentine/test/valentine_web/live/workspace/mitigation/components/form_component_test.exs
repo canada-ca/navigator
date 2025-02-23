@@ -7,8 +7,15 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponentTest do
   alias ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponent
 
   defp create_mitigation(_) do
-    mitigation = mitigation_fixture()
-    assigns = %{__changed__: %{}, mitigation: mitigation, id: "form-component"}
+    workspace = workspace_fixture()
+    mitigation = mitigation_fixture(%{workspace_id: workspace.id})
+
+    assigns = %{
+      __changed__: %{},
+      current_user: workspace.owner,
+      mitigation: mitigation,
+      id: "form-component"
+    }
 
     socket = %Phoenix.LiveView.Socket{
       assigns: assigns
@@ -63,12 +70,13 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponentTest do
       assert socket.assigns.changeset.valid? == true
     end
 
-    test "updates an existing mitigation", %{socket: socket} do
+    test "updates an existing mitigation", %{assigns: assigns, socket: socket} do
       socket =
         Map.put(socket, :assigns, %{
           __changed__: %{},
           action: :edit,
           mitigation: mitigation_fixture(),
+          current_user: assigns.current_user,
           flash: %{},
           patch:
             "/workspace/00000000-0000-0000-0000-000000000000/mitigation/00000000-0000-0000-0000-000000000000"
@@ -114,6 +122,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponentTest do
           mitigation: %Valentine.Composer.Mitigation{
             workspace_id: "00000000-0000-0000-0000-000000000000"
           },
+          current_user: assigns.current_user,
           flash: %{},
           patch:
             "/workspace/00000000-0000-0000-0000-000000000000/mitigation/00000000-0000-0000-0000-000000000000"

@@ -17,6 +17,8 @@ defmodule ValentineWeb.AuthController do
         Valentine.Composer.update_user(user, %{updated_at: DateTime.utc_now()})
     end
 
+    log(:info, auth.info.email, "logged in", auth.provider, "user")
+
     conn
     |> clear_session()
     |> put_session(:user_id, auth.info.email)

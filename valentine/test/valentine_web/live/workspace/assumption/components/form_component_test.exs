@@ -7,8 +7,15 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponentTest do
   alias ValentineWeb.WorkspaceLive.Assumption.Components.FormComponent
 
   defp create_assumption(_) do
-    assumption = assumption_fixture()
-    assigns = %{__changed__: %{}, assumption: assumption, id: "form-component"}
+    workspace = workspace_fixture()
+    assumption = assumption_fixture(%{workspace_id: workspace.id})
+
+    assigns = %{
+      __changed__: %{},
+      assumption: assumption,
+      current_user: workspace.owner,
+      id: "form-component"
+    }
 
     socket = %Phoenix.LiveView.Socket{
       assigns: assigns
@@ -64,11 +71,15 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponentTest do
     end
 
     test "updates an existing assumption", %{socket: socket} do
+      workspace = workspace_fixture()
+      assumption = assumption_fixture(%{workspace_id: workspace.id})
+
       socket =
         Map.put(socket, :assigns, %{
           __changed__: %{},
           action: :edit,
-          assumption: assumption_fixture(),
+          assumption: assumption,
+          current_user: workspace.owner,
           flash: %{},
           patch:
             "/workspace/00000000-0000-0000-0000-000000000000/assumption/00000000-0000-0000-0000-000000000000"
@@ -107,13 +118,16 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponentTest do
     end
 
     test "saves a new assumption", %{assigns: assigns, socket: socket} do
+      workspace = workspace_fixture()
+
       socket =
         Map.put(socket, :assigns, %{
           __changed__: %{},
           action: :new,
           assumption: %Valentine.Composer.Assumption{
-            workspace_id: "00000000-0000-0000-0000-000000000000"
+            workspace_id: workspace.id
           },
+          current_user: workspace.owner,
           flash: %{},
           patch:
             "/workspace/00000000-0000-0000-0000-000000000000/assumption/00000000-0000-0000-0000-000000000000"

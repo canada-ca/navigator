@@ -98,9 +98,25 @@ defmodule ValentineWeb.WorkspaceLive.ApplicationInformation.Index do
 
     case workspace.application_information do
       nil ->
+        log(
+          :info,
+          socket.assigns.current_user,
+          "created",
+          workspace.id,
+          "application information"
+        )
+
         Composer.create_application_information(%{content: content, workspace_id: workspace.id})
 
       _ ->
+        log(
+          :info,
+          socket.assigns.current_user,
+          "updated",
+          workspace.id,
+          "application information"
+        )
+
         Composer.update_application_information(workspace.application_information, %{
           content: content
         })

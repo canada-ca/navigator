@@ -85,9 +85,12 @@ defmodule ValentineWeb.WorkspaceLive.Architecture.Index do
 
     case workspace.architecture do
       nil ->
+        log(:info, socket.assigns.current_user, "created", workspace.id, "architecture")
         Composer.create_architecture(%{content: content, workspace_id: workspace.id})
 
       _ ->
+        log(:info, socket.assigns.current_user, "updated", workspace.id, "architecture")
+
         Composer.update_architecture(workspace.architecture, %{
           content: content
         })

@@ -51,6 +51,14 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
       threat ->
         case Composer.delete_threat(threat) do
           {:ok, _} ->
+            log(
+              :info,
+              socket.assigns.current_user,
+              "delete",
+              %{workspace: socket.assigns.workspace_id, threat: id},
+              "threat"
+            )
+
             # Remove this threat from the associated data flow diagrams
             Valentine.Composer.DataFlowDiagram.remove_linked_threats(
               socket.assigns.workspace_id,

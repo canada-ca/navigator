@@ -155,6 +155,14 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
       {:ok, threat} ->
         broadcast_threat_change(threat, "threat_updated")
 
+        log(
+          :info,
+          socket.assigns.current_user,
+          "update",
+          %{threat: threat.id, workspace: threat.workspace_id},
+          "threat"
+        )
+
         {:noreply,
          socket
          |> put_flash(:info, gettext("Threat updated successfully"))
@@ -169,6 +177,19 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
     case Composer.create_threat(socket.assigns.changes) do
       {:ok, threat} ->
         broadcast_threat_change(threat, "threat_created")
+
+        log(
+          :info,
+          socket.assigns.current_user,
+          "create",
+          %{threat: threat.id, workspace: threat.workspace_id},
+          "threat"
+        )
+
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Threat created successfully"))
+         |> push_navigate(to: ~p"/workspaces/#{threat.workspace_id}/threats/#{threat.id}")}
 
         {:noreply,
          socket

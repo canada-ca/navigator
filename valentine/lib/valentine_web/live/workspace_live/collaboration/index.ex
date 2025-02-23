@@ -30,6 +30,14 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.Index do
   @impl true
   def handle_event("update_permission", %{"email" => email, "permission" => permission}, socket) do
     if socket.assigns.workspace_permission == "owner" do
+      log(
+        :info,
+        socket.assigns.current_user,
+        permission,
+        %{workspace: socket.assigns.workspace.id, collaborator: email},
+        "collaboration"
+      )
+
       {:ok, workspace} =
         Composer.update_workspace_permissions(socket.assigns.workspace, email, permission)
 

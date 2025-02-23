@@ -69,6 +69,14 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Components.ImportComponent d
       end)
 
     if result == :ok do
+      log(
+        :info,
+        socket.assigns.current_user,
+        "import",
+        %{workspace: socket.assigns.workspace.id},
+        "reference_pack"
+      )
+
       {:noreply,
        socket
        |> put_flash(:info, "Reference pack imported successfully")

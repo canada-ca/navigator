@@ -46,6 +46,17 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Show do
         end
       end)
 
+    log(
+      :info,
+      socket.assigns.current_user,
+      "add_references",
+      %{
+        workspace: socket.assigns.workspace_id,
+        total: total
+      },
+      "reference_pack"
+    )
+
     {:noreply,
      socket
      |> put_flash(:info, gettext("Added %{total} reference items to workspace", total: total))

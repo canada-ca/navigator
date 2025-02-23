@@ -6,20 +6,22 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.IndexTest do
   import Valentine.ComposerFixtures
 
   setup do
-    assumption = assumption_fixture()
+    workspace = workspace_fixture()
+    assumption = assumption_fixture(%{workspace_id: workspace.id})
 
     socket = %Phoenix.LiveView.Socket{
       assigns: %{
         __changed__: %{},
         live_action: nil,
+        current_user: workspace.owner,
         flash: %{},
-        workspace_id: assumption.workspace_id
+        workspace_id: workspace.id
       }
     }
 
     {:ok, %{assumption: assumption, socket: socket}}
 
-    %{assumption: assumption, socket: socket, workspace_id: assumption.workspace_id}
+    %{assumption: assumption, socket: socket, workspace_id: workspace.id}
   end
 
   describe "mount/3" do

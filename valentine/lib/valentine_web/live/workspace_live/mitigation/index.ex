@@ -77,6 +77,14 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Index do
           {:ok, _} ->
             workspace = get_workspace(socket.assigns.workspace_id)
 
+            log(
+              :info,
+              socket.assigns.current_user,
+              "delete",
+              %{mitigation: mitigation.id, workspace: mitigation.workspace_id},
+              "mitigation"
+            )
+
             {:noreply,
              socket
              |> put_flash(:info, gettext("Mitigation deleted successfully"))

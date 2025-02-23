@@ -11,6 +11,7 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.IndexTest do
       assigns: %{
         __changed__: %{},
         live_action: nil,
+        current_user: workspace.owner,
         flash: %{},
         workspace_id: workspace.id
       }

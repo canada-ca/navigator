@@ -16,6 +16,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.IndexTest do
           live_action: nil,
           filters: %{},
           flash: %{},
+          current_user: workspace.owner,
           workspace_id: workspace.id
         }
       }

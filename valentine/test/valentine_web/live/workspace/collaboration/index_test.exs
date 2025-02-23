@@ -98,6 +98,7 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.IndexTest do
           __changed__: %{},
           live_action: nil,
           flash: %{},
+          current_user: workspace.owner,
           workspace_permission: "owner",
           workspace: workspace
         }

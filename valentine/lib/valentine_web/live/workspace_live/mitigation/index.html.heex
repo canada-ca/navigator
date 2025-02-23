@@ -63,6 +63,7 @@
   id={@mitigation.id || :new}
   action={@live_action}
   mitigation={@mitigation}
+  current_user={@current_user}
   patch={~p"/workspaces/#{@workspace_id}/mitigations"}
 />
 

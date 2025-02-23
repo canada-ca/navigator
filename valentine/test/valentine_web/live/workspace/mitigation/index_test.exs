@@ -14,6 +14,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.IndexTest do
         __changed__: %{},
         live_action: nil,
         flash: %{},
+        current_user: workspace.owner,
         workspace_id: mitigation.workspace_id,
         workspace: workspace
       }

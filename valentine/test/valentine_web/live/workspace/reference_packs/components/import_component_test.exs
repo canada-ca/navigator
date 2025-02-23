@@ -14,6 +14,7 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Components.ImportComponentTe
       __changed__: %{},
       flash: %{},
       workspace: workspace,
+      current_user: workspace.owner,
       patch: "/workspaces/#{workspace.id}/reference_packs",
       id: "import-component"
     }

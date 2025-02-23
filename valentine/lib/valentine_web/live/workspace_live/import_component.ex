@@ -69,6 +69,8 @@ defmodule ValentineWeb.WorkspaceLive.ImportComponent do
       end)
 
     if result == :ok do
+      log(:info, socket.assigns.current_user, "imported", msg, "workspace")
+
       {:noreply,
        socket
        |> put_flash(:info, "Workspace imported successfully")

@@ -89,6 +89,17 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponent do
       {:ok, assumption} ->
         notify_parent({:saved, assumption})
 
+        log(
+          :info,
+          socket.assigns.current_user,
+          "Assumption updated",
+          %{
+            assumption: assumption.id,
+            workspace: assumption.workspace_id
+          },
+          "assumptions"
+        )
+
         {:noreply,
          socket
          |> put_flash(:info, gettext("Assumption updated successfully"))
@@ -103,6 +114,14 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponent do
     case Composer.create_assumption(assumption_params) do
       {:ok, assumption} ->
         notify_parent({:saved, assumption})
+
+        log(
+          :info,
+          socket.assigns.current_user,
+          "Assumption created",
+          %{assumption: assumption.id, workspace: assumption.workspace_id},
+          "assumptions"
+        )
 
         {:noreply,
          socket

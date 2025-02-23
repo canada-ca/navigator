@@ -44,6 +44,7 @@ defmodule ValentineWeb do
 
       import Plug.Conn
       import ValentineWeb.Gettext
+      import ValentineWeb.Helpers.LogHelper, only: [log: 5]
 
       unquote(verified_routes())
     end
@@ -55,6 +56,7 @@ defmodule ValentineWeb do
         layout: {ValentineWeb.Layouts, :app}
 
       import ValentineWeb.Helpers.ChatHelper, only: [notify_chat: 4]
+      import ValentineWeb.Helpers.LogHelper, only: [log: 5]
 
       unquote(html_helpers())
     end
@@ -65,6 +67,7 @@ defmodule ValentineWeb do
       use Phoenix.LiveComponent
 
       import ValentineWeb.Helpers.FlashHelper, only: [put_flash!: 3]
+      import ValentineWeb.Helpers.LogHelper, only: [log: 5]
 
       unquote(html_helpers())
     end

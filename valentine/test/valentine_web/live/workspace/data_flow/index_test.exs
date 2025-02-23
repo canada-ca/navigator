@@ -4,22 +4,24 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.IndexTest do
   import Valentine.ComposerFixtures
 
   setup do
-    dfd = data_flow_diagram_fixture()
+    workspace = workspace_fixture()
+    dfd = data_flow_diagram_fixture(%{workspace_id: workspace.id})
 
     socket = %Phoenix.LiveView.Socket{
       assigns: %{
         __changed__: %{},
         live_action: nil,
         flash: %{},
+        current_user: workspace.owner,
         selected_elements: %{"nodes" => %{}, "edges" => %{}},
         show_threat_statement_generator: false,
         show_threat_statement_linker: false,
         touched: false,
-        workspace_id: dfd.workspace_id
+        workspace_id: workspace.id
       }
     }
 
-    %{dfd: dfd, socket: socket, workspace_id: dfd.workspace_id}
+    %{dfd: dfd, socket: socket, workspace_id: workspace.id}
   end
 
   describe "mount/3" do

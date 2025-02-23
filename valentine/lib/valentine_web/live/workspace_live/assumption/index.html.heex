@@ -46,6 +46,7 @@
   id={@assumption.id || :new}
   action={@live_action}
   assumption={@assumption}
+  current_user={@current_user}
   patch={~p"/workspaces/#{@workspace_id}/assumptions"}
 />
 

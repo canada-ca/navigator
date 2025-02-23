@@ -123,6 +123,7 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
       case Composer.update_workspace(socket.assigns.workspace, workspace_params) do
         {:ok, workspace} ->
           notify_parent({:saved, workspace})
+          log(:info, socket.assigns.current_user, "updated", workspace.id, "workspace")
 
           {:noreply,
            socket
@@ -143,6 +144,7 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
          ) do
       {:ok, workspace} ->
         notify_parent({:saved, workspace})
+        log(:info, socket.assigns.current_user, "created", workspace.id, "workspace")
 
         {:noreply,
          socket

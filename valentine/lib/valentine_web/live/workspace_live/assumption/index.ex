@@ -81,6 +81,17 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
       assumption ->
         case Composer.delete_assumption(assumption) do
           {:ok, _} ->
+            log(
+              :info,
+              socket.assigns.current_user,
+              "Deleted assumption",
+              %{
+                workspace_id: socket.assigns.workspace_id,
+                assumption_id: assumption.id
+              },
+              "assumption"
+            )
+
             workspace = get_workspace(socket.assigns.workspace_id)
 
             {:noreply,

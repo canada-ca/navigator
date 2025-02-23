@@ -15,6 +15,8 @@ defmodule ValentineWeb.SessionController do
   def logout(conn, _params) do
     user_id = get_session(conn, :user_id)
 
+    log(:info, user_id, "logged out", user_id, "user")
+
     ValentineWeb.Endpoint.broadcast("users_socket:#{user_id}", "disconnect", %{})
 
     conn
