@@ -13,7 +13,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.PresenceIndicatorComponent do
       <ul>
         <%= for {{key, %{metas: metas}}, index} <- @presence |> Enum.with_index() do %>
           <li :if={is_active(hd(metas), @active_module, @workspace_id)} title={get_name(key, index)}>
-            <.counter style={"color: #{get_colour(@current_user)}; background-color: #{get_colour(@current_user)}; #{get_border(key, @current_user)}"}>
+            <.counter style={"color: #{get_colour(key)}; background-color: #{get_colour(key)}; #{get_border(key, @current_user)}"}>
               {index}
             </.counter>
           </li>
@@ -87,10 +87,10 @@ defmodule ValentineWeb.WorkspaceLive.Components.PresenceIndicatorComponent do
   defp hash_to_hsl(hash) do
     # Hue: 0-360 degrees
     hue = rem(hash, 360)
-    # Saturation: 25-90%
-    saturation = 25 + rem(hash, 65)
-    # Lightness: 35-85%
-    lightness = 35 + rem(hash, 50)
+    # Saturation: 60-90%
+    saturation = 60 + rem(hash, 30)
+    # Lightness: 45-65%
+    lightness = 45 + rem(hash, 20)
 
     {hue, saturation, lightness}
   end
