@@ -12,102 +12,158 @@
   </:actions>
 </.subhead>
 <div class="clearfix">
-  <div class="col-12 col-md-4 float-left p-2">
-    <.box>
-      <:header_title>{gettext("Details")}</:header_title>
-      <:body>
-        <div class="f3">{@workspace.name}</div>
-        <div class="f5 mt-1">{gettext("Profile")}: {@workspace.cloud_profile}</div>
-        <div class="f5 mt-1">{gettext("Type")}: {@workspace.cloud_profile_type}</div>
-        <table class="summary">
-          <tr>
-            <td>{gettext("Total threats")}</td>
-            <td>{length(@workspace.threats)}</td>
-          </tr>
-          <tr>
-            <td class="inset">{gettext("High threats")}</td>
-            <td>{length(@workspace.threats |> Enum.filter(&(&1.priority == :high)))}</td>
-          </tr>
-          <tr>
-            <td class="inset">{gettext("Medium threats")}</td>
-            <td>{length(@workspace.threats |> Enum.filter(&(&1.priority == :medium)))}</td>
-          </tr>
-          <tr>
-            <td class="inset">{gettext("Low threats")}</td>
-            <td>{length(@workspace.threats |> Enum.filter(&(&1.priority == :low)))}</td>
-          </tr>
-          <tr>
-            <td class="inset">{gettext("Resolved")}</td>
-            <td>{length(@workspace.threats |> Enum.filter(&(&1.status == :resolved)))}</td>
-          </tr>
-          <tr>
-            <td>{gettext("Total assumptions")}</td>
-            <td>{length(@workspace.assumptions)}</td>
-          </tr>
-          <tr>
-            <td>{gettext("Total mitigations")}</td>
-            <td>{length(@workspace.mitigations)}</td>
-          </tr>
-          <tr>
-            <td class="inset">{gettext("Resolved")}</td>
-            <td>{length(@workspace.mitigations |> Enum.filter(&(&1.status == :resolved)))}</td>
-          </tr>
-        </table>
-      </:body>
-    </.box>
-  </div>
-  <div class="col-12 col-md-8 float-left">
-    <div class="clearfix">
-      <div class="float-left col-6 p-2">
-        <.box>
-          <:header_title>{gettext("Threats prioritization")}</:header_title>
-          <:body>
-            <.live_component
-              module={ValentineWeb.WorkspaceLive.Components.Charts.PieChartComponent}
-              id="threat-prioritization"
-              data={data_by_field(@workspace.threats, :priority)}
-            />
-          </:body>
-        </.box>
+  <%= if workspace_empty?(@workspace) do %>
+    <.blankslate class="color-bg-default">
+      <:octicon name="rocket-24" />
+      <h3>{gettext("Welcome to your new threat modeling workspace")}</h3>
+      <p class="mt-2">{gettext("Get started by doing some of the following")}</p>
+      <div id="dashboard-empty">
+        <ol class="dashboard-steps">
+          <li>
+            <span class="step-text">
+              <.as_link navigate={~p"/workspaces/#{@workspace_id}/application_information"}>
+                {gettext(
+                  "Tell us more about the application or feature you are threat modeling against"
+                )}
+              </.as_link>
+            </span>
+          </li>
+          <li>
+            <span class="step-text">
+              <.as_link navigate={~p"/workspaces/#{@workspace_id}/architecture"}>
+                {gettext("Describe the architecture of the application")}
+              </.as_link>
+            </span>
+          </li>
+          <li>
+            <span class="step-text">
+              <.as_link navigate={~p"/workspaces/#{@workspace_id}/data_flow"}>
+                {gettext("Add a data flow diagram")}
+              </.as_link>
+            </span>
+          </li>
+          <li>
+            <span class="step-text">
+              <.as_link navigate={~p"/workspaces/#{@workspace_id}/assumptions"}>
+                {gettext("What are you NOT threat modeling against by adding your assumptions")}
+              </.as_link>
+            </span>
+          </li>
+          <li>
+            <span class="step-text">
+              <.as_link navigate={~p"/workspaces/#{@workspace_id}/threats"}>
+                {gettext("Identify and build threats")}
+              </.as_link>
+            </span>
+          </li>
+          <li>
+            <span class="step-text">
+              <.as_link navigate={~p"/workspaces/#{@workspace_id}/mitigations"}>
+                {gettext("Prevent disaster by documenting your mitigations")}
+              </.as_link>
+            </span>
+          </li>
+        </ol>
       </div>
-      <div class="float-right col-6 p-2">
-        <.box>
-          <:header_title>{gettext("Threat status")}</:header_title>
-          <:body>
-            <.live_component
-              module={ValentineWeb.WorkspaceLive.Components.Charts.PieChartComponent}
-              id="threat-status"
-              data={data_by_field(@workspace.threats, :status)}
-            />
-          </:body>
-        </.box>
+    </.blankslate>
+  <% else %>
+    <div class="col-12 col-md-4 float-left p-2">
+      <.box>
+        <:header_title>{gettext("Details")}</:header_title>
+        <:body>
+          <div class="f3">{@workspace.name}</div>
+          <div class="f5 mt-1">{gettext("Profile")}: {@workspace.cloud_profile}</div>
+          <div class="f5 mt-1">{gettext("Type")}: {@workspace.cloud_profile_type}</div>
+          <table class="summary">
+            <tr>
+              <td>{gettext("Total threats")}</td>
+              <td>{length(@workspace.threats)}</td>
+            </tr>
+            <tr>
+              <td class="inset">{gettext("High threats")}</td>
+              <td>{length(@workspace.threats |> Enum.filter(&(&1.priority == :high)))}</td>
+            </tr>
+            <tr>
+              <td class="inset">{gettext("Medium threats")}</td>
+              <td>{length(@workspace.threats |> Enum.filter(&(&1.priority == :medium)))}</td>
+            </tr>
+            <tr>
+              <td class="inset">{gettext("Low threats")}</td>
+              <td>{length(@workspace.threats |> Enum.filter(&(&1.priority == :low)))}</td>
+            </tr>
+            <tr>
+              <td class="inset">{gettext("Resolved")}</td>
+              <td>{length(@workspace.threats |> Enum.filter(&(&1.status == :resolved)))}</td>
+            </tr>
+            <tr>
+              <td>{gettext("Total assumptions")}</td>
+              <td>{length(@workspace.assumptions)}</td>
+            </tr>
+            <tr>
+              <td>{gettext("Total mitigations")}</td>
+              <td>{length(@workspace.mitigations)}</td>
+            </tr>
+            <tr>
+              <td class="inset">{gettext("Resolved")}</td>
+              <td>{length(@workspace.mitigations |> Enum.filter(&(&1.status == :resolved)))}</td>
+            </tr>
+          </table>
+        </:body>
+      </.box>
+    </div>
+    <div class="col-12 col-md-8 float-left">
+      <div class="clearfix">
+        <div class="float-left col-6 p-2">
+          <.box>
+            <:header_title>{gettext("Threats prioritization")}</:header_title>
+            <:body>
+              <.live_component
+                module={ValentineWeb.WorkspaceLive.Components.Charts.PieChartComponent}
+                id="threat-prioritization"
+                data={data_by_field(@workspace.threats, :priority)}
+              />
+            </:body>
+          </.box>
+        </div>
+        <div class="float-right col-6 p-2">
+          <.box>
+            <:header_title>{gettext("Threat status")}</:header_title>
+            <:body>
+              <.live_component
+                module={ValentineWeb.WorkspaceLive.Components.Charts.PieChartComponent}
+                id="threat-status"
+                data={data_by_field(@workspace.threats, :status)}
+              />
+            </:body>
+          </.box>
+        </div>
+      </div>
+      <div class="clearfix">
+        <div class="float-left col-6 p-2">
+          <.box>
+            <:header_title>{gettext("Threat STRIDE distribution")}</:header_title>
+            <:body>
+              <.live_component
+                module={ValentineWeb.WorkspaceLive.Components.Charts.BarChartComponent}
+                id="threat-stride-distribution"
+                data={threat_stride_count(@workspace.threats)}
+              />
+            </:body>
+          </.box>
+        </div>
+        <div class="float-right col-6 p-2">
+          <.box>
+            <:header_title>{gettext("Mitigation status")}</:header_title>
+            <:body>
+              <.live_component
+                module={ValentineWeb.WorkspaceLive.Components.Charts.PieChartComponent}
+                id="mitigation-status"
+                data={data_by_field(@workspace.mitigations, :status)}
+              />
+            </:body>
+          </.box>
+        </div>
       </div>
     </div>
-    <div class="clearfix">
-      <div class="float-left col-6 p-2">
-        <.box>
-          <:header_title>{gettext("Threat STRIDE distribution")}</:header_title>
-          <:body>
-            <.live_component
-              module={ValentineWeb.WorkspaceLive.Components.Charts.BarChartComponent}
-              id="threat-stride-distribution"
-              data={threat_stride_count(@workspace.threats)}
-            />
-          </:body>
-        </.box>
-      </div>
-      <div class="float-right col-6 p-2">
-        <.box>
-          <:header_title>{gettext("Mitigation status")}</:header_title>
-          <:body>
-            <.live_component
-              module={ValentineWeb.WorkspaceLive.Components.Charts.PieChartComponent}
-              id="mitigation-status"
-              data={data_by_field(@workspace.mitigations, :status)}
-            />
-          </:body>
-        </.box>
-      </div>
-    </div>
-  </div>
+  <% end %>
 </div>

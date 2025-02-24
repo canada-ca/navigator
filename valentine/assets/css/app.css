@@ -501,3 +501,37 @@ ul {
     min-width: 0.5rem;
     padding: 0;
 }
+
+#dashboard-empty {
+    display: flex;
+    justify-content: center;
+    padding: 1rem 0;
+}
+
+.dashboard-steps {
+    border: #c9d1d9 1px dashed;
+    list-style: decimal;
+    display: inline-block;
+    max-width: 600px;
+    text-align: left;
+    padding: 1.5rem 2rem 1rem;
+    background-color: var(--color-canvas-subtle);
+    border-radius: 6px;
+}
+
+.dashboard-steps li {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: var(--color-fg-default);
+    position: relative;
+    padding-left: 0.5rem;
+}
+
+.dashboard-steps li:last-child {
+    margin-bottom: 0;
+}
+
+.step-text {
+    font-weight: 500;
+    line-height: 1.4;
+}

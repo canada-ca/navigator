@@ -56,4 +56,10 @@ defmodule ValentineWeb.WorkspaceLive.Show do
     |> Enum.map(fn {category, count} -> {Phoenix.Naming.humanize(category), count} end)
     |> Map.new()
   end
+
+  defp workspace_empty?(workspace) do
+    Enum.empty?(workspace.assumptions) &&
+      Enum.empty?(workspace.threats) &&
+      Enum.empty?(workspace.mitigations)
+  end
 end

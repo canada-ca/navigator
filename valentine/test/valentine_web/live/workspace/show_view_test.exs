@@ -6,9 +6,10 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
 
   defp create_workspace(_) do
     workspace = workspace_fixture()
+    assumption = assumption_fixture(%{workspace_id: workspace.id})
     threat = threat_fixture()
     mitigation = mitigation_fixture()
-    %{mitigation: mitigation, threat: threat, workspace: workspace}
+    %{assumption: assumption, mitigation: mitigation, threat: threat, workspace: workspace}
   end
 
   describe "Show" do
@@ -26,6 +27,17 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
       assert html =~ workspace.name
     end
 
+    test "displays a get started dashboard if no assumptions, mitigations, or threats exist", %{
+      conn: conn
+    } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+      workspace = workspace_fixture()
+
+      {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{workspace.id}")
+
+      assert html =~ "Get started"
+    end
+
     test "display workspace cloud profile", %{conn: conn, workspace: workspace} do
       conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
 
@@ -35,10 +47,14 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
       assert html =~ workspace.cloud_profile
     end
 
-    test "display workspace cloud profile type", %{conn: conn, workspace: workspace} do
+    test "display workspace cloud profile type", %{
+      conn: conn,
+      assumption: assumption,
+      workspace: workspace
+    } do
       conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
 
-      {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{workspace.id}")
+      {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{assumption.workspace_id}")
 
       assert html =~ "Type"
       assert html =~ workspace.cloud_profile_type
