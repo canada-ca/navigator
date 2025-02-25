@@ -45,7 +45,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
             }
             id={"linked-mitigation-assumptions-#{@mitigation.id}"}
           >
-            <.octicon name="discussion-closed-16" />
+            <.octicon name="discussion-closed-16" /> {gettext("Assumptions")}
             <.counter>{assoc_length(@mitigation.assumptions)}</.counter>
           </.button>
           <.button
@@ -58,7 +58,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
             }
             id={"linked-mitigation-threats-#{@mitigation.id}"}
           >
-            <.octicon name="squirrel-16" />
+            <.octicon name="squirrel-16" /> {gettext("Threats")}
             <.counter>{assoc_length(@mitigation.threats)}</.counter>
           </.button>
           <.button

@@ -30,7 +30,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
             }
             id={"linked-assumption-threats-#{@assumption.id}"}
           >
-            <.octicon name="squirrel-16" />
+            <.octicon name="squirrel-16" /> {gettext("Threats")}
             <.counter>{assoc_length(@assumption.threats)}</.counter>
           </.button>
           <.button
@@ -43,7 +43,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
             }
             id={"linked-assumption-mitigations-#{@assumption.id}"}
           >
-            <.octicon name="check-circle-16" />
+            <.octicon name="check-circle-16" /> {gettext("Mitigations")}
             <.counter>{assoc_length(@assumption.mitigations)}</.counter>
           </.button>
           <.button

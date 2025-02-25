@@ -59,7 +59,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
               }
               id={"linked-threat-assumptions-#{@threat.id}"}
             >
-              <.octicon name="discussion-closed-16" />
+              <.octicon name="discussion-closed-16" /> {gettext("Assumptions")}
               <.counter>{assoc_length(@threat.assumptions)}</.counter>
             </.button>
             <.button
@@ -70,7 +70,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
               }
               id={"linked-threat-mitigations-#{@threat.id}"}
             >
-              <.octicon name="check-circle-16" />
+              <.octicon name="check-circle-16" /> {gettext("Mitigations")}
               <.counter>{assoc_length(@threat.mitigations)}</.counter>
             </.button>
             <.button
