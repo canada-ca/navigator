@@ -14,6 +14,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponentTest do
       __changed__: %{},
       assumption: assumption,
       current_user: workspace.owner,
+      on_cancel: "/workspace/00000000-0000-0000-0000-000000000000/assumptions",
       id: "form-component"
     }
 
@@ -82,7 +83,8 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponentTest do
           current_user: workspace.owner,
           flash: %{},
           patch:
-            "/workspace/00000000-0000-0000-0000-000000000000/assumption/00000000-0000-0000-0000-000000000000"
+            "/workspace/00000000-0000-0000-0000-000000000000/assumption/00000000-0000-0000-0000-000000000000",
+          on_canel: "/workspace/00000000-0000-0000-0000-000000000000/assumptions"
         })
 
       {:noreply, socket} =
@@ -104,7 +106,8 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponentTest do
           assumption: assumption_fixture(),
           flash: %{},
           patch:
-            "/workspace/00000000-0000-0000-0000-000000000000/assumption/00000000-0000-0000-0000-000000000000"
+            "/workspace/00000000-0000-0000-0000-000000000000/assumption/00000000-0000-0000-0000-000000000000",
+          on_canel: "/workspace/00000000-0000-0000-0000-000000000000/assumptions"
         })
 
       {:noreply, socket} =

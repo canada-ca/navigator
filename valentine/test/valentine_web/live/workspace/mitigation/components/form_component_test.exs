@@ -14,6 +14,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponentTest do
       __changed__: %{},
       current_user: workspace.owner,
       mitigation: mitigation,
+      on_cancel: "/workspace/00000000-0000-0000-0000-000000000000/mitigations",
       id: "form-component"
     }
 
@@ -78,6 +79,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponentTest do
           mitigation: mitigation_fixture(),
           current_user: assigns.current_user,
           flash: %{},
+          on_cancel: "/workspace/00000000-0000-0000-0000-000000000000/mitigations",
           patch:
             "/workspace/00000000-0000-0000-0000-000000000000/mitigation/00000000-0000-0000-0000-000000000000"
         })
@@ -100,6 +102,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponentTest do
           action: :edit,
           mitigation: mitigation_fixture(),
           flash: %{},
+          on_cancel: "/workspace/00000000-0000-0000-0000-000000000000/mitigations",
           patch:
             "/workspace/00000000-0000-0000-0000-000000000000/mitigation/00000000-0000-0000-0000-000000000000"
         })

@@ -314,7 +314,39 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
     end
   end
 
-  describe "handle_info/2 to add an assumption to a thread" do
+  describe "hande_info/2 to add a newely created assumption to a threat" do
+    test "adds a newly created assumption to a threat", %{socket: socket, threat: threat} do
+      socket = put_in(socket.assigns.threat, threat)
+
+      assumption = assumption_fixture()
+
+      {:noreply, updated_socket} =
+        ValentineWeb.WorkspaceLive.Threat.Show.handle_info(
+          {"assumptions", {:saved, assumption}},
+          socket
+        )
+
+      assert updated_socket.assigns.threat.assumptions == [assumption]
+    end
+  end
+
+  describe "hande_info/2 to add a newely created mitigation to a threat" do
+    test "adds a newly created mitigation to a threat", %{socket: socket, threat: threat} do
+      socket = put_in(socket.assigns.threat, threat)
+
+      mitigation = mitigation_fixture()
+
+      {:noreply, updated_socket} =
+        ValentineWeb.WorkspaceLive.Threat.Show.handle_info(
+          {"mitigations", {:saved, mitigation}},
+          socket
+        )
+
+      assert updated_socket.assigns.threat.mitigations == [mitigation]
+    end
+  end
+
+  describe "handle_info/2 to add an assumption to a threat" do
     test "adds an assumption to a threat", %{socket: socket, threat: threat} do
       socket = put_in(socket.assigns.threat, threat)
 
@@ -330,7 +362,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
     end
   end
 
-  describe "handle_info/2 to add a mitigation to a thread" do
+  describe "handle_info/2 to add a mitigation to a threat" do
     test "adds an mitigation to a threat", %{socket: socket, threat: threat} do
       socket = put_in(socket.assigns.threat, threat)
 

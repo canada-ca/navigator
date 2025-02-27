@@ -3,6 +3,8 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
   use PrimerLive
 
   alias Valentine.Composer
+  alias Valentine.Composer.Assumption
+  alias Valentine.Composer.Mitigation
   alias Valentine.Composer.Threat
   alias Valentine.Repo
 
@@ -45,6 +47,16 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
     |> assign(:page_title, gettext("Edit threat statement"))
     |> assign(:threat, threat)
     |> assign(:changes, Map.from_struct(threat))
+  end
+
+  defp apply_action(socket, :new_assumption, params) do
+    apply_action(socket, :edit, params)
+    |> assign(:assumption, %Assumption{workspace_id: socket.assigns.workspace_id})
+  end
+
+  defp apply_action(socket, :new_mitigation, params) do
+    apply_action(socket, :edit, params)
+    |> assign(:mitigation, %Mitigation{workspace_id: socket.assigns.workspace_id})
   end
 
   def handle_event("save", _params, socket) do
@@ -124,6 +136,27 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
     mitigation = Composer.get_mitigation!(id)
 
     {:ok, threat} = Composer.remove_mitigation_from_threat(threat, mitigation)
+
+    {:noreply, assign(socket, :threat, threat)}
+  end
+
+  @impl true
+  def handle_info(
+        {_, {:saved, assumption = %Assumption{}}},
+        socket
+      ) do
+    threat = socket.assigns.threat
+    {:ok, threat} = Composer.add_assumption_to_threat(threat, assumption)
+
+    {:noreply, assign(socket, :threat, threat)}
+  end
+
+  def handle_info(
+        {_, {:saved, mitigation = %Mitigation{}}},
+        socket
+      ) do
+    threat = socket.assigns.threat
+    {:ok, threat} = Composer.add_mitigation_to_threat(threat, mitigation)
 
     {:noreply, assign(socket, :threat, threat)}
   end

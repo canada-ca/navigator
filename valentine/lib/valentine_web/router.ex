@@ -127,9 +127,17 @@ defmodule ValentineWeb.Router do
       live "/workspaces/:workspace_id/threats/new", WorkspaceLive.Threat.Show, :new
       live "/workspaces/:workspace_id/threats/:id", WorkspaceLive.Threat.Show, :edit
 
+      live "/workspaces/:workspace_id/threats/:id/assumption",
+           WorkspaceLive.Threat.Show,
+           :new_assumption
+
       live "/workspaces/:workspace_id/threats/:id/assumptions",
            WorkspaceLive.Threat.Index,
            :assumptions
+
+      live "/workspaces/:workspace_id/threats/:id/mitigation",
+           WorkspaceLive.Threat.Show,
+           :new_mitigation
 
       live "/workspaces/:workspace_id/threats/:id/mitigations",
            WorkspaceLive.Threat.Index,

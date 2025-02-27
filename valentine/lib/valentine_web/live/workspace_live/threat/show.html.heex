@@ -189,6 +189,18 @@
       title={gettext("Linked Assumptions")}
       count={@threat.assumptions |> Enum.count()}
     >
+      <:button>
+        <.button
+          is_primary
+          aria-label="New assumption"
+          phx-click={
+            JS.patch(~p"/workspaces/#{@threat.workspace_id}/threats/#{@threat.id}/assumption")
+          }
+          id={"linked-threat-assumptions-#{@threat.id}"}
+        >
+          {gettext("New assumption")}
+        </.button>
+      </:button>
       <:content>
         <div class="mt-2">
           <.live_component
@@ -219,6 +231,18 @@
       title={gettext("Linked Mitigations")}
       count={@threat.mitigations |> Enum.count()}
     >
+      <:button>
+        <.button
+          is_primary
+          aria-label="New mitigation"
+          phx-click={
+            JS.patch(~p"/workspaces/#{@threat.workspace_id}/threats/#{@threat.id}/mitigation")
+          }
+          id={"linked-threat-mitigations-#{@threat.id}"}
+        >
+          {gettext("New mitigation")}
+        </.button>
+      </:button>
       <:content>
         <div class="mt-2">
           <.live_component
@@ -344,3 +368,25 @@
     </ul>
   </div>
 </div>
+
+<.live_component
+  :if={@live_action in [:new_assumption]}
+  module={ValentineWeb.WorkspaceLive.Assumption.Components.FormComponent}
+  id={:new_assumption}
+  action={:new}
+  assumption={@assumption}
+  current_user={@current_user}
+  patch={~p"/workspaces/#{@threat.workspace_id}/threats/#{@threat.id}"}
+  on_cancel={~p"/workspaces/#{@threat.workspace_id}/threats/#{@threat.id}"}
+/>
+
+<.live_component
+  :if={@live_action in [:new_mitigation]}
+  module={ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponent}
+  id={:new_mitigation}
+  action={:new}
+  mitigation={@mitigation}
+  current_user={@current_user}
+  patch={~p"/workspaces/#{@threat.workspace_id}/threats/#{@threat.id}"}
+  on_cancel={~p"/workspaces/#{@threat.workspace_id}/threats/#{@threat.id}"}
+/>

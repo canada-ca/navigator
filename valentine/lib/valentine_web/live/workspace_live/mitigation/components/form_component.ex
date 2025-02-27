@@ -16,13 +16,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponent do
         phx-change="validate"
         phx-submit="save"
       >
-        <.dialog
-          id="mitigation-modal"
-          is_backdrop
-          is_show
-          is_wide
-          on_cancel={JS.patch(~p"/workspaces/#{@mitigation.workspace_id}/mitigations")}
-        >
+        <.dialog id="mitigation-modal" is_backdrop is_show is_wide on_cancel={JS.patch(@on_cancel)}>
           <:header_title>
             <%= if @mitigation.id do %>
               {gettext("Edit Mitigation")}
