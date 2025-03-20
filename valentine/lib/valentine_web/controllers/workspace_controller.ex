@@ -24,6 +24,20 @@ defmodule ValentineWeb.WorkspaceController do
     end
   end
 
+  def markdown(conn, %{"workspace_id" => workspace_id}) do
+    workspace = get_workspace(workspace_id)
+    markdown = ValentineWeb.Workspace.Markdown.generate(workspace)
+
+    log(:info, get_session(conn, :user_id), "downloaded markdown", workspace.id, "workspace")
+
+    send_download(
+      conn,
+      {:binary, markdown},
+      content_type: "text/markdown",
+      filename: "Threat model for #{workspace.name}.md"
+    )
+  end
+
   def pdf(conn, %{"workspace_id" => workspace_id}) do
     workspace = get_workspace(workspace_id)
     {:ok, pdf} = ValentineWeb.Workspace.Pdf.generate(workspace)
