@@ -36,6 +36,19 @@
       ]}
       filters={@filters}
     />
+    <.live_component
+      module={ValentineWeb.WorkspaceLive.Components.FilterComponent}
+      id="class-filter"
+      class="mx-1"
+      icon="screen-normal"
+      name={:class}
+      values={[
+        "Management",
+        "Operational",
+        "Technical"
+      ]}
+      filters={@filters}
+    />
   </:header>
 
   <div class="clearfix">

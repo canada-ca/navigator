@@ -1042,14 +1042,20 @@ defmodule Valentine.ComposerTest do
       assert Composer.list_controls() == [control]
     end
 
-    test "list_controls_by_tags/1 returns all controls with given tags" do
+    test "list_controls_by_tags/2 returns all controls with given tags" do
       control = control_fixture(tags: ["tag1", "tag2"])
       assert Composer.list_controls_by_tags(control.tags) == [control]
     end
 
-    test "list_controls_by_tags/1 returns all controls with given tags and not other controls" do
+    test "list_controls_by_tags/2 returns all controls with given tags and not other controls" do
       control_fixture(tags: ["tag1", "tag2"])
       assert Composer.list_controls_by_tags(["tag3"]) == []
+    end
+
+    test "list controls_by_tags/2, will optionally filter by class as well" do
+      control = control_fixture(tags: ["tag1", "tag2"], class: "some class")
+      control_fixture(tags: ["tag1", "tag2"], class: "other class")
+      assert Composer.list_controls_by_tags(control.tags, ["some class"]) == [control]
     end
 
     test "list_control_families/0 returns all control families" do

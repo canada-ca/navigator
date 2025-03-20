@@ -10,6 +10,7 @@ defmodule ValentineWeb.WorkspaceLive.SRTM.Index do
     workspace = get_workspace(workspace_id)
 
     filters = %{
+      class: [],
       profile: [workspace.cloud_profile],
       type: [workspace.cloud_profile_type]
     }
@@ -116,8 +117,11 @@ defmodule ValentineWeb.WorkspaceLive.SRTM.Index do
       "Client SaaS"
     ]
 
-    filters = Map.values(filters) |> List.flatten() |> Enum.filter(&(&1 in valid_tags))
-    Composer.list_controls_by_tags(filters)
+    filters
+    |> Map.values()
+    |> List.flatten()
+    |> Enum.filter(&(&1 in valid_tags))
+    |> Composer.list_controls_by_tags(filters[:class])
   end
 
   defp get_workspace(id) do

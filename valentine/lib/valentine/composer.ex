@@ -1316,10 +1316,21 @@ defmodule Valentine.Composer do
     |> Repo.all()
   end
 
-  def list_controls_by_tags(tags) when is_list(tags) do
-    from(c in Control,
-      where: fragment("?::text[] <@ ?::text[]", ^tags, c.tags)
-    )
+  def list_controls_by_tags(tags, classes \\ []) when is_list(tags) do
+    query =
+      from(c in Control,
+        where: fragment("?::text[] <@ ?::text[]", ^tags, c.tags)
+      )
+
+    # Apply class filter only if the classes list is not empty
+    query =
+      if classes != [] and classes != nil do
+        from(c in query, where: c.class in ^classes)
+      else
+        query
+      end
+
+    query
     |> sort_hierarchical_strings(:nist_id)
     |> Repo.all()
   end
