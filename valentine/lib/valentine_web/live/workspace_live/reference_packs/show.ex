@@ -14,6 +14,8 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Show do
         _session,
         socket
       ) do
+    workspace = Composer.get_workspace!(workspace_id)
+
     {:ok,
      socket
      |> assign(
@@ -21,7 +23,8 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Show do
        Composer.list_reference_pack_items_by_collection(collection_id, collection_type)
      )
      |> assign(:selected_references, [])
-     |> assign(:workspace_id, workspace_id)}
+     |> assign(:workspace_id, workspace_id)
+     |> assign(:workspace, workspace)}
   end
 
   @impl true

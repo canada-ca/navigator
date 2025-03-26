@@ -19,7 +19,8 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
      |> assign(:active_type, nil)
      |> assign(:errors, nil)
      |> assign(:toggle_goals, false)
-     |> assign(:workspace_id, workspace.id)}
+     |> assign(:workspace_id, workspace.id)
+     |> assign(:workspace, workspace)}
   end
 
   @impl true

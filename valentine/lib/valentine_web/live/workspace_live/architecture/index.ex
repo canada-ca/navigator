@@ -28,7 +28,8 @@ defmodule ValentineWeb.WorkspaceLive.Architecture.Index do
        workspace.architecture || %Composer.Architecture{}
      )
      |> assign(:touched, false)
-     |> assign(:workspace_id, workspace_id)}
+     |> assign(:workspace_id, workspace_id)
+     |> assign(:workspace, workspace)}
   end
 
   @impl true

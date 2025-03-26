@@ -28,7 +28,8 @@ defmodule ValentineWeb.WorkspaceLive.ApplicationInformation.Index do
        workspace.application_information || %Composer.ApplicationInformation{}
      )
      |> assign(:touched, false)
-     |> assign(:workspace_id, workspace_id)}
+     |> assign(:workspace_id, workspace_id)
+     |> assign(:workspace, workspace)}
   end
 
   @impl true

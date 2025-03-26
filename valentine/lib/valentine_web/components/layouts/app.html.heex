@@ -293,7 +293,10 @@
           navigate={~p"/workspaces/#{@workspace_id}/collaboration"}
           class="d-flex flex-items-center flex-justify-between"
         >
-          <span><.octicon name="people-16" /> {gettext("Collaboration")}</span>
+          <span>
+            <.octicon name="people-16" /> {gettext("Collaboration")}
+            <.counter>{@workspace.permissions |> Map.keys() |> length}</.counter>
+          </span>
           <ValentineWeb.WorkspaceLive.Components.PresenceIndicatorComponent.render
             current_user={@current_user}
             presence={@presence}

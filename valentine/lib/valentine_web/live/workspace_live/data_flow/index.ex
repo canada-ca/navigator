@@ -28,7 +28,8 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
      |> assign(:show_threat_statement_generator, false)
      |> assign(:show_threat_statement_linker, false)
      |> assign(:touched, true)
-     |> assign(:workspace_id, workspace_id)}
+     |> assign(:workspace_id, workspace_id)
+     |> assign(:workspace, workspace)}
   end
 
   @impl true
