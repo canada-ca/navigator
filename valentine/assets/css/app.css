@@ -358,6 +358,14 @@ div:has(> button.rtl-btn) {
     background-color: var(--color-canvas-default);
 }
 
+/* Footer adjustments */
+.footer {
+    position: relative;
+    height: 100vh;
+    bottom: 0;
+    background-color: var(--color-canvas-default);
+}
+
 /* Main content adjustment when drawer is visible */
 #far_side_drawer[style*="display: block"]+.flex-auto {
     margin-right: 25%;
