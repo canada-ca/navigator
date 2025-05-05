@@ -1,14 +1,14 @@
-# 🍁 Valentine
+# 🍁 Navigator
 
 [La version française suit.](#---------------------------------------------------------------------)
 
-![Lint, format, and test workflow](https://github.com/canada-ca/valentine/actions/workflows/ci_code.yml/badge.svg)
+![Lint, format, and test workflow](https://github.com/canada-ca/navigator/actions/workflows/ci_code.yml/badge.svg)
 
-Valentine is a real-time collaborative threat modeling tool that combines human expertise with generative AI to streamline the security design process while maintaining simplicity and rigor.
+Navigator is a real-time collaborative threat modeling tool that combines human expertise with generative AI to streamline the security design process while maintaining simplicity and rigor.
 
-![Screenshot of a data flow diagram in Valentine](screenshots/data_flow_diagram.png)
+![Screenshot of a data flow diagram in Navigator](screenshots/data_flow_diagram.png)
 
-IMPORTANT: This project is undergoing active development and may experience breaking changes. This project is also still missing feature and has bugs. Please review the [issues](https://github.com/canada-ca/valentine/issues) for more information. If you have any specific questions, please contact [max.neuvians@cds-snc.ca](mailto:max.neuvians@cds-snc.ca).
+IMPORTANT: This project is undergoing active development and may experience breaking changes. This project is also still missing feature and has bugs. Please review the [issues](https://github.com/canada-ca/navigator/issues) for more information. If you have any specific questions, please contact [max.neuvians@cds-snc.ca](mailto:max.neuvians@cds-snc.ca).
 
 ## Features
 
@@ -26,15 +26,15 @@ If you prefer images over text you can look at the [gallery](screenshots/GALLERY
 
 ## Rationale
 
-Valentine offers an alternative to the compliance-driven security approach commonly practiced in large organizations. In teams following agile development practices, compliance-driven security often creates a bottleneck: controls must either be determined before development begins or after it concludes. This paradigm positions security as an obstacle to development rather than a collaborative partner in the process.
+Navigator offers an alternative to the compliance-driven security approach commonly practiced in large organizations. In teams following agile development practices, compliance-driven security often creates a bottleneck: controls must either be determined before development begins or after it concludes. This paradigm positions security as an obstacle to development rather than a collaborative partner in the process.
 
-Valentine is built on the premise that a system's attack surface expands primarily through the addition of features and their interactions. While the most secure system [might be the one that does nothing](https://github.com/kelseyhightower/nocode), real-world applications must balance security with functionality. As new features are implemented or system components evolve, the threat model should adapt to reflect both direct threats from new capabilities and emergent threats from feature interactions, environmental changes, and dependencies.
+Navigator is built on the premise that a system's attack surface expands primarily through the addition of features and their interactions. While the most secure system [might be the one that does nothing](https://github.com/kelseyhightower/nocode), real-world applications must balance security with functionality. As new features are implemented or system components evolve, the threat model should adapt to reflect both direct threats from new capabilities and emergent threats from feature interactions, environmental changes, and dependencies.
 
 Threat modeling, particularly the STRIDE methodology, provides teams with an accessible framework for identifying and understanding threats throughout the development lifecycle. Through an iterative process, teams can build and maintain a comprehensive threat model that reflects their system's actual architecture, interactions, and environmental context, rather than relying solely on upfront design assumptions.
 
-While Valentine streamlines the threat modeling process, it recognizes that compliance documentation remains a necessary business requirement. Rather than treating compliance as an afterthought or barrier, a key design goal has been to automatically generate documentation from the ongoing threat modeling process. Teams can map assumptions and mitigations to specific NIST controls, and export the resulting documentation for security assessments, making compliance a natural outcome of good security practices.
+While Navigator streamlines the threat modeling process, it recognizes that compliance documentation remains a necessary business requirement. Rather than treating compliance as an afterthought or barrier, a key design goal has been to automatically generate documentation from the ongoing threat modeling process. Teams can map assumptions and mitigations to specific NIST controls, and export the resulting documentation for security assessments, making compliance a natural outcome of good security practices.
 
-Valentine's flexibility allows it to be used for threat modeling both individual features and entire systems, without imposing a rigid workflow on teams. This adaptability enables organizations to integrate security thinking into their development process in a way that suits their specific needs and maturity level.
+Navigator's flexibility allows it to be used for threat modeling both individual features and entire systems, without imposing a rigid workflow on teams. This adaptability enables organizations to integrate security thinking into their development process in a way that suits their specific needs and maturity level.
 
 ## Quickstart using codespaces
 1. [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/canada-ca/valentine)
@@ -119,13 +119,13 @@ MIT 2025
 
 ## ---------------------------------------------------------------------
 
-# Valentine 🍁 
+# Navigator 🍁 
 
-Valentine est un outil collaboratif de modélisation des menaces en temps réel qui associe l’expertise humaine à l’IA générative pour rationaliser le processus de conception de la sécurité tout en conservant simplicité et rigueur.
+Navigator est un outil collaboratif de modélisation des menaces en temps réel qui associe l’expertise humaine à l’IA générative pour rationaliser le processus de conception de la sécurité tout en conservant simplicité et rigueur.
 
-![Capture d’écran d’un diagramme de flux de données dans Valentine](screenshots/data_flow_diagram.png)
+![Capture d’écran d’un diagramme de flux de données dans Navigator](screenshots/data_flow_diagram.png)
 
-IMPORTANT : Ce projet est en cours de développement et peut subir des modifications importantes. Il manque encore des fonctionnalités à ce projet et il comporte des bogues. Veuillez examiner les [problèmes](https://github.com/canada-ca/valentine/issues) pour plus de renseignements. Si vous avez des questions spécifiques, veuillez contacter : [max.neuvians@cds-snc.ca](mailto:max.neuvians@cds-snc.ca).
+IMPORTANT : Ce projet est en cours de développement et peut subir des modifications importantes. Il manque encore des fonctionnalités à ce projet et il comporte des bogues. Veuillez examiner les [problèmes](https://github.com/canada-ca/navigator/issues) pour plus de renseignements. Si vous avez des questions spécifiques, veuillez contacter : [max.neuvians@cds-snc.ca](mailto:max.neuvians@cds-snc.ca).
 
 ## Fonctionnalités
 
@@ -144,15 +144,15 @@ Si vous préférez les images au lieu des textes, vous pouvez consulter la [gale
 ## Justification
 
 
-Valentine offre une autre option que l’approche de la sécurité axée sur la conformité, souvent pratiquée dans les grandes organisations. Dans les équipes qui suivent des pratiques de développement agiles, la sécurité axée sur la conformité crée souvent un goulot d’étranglement : les contrôles doivent être déterminés soit avant le début du développement, soit après sa conclusion. Ce paradigme place la sécurité comme un obstacle au développement plutôt que comme un partenaire de collaboration dans le processus.
+Navigator offre une autre option que l’approche de la sécurité axée sur la conformité, souvent pratiquée dans les grandes organisations. Dans les équipes qui suivent des pratiques de développement agiles, la sécurité axée sur la conformité crée souvent un goulot d’étranglement : les contrôles doivent être déterminés soit avant le début du développement, soit après sa conclusion. Ce paradigme place la sécurité comme un obstacle au développement plutôt que comme un partenaire de collaboration dans le processus.
 
-Valentine repose sur le principe que la surface d’attaque d’un système s’étend principalement par l’ajout de fonctionnalités et leurs interactions. Si le système le plus sécurisé [peut-être celui qui ne fait rien](https://github.com/kelseyhightower/nocode), les applications du monde réel doivent trouver un équilibre entre la sécurité et la fonctionnalité. Au fur et à mesure que de nouvelles fonctionnalités sont mises en œuvre ou que les composants du système évoluent, le modèle de menace devrait s’adapter pour refléter à la fois les menaces directes provenant des nouvelles capacités et les menaces émergentes provenant des interactions entre les fonctionnalités, des changements environnementaux et des dépendances.
+Navigator repose sur le principe que la surface d’attaque d’un système s’étend principalement par l’ajout de fonctionnalités et leurs interactions. Si le système le plus sécurisé [peut-être celui qui ne fait rien](https://github.com/kelseyhightower/nocode), les applications du monde réel doivent trouver un équilibre entre la sécurité et la fonctionnalité. Au fur et à mesure que de nouvelles fonctionnalités sont mises en œuvre ou que les composants du système évoluent, le modèle de menace devrait s’adapter pour refléter à la fois les menaces directes provenant des nouvelles capacités et les menaces émergentes provenant des interactions entre les fonctionnalités, des changements environnementaux et des dépendances.
 
 La modélisation des menaces, en particulier la méthodologie de STRIDE, fournit aux équipes un cadre accessible pour identifier et comprendre les menaces tout au long du cycle de vie du développement. Grâce à un processus itératif, les équipes peuvent construire et maintenir un modèle de menace complet qui reflète l’architecture, les interactions et le contexte environnemental réels de leur système, plutôt que de se fier uniquement à des hypothèses de conception initiales.
 
-Si Valentine rationalise le processus de modélisation des menaces, cet outil reconnaît que les documents de conformité restent une nécessité pour l’organisation. Plutôt que de traiter la conformité comme une réflexion après coup ou comme un obstacle, l’un des principaux objectifs de la conception a été de générer automatiquement des documents à partir du processus de modélisation des menaces en cours. Les équipes peuvent faire correspondre les hypothèses et les mesures d’atténuation aux contrôles précis du NIST et exporter les documents qui en résultent pour les évaluations de sécurité, ce qui fait de la conformité un résultat naturel des bonnes pratiques de sécurité.
+Si Navigator rationalise le processus de modélisation des menaces, cet outil reconnaît que les documents de conformité restent une nécessité pour l’organisation. Plutôt que de traiter la conformité comme une réflexion après coup ou comme un obstacle, l’un des principaux objectifs de la conception a été de générer automatiquement des documents à partir du processus de modélisation des menaces en cours. Les équipes peuvent faire correspondre les hypothèses et les mesures d’atténuation aux contrôles précis du NIST et exporter les documents qui en résultent pour les évaluations de sécurité, ce qui fait de la conformité un résultat naturel des bonnes pratiques de sécurité.
 
-La flexibilité de Valentine lui permet d’être utilisé pour la modélisation des menaces, qu’il s’agisse de fonctionnalités individuelles ou de systèmes entiers, sans imposer un flux de travail rigide aux équipes. Cette adaptabilité permet aux organisations d’intégrer l’approche de la sécurité dans leur processus de développement d’une manière qui corresponde à leurs besoins spécifiques et à leur niveau de maturité.
+La flexibilité de Navigator lui permet d’être utilisé pour la modélisation des menaces, qu’il s’agisse de fonctionnalités individuelles ou de systèmes entiers, sans imposer un flux de travail rigide aux équipes. Cette adaptabilité permet aux organisations d’intégrer l’approche de la sécurité dans leur processus de développement d’une manière qui corresponde à leurs besoins spécifiques et à leur niveau de maturité.
 
 ## Relance de système en utilisant GitHub Codespaces
 
