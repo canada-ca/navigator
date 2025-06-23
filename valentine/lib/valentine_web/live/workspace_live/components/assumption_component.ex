@@ -29,7 +29,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
           field="status"
           items={[
             {:confirmed, "State--open"},
-            {:unconfirmed, "State--closed"},
+            {:unconfirmed, "State--closed"}
           ]}
         />
         <div class="float-right">
