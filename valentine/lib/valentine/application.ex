@@ -26,10 +26,11 @@ defmodule Valentine.Application do
     # Only start ChromicPDF in non-test environments
     children =
       if System.get_env("CI") != "true" do
-        children ++
-          [
-            {ChromicPDF, chromic_pdf_opts()}
-          ]
+        # children ++
+        #  [
+        #    {ChromicPDF, chromic_pdf_opts()}
+        #  ]
+        children
       else
         children
       end
@@ -49,6 +50,8 @@ defmodule Valentine.Application do
   end
 
   defp chromic_pdf_opts do
-    [no_sandbox: true]
+    [
+      no_sandbox: true
+    ]
   end
 end
