@@ -12,6 +12,7 @@ defmodule Valentine.Composer.Assumption do
              :numeric_id,
              :content,
              :comments,
+             :status,
              :tags
            ]}
 
@@ -21,6 +22,7 @@ defmodule Valentine.Composer.Assumption do
     field :numeric_id, :integer
     field :comments, :string
     field :content, :string
+    field :status, Ecto.Enum, values: [:confirmed, :unconfirmed]
     field :tags, {:array, :string}, default: []
 
     has_many :assumption_mitigations, Valentine.Composer.AssumptionMitigation, on_replace: :delete
@@ -35,7 +37,7 @@ defmodule Valentine.Composer.Assumption do
   @doc false
   def changeset(assumption, attrs) do
     assumption
-    |> cast(attrs, [:content, :comments, :tags, :workspace_id])
+    |> cast(attrs, [:content, :comments, :status, :tags, :workspace_id])
     |> validate_required([:content, :workspace_id])
     |> set_numeric_id()
     |> unique_constraint(:numeric_id, name: :assumptions_workspace_id_numeric_id_index)

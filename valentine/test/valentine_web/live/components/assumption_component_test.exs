@@ -54,6 +54,16 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponentTest do
   describe "update/2" do
     setup [:create_assumption]
 
+    test "assigns a value from a label drop down", %{socket: socket} do
+      {:ok, updated_socket} =
+        AssumptionComponent.update(
+          %{selected_label_dropdown: {nil, "status", "unconfirmed"}},
+          socket
+        )
+
+      assert updated_socket.assigns.assumption.status == :unconfirmed
+    end
+
     test "assigns an empty tag", %{assigns: assigns, socket: socket} do
       {:ok, updated_socket} = AssumptionComponent.update(assigns, socket)
       assert updated_socket.assigns.tag == ""

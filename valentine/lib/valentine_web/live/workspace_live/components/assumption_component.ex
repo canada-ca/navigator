@@ -19,6 +19,19 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
         <div class="float-left">
           <h3>Assumption {@assumption.numeric_id}</h3>
         </div>
+        <.live_component
+          module={ValentineWeb.WorkspaceLive.Components.LabelSelectComponent}
+          id={"assumptions-status-#{@assumption.id}"}
+          parent_id={@myself}
+          icon="stack-16"
+          default_value="Not set"
+          value={@assumption.status}
+          field="status"
+          items={[
+            {:confirmed, "State--open"},
+            {:unconfirmed, "State--closed"},
+          ]}
+        />
         <div class="float-right">
           <.button
             is_icon_button
@@ -143,6 +156,20 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
       </div>
     </div>
     """
+  end
+
+  @impl true
+  def update(%{selected_label_dropdown: {_id, field, value}}, socket) do
+    {:ok, assumption} =
+      Composer.update_assumption(
+        socket.assigns.assumption,
+        %{}
+        |> Map.put(field, value)
+      )
+
+    {:ok,
+     socket
+     |> assign(:assumption, assumption)}
   end
 
   @impl true
