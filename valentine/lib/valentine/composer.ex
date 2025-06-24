@@ -375,6 +375,66 @@ defmodule Valentine.Composer do
   end
 
   @doc """
+  Filters assumptions based on enum field values.
+
+  Takes a queryable and a map of filters where keys are field names and values are selected enum values.
+  Handles both array and parameterized enum fields.
+
+  ## Examples
+
+      iex> filters = %{severity: ["HIGH", "CRITICAL"], status: ["OPEN"]}
+      iex> list_assumptions_with_enum_filters(Assumption, filters)
+      [%Assumption{severity: "HIGH", status: "OPEN"}, ...]
+
+  """
+  def list_assumptions_with_enum_filters(m, filters) do
+    Enum.reduce(filters, m, fn {f, selected}, queryable ->
+      case Assumption.__schema__(:type, f) do
+        {:array, _} ->
+          if is_nil(selected) || selected == [] do
+            queryable
+          else
+            [first | rest] = selected
+            query = where(queryable, [m], ^first in field(m, ^f))
+
+            Enum.reduce(rest, query, fn s, q ->
+              or_where(q, [m], ^s in field(m, ^f))
+            end)
+          end
+
+        {:parameterized, _} ->
+          if is_nil(selected) || selected == [] do
+            queryable
+          else
+            where(queryable, [m], field(m, ^f) in ^selected)
+          end
+      end
+    end)
+  end
+
+  @doc """
+  Returns the list of assumptions for a specific workspace.
+
+  ## Parameters
+
+    * workspace_id - The UUID of the workspace to filter assumptions by
+
+  ## Examples
+
+      iex> list_assumptions_by_workspace("123e4567-e89b-12d3-a456-426614174000")
+      [%Assumption{}, ...]
+
+      iex> list_assumptions_by_workspace("nonexistent-id")
+      []
+  """
+  def list_assumptions_by_workspace(workspace_id, enum_filters \\ %{}) do
+    from(t in Assumption, where: t.workspace_id == ^workspace_id)
+    |> list_assumptions_with_enum_filters(enum_filters)
+    |> order_by([t], desc: t.numeric_id)
+    |> Repo.all()
+  end
+
+  @doc """
   Gets a single assumption.
 
   Raises `Ecto.NoResultsError` if the Assumption does not exist.
@@ -538,6 +598,7 @@ defmodule Valentine.Composer do
   def list_mitigations_by_workspace(workspace_id, enum_filters \\ %{}) do
     from(t in Mitigation, where: t.workspace_id == ^workspace_id)
     |> list_mitigations_with_enum_filters(enum_filters)
+    |> order_by([t], desc: t.numeric_id)
     |> Repo.all()
   end
 

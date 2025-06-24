@@ -15,13 +15,14 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.IndexTest do
         live_action: nil,
         current_user: workspace.owner,
         flash: %{},
-        workspace_id: workspace.id
+        workspace_id: workspace.id,
+        workspace: workspace
       }
     }
 
     {:ok, %{assumption: assumption, socket: socket}}
 
-    %{assumption: assumption, socket: socket, workspace_id: workspace.id}
+    %{assumption: assumption, socket: socket, workspace_id: workspace.id, workspace: workspace}
   end
 
   describe "mount/3" do
@@ -72,6 +73,26 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.IndexTest do
 
       assert hd(updated_socket.assigns.assumptions).id == assumption.id
     end
+
+    test "updates filters on filter changes", %{socket: socket} do
+      with_mocks([
+        {
+          Composer,
+          [],
+          list_assumptions_by_workspace: fn _, _ ->
+            [%{id: 1, title: "Updated Assumption"}]
+          end
+        }
+      ]) do
+        {:noreply, updated_socket} =
+          ValentineWeb.WorkspaceLive.Assumption.Index.handle_info(
+            {:update_filter, %{status: "open"}},
+            socket
+          )
+
+        assert updated_socket.assigns.filters == %{status: "open"}
+      end
+    end
   end
 
   describe "handle_event delete" do
@@ -113,6 +134,27 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.IndexTest do
         )
 
       assert updated_socket.assigns.flash["error"] =~ "Failed to delete"
+    end
+  end
+
+  test "clears filters", %{socket: socket} do
+    with_mocks([
+      {
+        Composer,
+        [],
+        list_assumptions_by_workspace: fn _, _ ->
+          [%{id: 1, title: "Updated Assumption"}]
+        end
+      }
+    ]) do
+      {:noreply, updated_socket} =
+        ValentineWeb.WorkspaceLive.Assumption.Index.handle_event(
+          "clear_filters",
+          nil,
+          socket
+        )
+
+      assert updated_socket.assigns.filters == %{}
     end
   end
 end

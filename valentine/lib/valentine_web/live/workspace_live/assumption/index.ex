@@ -15,6 +15,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
      socket
      |> assign(:workspace_id, workspace_id)
      |> assign(:workspace, workspace)
+     |> assign(:filters, %{})
      |> assign(
        :assumptions,
        get_sorted_assumptions(workspace)
@@ -106,6 +107,30 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
             {:noreply, socket |> put_flash(:error, gettext("Failed to delete assumption"))}
         end
     end
+  end
+
+  @impl true
+  def handle_event("clear_filters", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:filters, %{})
+     |> assign(
+       :assumptions,
+       Composer.list_assumptions_by_workspace(socket.assigns.workspace_id, %{})
+     )}
+  end
+
+  @impl true
+  def handle_info({:update_filter, filters}, socket) do
+    {
+      :noreply,
+      socket
+      |> assign(:filters, filters)
+      |> assign(
+        :assumptions,
+        Composer.list_assumptions_by_workspace(socket.assigns.workspace_id, filters)
+      )
+    }
   end
 
   defp get_sorted_assumptions(workspace) do

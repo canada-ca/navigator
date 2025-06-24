@@ -13,7 +13,18 @@
 </.subhead>
 
 <.box id="assumptions" row_id={fn r -> "assumption-#{r.id}" end}>
-  <:header>{gettext("Your assumptions")}</:header>
+  <:header class="d-flex flex-items-center">
+    {gettext("Filters")}:
+    <.live_component
+      module={ValentineWeb.WorkspaceLive.Components.FilterComponent}
+      id="status-filter"
+      class="mx-1"
+      icon="stack"
+      name={:status}
+      values={Ecto.Enum.values(Valentine.Composer.Assumption, :status)}
+      filters={@filters}
+    />
+  </:header>
   <div class="stream-row hidden">
     <%= if length(@assumptions) == 0 do %>
       <.blankslate class="color-bg-default">

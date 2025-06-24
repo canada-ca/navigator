@@ -196,13 +196,13 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.IndexTest do
         {
           Composer,
           [],
-          list_threats_by_workspace: fn _, _ ->
-            [%{id: 1, title: "Updated Threat"}]
+          list_mitigations_by_workspace: fn _, _ ->
+            [%{id: 1, title: "Updated Mitigation"}]
           end
         }
       ]) do
         {:noreply, updated_socket} =
-          ValentineWeb.WorkspaceLive.Threat.Index.handle_event(
+          ValentineWeb.WorkspaceLive.Mitigation.Index.handle_event(
             "clear_filters",
             nil,
             socket

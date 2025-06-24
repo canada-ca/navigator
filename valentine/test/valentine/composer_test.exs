@@ -164,8 +164,19 @@ defmodule Valentine.ComposerTest do
       assert hd(Composer.list_threats_by_workspace(threat.workspace_id)).id == threat.id
     end
 
-    test "list_threats_by_workspace/2 returns all threats for a workspace adnd not other workspaces" do
+    test "list_threats_by_workspace/2 returns all threats for a workspace and not other workspaces" do
       assert Composer.list_threats_by_workspace("00000000-0000-0000-0000-000000000000") == []
+    end
+
+    test "list_threats_by_workspace/2 returns all threats for a workspace based on a filter" do
+      threat_fixture()
+      threat = threat_fixture(%{status: :identified})
+
+      assert hd(
+               Composer.list_threats_by_workspace(threat.workspace_id, %{
+                 status: ["identified"]
+               })
+             ).id == threat.id
     end
 
     test "get_threat!/1 returns the threat with given id" do
@@ -334,6 +345,24 @@ defmodule Valentine.ComposerTest do
       assert Composer.list_assumptions() == [assumption]
     end
 
+    test "list_assumptions_by_workspace/2 returns all assumptions for a workspace" do
+      assumption = assumption_fixture()
+      assert Composer.list_assumptions_by_workspace(assumption.workspace_id) == [assumption]
+    end
+
+    test "list_assumptions_by_workspace/2 returns all assumptions for a workspace based on a filter" do
+      assumption_fixture()
+      assumption = assumption_fixture(%{status: :confirmed})
+
+      assert Composer.list_assumptions_by_workspace(assumption.workspace_id, %{
+               status: ["confirmed"]
+             }) == [assumption]
+    end
+
+    test "list_assumptions_by_workspace/2 returns all assumptions for a workspace and not other workspaces" do
+      assert Composer.list_assumptions_by_workspace("00000000-0000-0000-0000-000000000000") == []
+    end
+
     test "get_assumption!/1 returns the assumption with given id" do
       assumption = assumption_fixture()
       assert Composer.get_assumption!(assumption.id) == assumption
@@ -489,7 +518,16 @@ defmodule Valentine.ComposerTest do
       assert Composer.list_mitigations_by_workspace(mitigation.workspace_id) == [mitigation]
     end
 
-    test "list_mitigations_by_workspace/2 returns all mitigations for a workspace adnd not other workspaces" do
+    test "list_mitigations_by_workspace/2 returns all mitigations for a workspace based on a filter" do
+      mitigation_fixture()
+      mitigation = mitigation_fixture(%{status: :identified})
+
+      assert Composer.list_mitigations_by_workspace(mitigation.workspace_id, %{
+               status: ["identified"]
+             }) == [mitigation]
+    end
+
+    test "list_mitigations_by_workspace/2 returns all mitigations for a workspace and not other workspaces" do
       assert Composer.list_mitigations_by_workspace("00000000-0000-0000-0000-000000000000") == []
     end
 
