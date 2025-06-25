@@ -38,20 +38,6 @@ defmodule ValentineWeb.WorkspaceController do
     )
   end
 
-  def pdf(conn, %{"workspace_id" => workspace_id}) do
-    workspace = get_workspace(workspace_id)
-    {:ok, pdf} = ValentineWeb.Workspace.Pdf.generate(workspace)
-
-    log(:info, get_session(conn, :user_id), "downloaded pdf", workspace.id, "workspace")
-
-    send_download(
-      conn,
-      {:binary, Base.decode64!(pdf)},
-      content_type: "application/pdf",
-      filename: "Threat model for #{workspace.name}.pdf"
-    )
-  end
-
   def export(conn, %{"workspace_id" => workspace_id}) do
     workspace = get_workspace(workspace_id)
     json = ValentineWeb.Workspace.Json.serialize_workspace(workspace)

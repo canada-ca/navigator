@@ -1,28 +1,11 @@
 <.subhead>
   {gettext("Threat model")} {gettext("for")}: {@workspace.name}
   <:actions>
-    <.button_group>
-      <a href={"/workspaces/#{@workspace.id}/threat_model/pdf"} target="_blank">
-        <.button is_primary>
-          {gettext("Download PDF")}
-        </.button>
-      </a>
-      <.action_menu>
-        <:toggle
-          class="rtl-btn btn btn-primary"
-          style="border-top-left-radius: 0px; border-bottom-left-radius: 0px; border-top-right-radius: 6px; border-bottom-right-radius: 6px;"
-        >
-          <.octicon name="triangle-down-16" />
-        </:toggle>
-        <.action_list>
-          <.action_list_item id="export-markdown-btn">
-            <a href={"/workspaces/#{@workspace.id}/threat_model/markdown"} target="_blank">
-              {gettext("Download Markdown")}
-            </a>
-          </.action_list_item>
-        </.action_list>
-      </.action_menu>
-    </.button_group>
+    <a href={"/workspaces/#{@workspace.id}/threat_model/markdown"} target="_blank">
+      <.button is_primary>
+        {gettext("Download Markdown")}
+      </.button>
+    </a>
   </:actions>
 </.subhead>
 <ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent.render workspace={@workspace} />

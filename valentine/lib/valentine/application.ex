@@ -23,18 +23,6 @@ defmodule Valentine.Application do
       ValentineWeb.Endpoint
     ]
 
-    # Only start ChromicPDF in non-test environments
-    children =
-      if System.get_env("CI") != "true" do
-        # children ++
-        #  [
-        #    {ChromicPDF, chromic_pdf_opts()}
-        #  ]
-        children
-      else
-        children
-      end
-
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Valentine.Supervisor]
@@ -47,11 +35,5 @@ defmodule Valentine.Application do
   def config_change(changed, _new, removed) do
     ValentineWeb.Endpoint.config_change(changed, removed)
     :ok
-  end
-
-  defp chromic_pdf_opts do
-    [
-      no_sandbox: true
-    ]
   end
 end

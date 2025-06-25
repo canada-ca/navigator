@@ -74,6 +74,19 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
   end
 
   @impl true
+  def handle_info({:update_filter, filters}, socket) do
+    {
+      :noreply,
+      socket
+      |> assign(:filters, filters)
+      |> assign(
+        :assumptions,
+        Composer.list_assumptions_by_workspace(socket.assigns.workspace_id, filters)
+      )
+    }
+  end
+
+  @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     case Composer.get_assumption!(id) do
       nil ->
@@ -118,19 +131,6 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
        :assumptions,
        Composer.list_assumptions_by_workspace(socket.assigns.workspace_id, %{})
      )}
-  end
-
-  @impl true
-  def handle_info({:update_filter, filters}, socket) do
-    {
-      :noreply,
-      socket
-      |> assign(:filters, filters)
-      |> assign(
-        :assumptions,
-        Composer.list_assumptions_by_workspace(socket.assigns.workspace_id, filters)
-      )
-    }
   end
 
   defp get_sorted_assumptions(workspace) do

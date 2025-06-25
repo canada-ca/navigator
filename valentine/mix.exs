@@ -53,7 +53,6 @@ defmodule Valentine.MixProject do
       {:mock, "~> 0.3.0", only: :test},
       {:primer_live, "~> 0.9"},
       {:mdex, "~> 0.2"},
-      {:chromic_pdf, "~> 1.17"},
       {:langchain, github: "brainlid/langchain", ref: "315e787c7f4e52c014b52bda0142aa631d3dd28f"},
       {:cachex, "~> 4.0"},
       {:inflex, "~> 2.0.0"},

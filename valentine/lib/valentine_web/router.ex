@@ -61,7 +61,6 @@ defmodule ValentineWeb.Router do
     get "/workspaces/:workspace_id/export/mitigations", WorkspaceController, :export_mitigations
     get "/workspaces/:workspace_id/export/threats", WorkspaceController, :export_threats
     get "/workspaces/:workspace_id/threat_model/markdown", WorkspaceController, :markdown
-    get "/workspaces/:workspace_id/threat_model/pdf", WorkspaceController, :pdf
     get "/workspaces/:workspace_id/srtm/excel", WorkspaceController, :excel
 
     get "/logout", SessionController, :logout
