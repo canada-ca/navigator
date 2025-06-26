@@ -202,4 +202,24 @@ defmodule Valentine.ComposerFixtures do
 
     user
   end
+
+  @doc """
+  Generate an API key.
+  """
+  def api_key_fixture(attrs \\ %{}) do
+    workspace = workspace_fixture()
+
+    {:ok, api_key} =
+      attrs
+      |> Enum.into(%{
+        owner: "some owner",
+        label: "some label",
+        status: :active,
+        last_used: DateTime.utc_now(),
+        workspace_id: workspace.id
+      })
+      |> Valentine.Composer.create_api_key()
+
+    api_key
+  end
 end

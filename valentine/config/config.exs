@@ -56,6 +56,16 @@ config :ueberauth, Ueberauth,
     microsoft: {Ueberauth.Strategy.Microsoft, []}
   ]
 
+config :valentine, Valentine.Guardian,
+  issuer: "valentine",
+  ttl: {7, :days},
+  token_ttl: %{
+    "api_key" => {365, :days}
+  },
+  secret_key:
+    System.get_env("SECRET_KEY_BASE") ||
+      "yllTwLg1HsDDRwYa7O5gaJX4f2TcLPkQ/yKcLZ3H7oY3jBG3TrB8Bf20ei+TQuDv"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

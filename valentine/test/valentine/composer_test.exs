@@ -1249,4 +1249,94 @@ defmodule Valentine.ComposerTest do
       assert %Ecto.Changeset{} = Composer.change_user(user)
     end
   end
+
+  describe "api_keys" do
+    alias Valentine.Composer.ApiKey
+
+    import Valentine.ComposerFixtures
+
+    @invalid_attrs %{owner: nil}
+
+    test "list_api_keys/0 returns all api_keys" do
+      api_key_fixture()
+      assert length(Composer.list_api_keys()) > 0
+    end
+
+    test "get_api_key/1 returns the api_key with given id" do
+      api_key = api_key_fixture()
+
+      assert Composer.get_api_key(api_key.id).id ==
+               api_key.id
+    end
+
+    test "create_api_key/1 with valid data creates a api_key" do
+      valid_attrs = %{
+        owner: "some owner",
+        label: "some label",
+        key: "some key",
+        status: :active
+      }
+
+      assert {:ok, %ApiKey{} = api_key} =
+               Composer.create_api_key(valid_attrs)
+
+      assert api_key.owner == "some owner"
+    end
+
+    test "create_api_key/1 with valid data automatically generates a key" do
+      valid_attrs = %{
+        owner: "some owner",
+        label: "some label",
+        key: "some key",
+        status: :active
+      }
+
+      assert {:ok, %ApiKey{} = api_key} =
+               Composer.create_api_key(valid_attrs)
+
+      assert api_key.key != nil
+    end
+
+    test "create_api_key/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Composer.create_api_key(@invalid_attrs)
+    end
+
+    test "update_api_key/2 with valid data updates the api_key" do
+      api_key = api_key_fixture()
+
+      update_attrs = %{
+        owner: "some updated owner"
+      }
+
+      assert {:ok, %ApiKey{} = api_key} =
+               Composer.update_api_key(api_key, update_attrs)
+
+      assert api_key.id == api_key.id
+      assert api_key.owner == "some updated owner"
+    end
+
+    test "update_api_key/2 with invalid data returns error changeset" do
+      api_key = api_key_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Composer.update_api_key(api_key, @invalid_attrs)
+
+      assert api_key.id ==
+               Composer.get_api_key(api_key.id).id
+    end
+
+    test "delete_api_key/1 deletes the api_key" do
+      api_key = api_key_fixture()
+
+      assert {:ok, %ApiKey{}} =
+               Composer.delete_api_key(api_key)
+
+      assert Composer.get_api_key(api_key.id) == nil
+    end
+
+    test "change_api_key/1 returns a api_key changeset" do
+      api_key = api_key_fixture()
+      assert %Ecto.Changeset{} = Composer.change_api_key(api_key)
+    end
+  end
 end
