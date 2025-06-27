@@ -1,0 +1,156 @@
+<.subhead>
+  {gettext("API Keys")}
+  <:actions>
+    <.button
+      id="generate-api-key"
+      is_primary
+      phx-click={JS.patch(~p"/workspaces/#{@workspace.id}/api_keys/generate")}
+    >
+      {gettext("Generate API Key")}
+    </.button>
+  </:actions>
+</.subhead>
+
+<%= if @permission != "owner" do %>
+  <.box>
+    <.blankslate is_large>
+      <:octicon name="hubot-24" />
+      <h3>
+        {gettext("You are not the owner of this workspace.")}
+      </h3>
+      <p>
+        {gettext(
+          "Only workspace owners can manage API keys. Please contact %{owner} for assistance.",
+          owner: @workspace.owner
+        )}
+      </p>
+    </.blankslate>
+  </.box>
+<% else %>
+  <.box :if={@recent_api_key != nil} id="recent_api_key" class="mb-2">
+    <.blankslate class="color-bg-success">
+      <:octicon name="key-24" />
+      <h3>{gettext("Your new API key")}</h3>
+      <p>
+        {gettext(
+          "This is the only time you will see this API key. Please copy and store it securely."
+        )}
+      </p>
+      <div class="my-1">
+        <textarea
+          id="api-key-textarea"
+          readonly
+          rows="3"
+          class="form-control"
+          style="width:100%; font-family:monospace; background:#f6f8fa; color:#24292f; border:1px solid #d1d5da; padding:0.5em; resize:vertical;"
+          onclick="this.select();"
+        >{@recent_api_key.key}</textarea>
+      </div>
+      <button
+        phx-click="flush_api_key"
+        type="button"
+        class="btn btn-primary"
+        style="margin-top: 0.5em;"
+        onclick="
+        const ta = document.getElementById('api-key-textarea');
+        ta.select();
+        document.execCommand('copy');
+      "
+      >
+        {gettext("Copy & Close")}
+      </button>
+    </.blankslate>
+  </.box>
+  <.box id="api_keys" row_id={fn k -> "api-key-#{k.id}" end}>
+    <:header>{gettext("Your API keys")}</:header>
+    <div class="stream-row hidden">
+      <%= if length(@api_keys) == 0 do %>
+        <.blankslate class="color-bg-default">
+          <:octicon name="key-24" />
+          <:action>
+            <.button
+              phx-click={JS.patch(~p"/workspaces/#{@workspace_id}/api_keys/generate")}
+              is_primary
+            >
+              {gettext("Generate API Key")}
+            </.button>
+          </:action>
+          <h3>{gettext("The world is open to those who automate")}</h3>
+          <p>{gettext("Start generating API keys by clicking the button below. ")}</p>
+        </.blankslate>
+      <% end %>
+    </div>
+    <:row :for={api_key <- @api_keys} class="d-flex flex-items-center flex-justify-between">
+      <div style="width:100%">
+        <div class="clearfix">
+          <div class="float-left">
+            <h3>
+              {api_key.label}
+            </h3>
+          </div>
+          <div class="float-left ml-2">
+            <%= case api_key.status do %>
+              <% :active -> %>
+                <.state_label is_small class="State--open">
+                  <.octicon name="check-16" />
+                  {gettext("Active")}
+                </.state_label>
+              <% :revoked -> %>
+                <.state_label is_small class="State--closed">
+                  <.octicon name="x-16" />
+                  {gettext("Revoked")}
+                </.state_label>
+              <% :expired -> %>
+                <.state_label is_small>
+                  <.octicon name="stop-16" />
+                  {gettext("Expired")}
+                </.state_label>
+            <% end %>
+          </div>
+          <div class="float-right">
+            <.button
+              is_icon_button
+              is_danger
+              aria-label="Delete"
+              phx-click={JS.push("delete", value: %{id: api_key.id})}
+              data-confirm={gettext("Are you sure?")}
+              id={"delete-api-key-#{api_key.id}"}
+            >
+              <.octicon name="trash-16" />
+            </.button>
+          </div>
+        </div>
+        <table class="table table-sm text-gray mt-2" style="width: auto;">
+          <tbody>
+            <tr>
+              <td scope="row" class="text-left" style="text-align: left;">
+                {gettext("Created at: ")}
+              </td>
+              <td class="text-left p-1" style="text-align: left;">
+                {api_key.inserted_at}
+              </td>
+            </tr>
+            <tr>
+              <td scope="row" class="text-left" style="text-align: left;">
+                {gettext("Last used at: ")}
+              </td>
+              <td class="text-left p-1" style="text-align: left;">
+                {api_key.last_used || gettext("Never used")}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </:row>
+  </.box>
+
+  <.live_component
+    :if={@live_action in [:generate]}
+    module={ValentineWeb.WorkspaceLive.ApiKey.Components.ApiKeyComponent}
+    id={:generate}
+    api_key={%Valentine.Composer.ApiKey{workspace_id: @workspace.id}}
+    workspace={@workspace}
+    current_user={@current_user}
+    patch={~p"/workspaces/#{@workspace.id}/api_keys"}
+  />
+<% end %>

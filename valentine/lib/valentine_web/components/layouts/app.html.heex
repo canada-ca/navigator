@@ -287,7 +287,7 @@
         </:item>
       </.side_nav>
 
-      <.side_nav :if={@workspace_id} aria_label="collaboration" class="mt-4" is_border>
+      <.side_nav :if={@workspace_id} aria_label="settings" class="mt-4" is_border>
         <:item
           is_selected={@active_module == "Collaboration"}
           navigate={~p"/workspaces/#{@workspace_id}/collaboration"}
@@ -301,6 +301,21 @@
             current_user={@current_user}
             presence={@presence}
             active_module="Collaboration"
+            workspace_id={@workspace_id}
+          />
+        </:item>
+        <:item
+          is_selected={@active_module == "ApiKey"}
+          navigate={~p"/workspaces/#{@workspace_id}/api_keys"}
+          class="d-flex flex-items-center flex-justify-between"
+        >
+          <span>
+            <.octicon name="key-16" /> {gettext("API Keys")}
+          </span>
+          <ValentineWeb.WorkspaceLive.Components.PresenceIndicatorComponent.render
+            current_user={@current_user}
+            presence={@presence}
+            active_module="ApiKey"
             workspace_id={@workspace_id}
           />
         </:item>

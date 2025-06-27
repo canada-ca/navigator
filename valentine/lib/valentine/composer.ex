@@ -1640,16 +1640,35 @@ defmodule Valentine.Composer do
   end
 
   @doc """
+  Returns the list of api_keys for a specific workspace.
+
+  ## Parameters
+
+    * workspace_id - The UUID of the workspace to filter API keys by
+
+  ## Examples
+
+      iex> list_api_keys
+      [%ApiKey{}, ...]
+
+  """
+
+  def list_api_keys_by_workspace(workspace_id) do
+    from(a in ApiKey, where: a.workspace_id == ^workspace_id)
+    |> Repo.all()
+  end
+
+  @doc """
   Gets a single api_key.
 
   Raises `Ecto.NoResultsError` if the ApiKey does not exist.
 
   ## Examples
 
-      iex> get_api_key!(123)
+      iex> get_api_key(123)
       %ApiKey{}
 
-      iex> get_api_key!(456)
+      iex> get_api_key(456)
       ** (Ecto.NoResultsError)
 
   """

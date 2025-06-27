@@ -1262,6 +1262,15 @@ defmodule Valentine.ComposerTest do
       assert length(Composer.list_api_keys()) > 0
     end
 
+    test "list_api_keys_by_workspace/1 returns all api_keys for a workspace" do
+      api_key = api_key_fixture()
+      assert length(Composer.list_api_keys_by_workspace(api_key.workspace_id)) > 0
+    end
+
+    test "list_api_keys_by_workspace/1 returns all api_keys for a workspace and not other workspaces" do
+      assert Composer.list_api_keys_by_workspace("00000000-0000-0000-0000-000000000000") == []
+    end
+
     test "get_api_key/1 returns the api_key with given id" do
       api_key = api_key_fixture()
 

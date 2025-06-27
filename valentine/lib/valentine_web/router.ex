@@ -160,6 +160,12 @@ defmodule ValentineWeb.Router do
       live "/workspaces/:workspace_id/controls", WorkspaceLive.Controls.Index, :index
 
       live "/workspaces/:workspace_id/collaboration", WorkspaceLive.Collaboration.Index, :index
+
+      live "/workspaces/:workspace_id/api_keys", WorkspaceLive.ApiKey.Index, :index
+
+      live "/workspaces/:workspace_id/api_keys/generate",
+           WorkspaceLive.ApiKey.Index,
+           :generate
     end
   end
 
