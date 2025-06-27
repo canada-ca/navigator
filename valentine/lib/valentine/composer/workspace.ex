@@ -6,7 +6,13 @@ defmodule Valentine.Composer.Workspace do
 
   @derive {Jason.Encoder,
            only: [
-             :name
+             :id,
+             :name,
+             :cloud_profile,
+             :cloud_profile_type,
+             :url,
+             :owner,
+             :permissions
            ]}
 
   @nist_id_regex ~r/^[A-Za-z]{2}-\d+(\.\d+)?$/

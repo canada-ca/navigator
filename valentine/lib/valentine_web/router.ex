@@ -21,6 +21,7 @@ defmodule ValentineWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug ValentineWeb.Helpers.ApiAuthHelper
   end
 
   pipeline :raw do
@@ -31,6 +32,12 @@ defmodule ValentineWeb.Router do
     pipe_through :raw
 
     get "/version", VersionController, :index
+  end
+
+  scope "/api", ValentineWeb.Api do
+    pipe_through :api
+
+    get "/workspace", WorkspaceController, :index
   end
 
   scope "/auth", ValentineWeb do
