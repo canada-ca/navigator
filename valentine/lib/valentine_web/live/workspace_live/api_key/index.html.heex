@@ -132,6 +132,14 @@
             </tr>
             <tr>
               <td scope="row" class="text-left" style="text-align: left;">
+                {gettext("Expires at: ")}
+              </td>
+              <td class="text-left p-1" style="text-align: left;">
+                {DateTime.to_iso8601(api_key.inserted_at |> DateTime.add(365, :day))}
+              </td>
+            </tr>
+            <tr>
+              <td scope="row" class="text-left" style="text-align: left;">
                 {gettext("Last used at: ")}
               </td>
               <td class="text-left p-1" style="text-align: left;">

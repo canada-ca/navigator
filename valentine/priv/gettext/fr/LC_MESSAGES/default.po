@@ -1444,12 +1444,12 @@ msgstr "Générer une clé API"
 msgid "Label"
 msgstr "Étiquette"
 
-#: lib/valentine_web/live/workspace_live/api_key/index.html.heex:135
+#: lib/valentine_web/live/workspace_live/api_key/index.html.heex:143
 #, elixir-autogen, elixir-format
 msgid "Last used at: "
 msgstr "Dernière utilisation le : "
 
-#: lib/valentine_web/live/workspace_live/api_key/index.html.heex:138
+#: lib/valentine_web/live/workspace_live/api_key/index.html.heex:146
 #, elixir-autogen, elixir-format
 msgid "Never used"
 msgstr "Jamais utilisé"
@@ -1498,3 +1498,8 @@ msgstr "Vos clés API"
 #, elixir-autogen, elixir-format
 msgid "Your new API key"
 msgstr "Votre nouvelle clé API"
+
+#: lib/valentine_web/live/workspace_live/api_key/index.html.heex:135
+#, elixir-autogen, elixir-format
+msgid "Expires at: "
+msgstr "Expire le : "
