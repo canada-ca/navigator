@@ -50,6 +50,34 @@ defmodule ValentineWeb.Helpers.ApiAuthHelperTest do
       assert resp_conn.halted
     end
 
+    test "returns unauthorized if api_key is not signed correctly", %{conn: conn} do
+      api_key = api_key_fixture(%{status: :active})
+
+      # Create a token with an incorrect signature
+      {:ok, token, _claims} =
+        Valentine.Guardian.encode_and_sign(api_key, %{}, ttl: {3600, :seconds})
+
+      # Tamper with the token by inverting the signature
+      tampered_token =
+        token
+        |> String.split(".")
+        |> Enum.map(fn part ->
+          if part == Enum.at(String.split(token, "."), 2) do
+            # Invert the signature part
+            String.reverse(part)
+          else
+            part
+          end
+        end)
+        |> Enum.join(".")
+
+      conn = put_req_header(conn, "authorization", "Bearer #{tampered_token}")
+      resp_conn = ApiAuthHelper.call(conn, :default)
+      assert resp_conn.status == 401
+      assert resp_conn.resp_body == "{\"errors\":{\"detail\":\"Unauthorized\"}}"
+      assert resp_conn.halted
+    end
+
     test "assigns api_key if authorization header is valid", %{conn: conn} do
       api_key = api_key_fixture()
       conn = put_req_header(conn, "authorization", "Bearer #{api_key.key}")

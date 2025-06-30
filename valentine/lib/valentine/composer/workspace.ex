@@ -33,6 +33,7 @@ defmodule Valentine.Composer.Workspace do
     has_many :assumptions, Valentine.Composer.Assumption, on_delete: :delete_all
     has_many :mitigations, Valentine.Composer.Mitigation, on_delete: :delete_all
     has_many :threats, Valentine.Composer.Threat, on_delete: :delete_all
+    has_many :api_keys, Valentine.Composer.ApiKey, on_delete: :delete_all
 
     field :owner, :string
     field :permissions, :map, default: %{}
