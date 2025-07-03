@@ -4,6 +4,8 @@ defmodule ValentineWeb.Helpers.ApiAuthHelper do
   alias Valentine.Guardian
   alias Valentine.Composer
 
+  alias ValentineWeb.Helpers.LogHelper
+
   def init(default), do: default
 
   def call(conn, _) do
@@ -14,6 +16,14 @@ defmodule ValentineWeb.Helpers.ApiAuthHelper do
 
     case key do
       nil ->
+        LogHelper.log(
+          :info,
+          "anonymous",
+          "authenticate",
+          %{result: "unauthorized", reason: "missing API key"},
+          "api"
+        )
+
         conn
         |> put_status(:unauthorized)
         |> Phoenix.Controller.put_view(ValentineWeb.ErrorJSON)
@@ -26,9 +36,25 @@ defmodule ValentineWeb.Helpers.ApiAuthHelper do
             {:ok, api_key} = Guardian.resource_from_claims(claims)
 
             if api_key.status == :active do
+              LogHelper.log(
+                :info,
+                api_key.id,
+                "authenticate",
+                %{result: "success", path: conn.request_path},
+                "api"
+              )
+
               Composer.update_api_key(api_key, %{last_used: DateTime.utc_now()})
               assign(conn, :api_key, api_key)
             else
+              LogHelper.log(
+                :info,
+                api_key.id,
+                "authenticate",
+                %{result: "unauthorized", reason: "inactive API key"},
+                "api"
+              )
+
               conn
               |> put_status(:unauthorized)
               |> Phoenix.Controller.put_view(ValentineWeb.ErrorJSON)
@@ -36,7 +62,15 @@ defmodule ValentineWeb.Helpers.ApiAuthHelper do
               |> halt
             end
 
-          {:error, _reason} ->
+          {:error, reason} ->
+            LogHelper.log(
+              :info,
+              "anonymous",
+              "authenticate",
+              %{result: "unauthorized", reason: reason},
+              "api"
+            )
+
             conn
             |> put_status(:unauthorized)
             |> Phoenix.Controller.put_view(ValentineWeb.ErrorJSON)
