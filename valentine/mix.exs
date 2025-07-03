@@ -5,7 +5,7 @@ defmodule Valentine.MixProject do
     [
       app: :valentine,
       version: "0.1.0",
-      elixir: "~> 1.18",
+      elixir: "~> 1.18.4",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -55,7 +55,6 @@ defmodule Valentine.MixProject do
       {:mdex, "~> 0.2"},
       {:langchain, github: "brainlid/langchain", ref: "315e787c7f4e52c014b52bda0142aa631d3dd28f"},
       {:cachex, "~> 4.0"},
-      {:inflex, "~> 2.0.0"},
       {:csv, "~> 3.2"},
       {:ueberauth_google, "~> 0.10"},
       {:ueberauth_cognito, "~> 0.3"},

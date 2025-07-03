@@ -8,6 +8,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update && apt-get install -y \
     inotify-tools \
     ca-certificates \
+    openssh-client \
     && apt-get clean
 
 # Create the vscode user

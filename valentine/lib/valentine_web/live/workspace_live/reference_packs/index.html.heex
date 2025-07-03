@@ -24,8 +24,7 @@
             ~p"/workspaces/#{@workspace.id}/reference_packs/#{reference_pack.collection_id}/#{reference_pack.collection_type}"
           }>
             <h4>
-              {Phoenix.Naming.humanize(reference_pack.collection_type)
-              |> Inflex.pluralize()} pack: {reference_pack.collection_name}
+              {Phoenix.Naming.humanize(reference_pack.collection_type)} pack: {reference_pack.collection_name}
             </h4>
           </.link>
         </div>
