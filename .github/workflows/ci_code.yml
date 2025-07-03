@@ -35,7 +35,7 @@ jobs:
         uses: erlef/setup-beam@v1
         with:
           otp-version: 27.2
-          elixir-version: 1.18.1
+          elixir-version: 1.18.4
 
       - name: Install chrome
         uses: browser-actions/setup-chrome@v1
