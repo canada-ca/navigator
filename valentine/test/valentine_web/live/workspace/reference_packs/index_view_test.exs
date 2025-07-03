@@ -28,7 +28,7 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.IndexViewTest do
       assert html =~ reference_pack_item.collection_name
 
       assert html =~
-               Phoenix.Naming.humanize(reference_pack_item.collection_type) |> Inflex.pluralize()
+               Phoenix.Naming.humanize(reference_pack_item.collection_type)
     end
 
     test "imports reference packs into workspace", %{
