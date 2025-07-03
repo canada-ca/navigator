@@ -1,4 +1,5 @@
 name: Lint, format and test code
+
 on:
   workflow_dispatch:
   push:
