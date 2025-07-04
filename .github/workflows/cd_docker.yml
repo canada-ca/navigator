@@ -59,3 +59,7 @@ jobs:
       - name: Deploy to ECS
         run: |
           aws ecs update-service --cluster valentine-cluster --service valentine-service --force-new-deployment > /dev/null 2>&1
+
+      - name: Wait for service to stabilize
+        run: |
+          aws ecs wait services-stable --cluster valentine-cluster --services valentine-service > /dev/null 2>&1
