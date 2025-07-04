@@ -7,11 +7,7 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.Index do
   @impl true
   def mount(%{"workspace_id" => workspace_id} = _params, _session, socket) do
     workspace = Composer.get_workspace!(workspace_id)
-
-    users =
-      (Composer.list_users() || [])
-      |> Enum.filter(&(&1 && &1.email))
-      |> Enum.sort_by(& &1.email)
+    users = Composer.list_users()
 
     {:ok,
      socket

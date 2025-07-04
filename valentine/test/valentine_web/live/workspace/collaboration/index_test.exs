@@ -2,7 +2,6 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.IndexTest do
   use ValentineWeb.ConnCase
 
   import Valentine.ComposerFixtures
-  import Mock
 
   setup do
     user = user_fixture()
@@ -46,47 +45,6 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.IndexTest do
       assert socket.assigns.workspace_id == workspace_id
       assert length(socket.assigns.users) == 2
       assert socket.assigns.permission == "owner"
-    end
-
-    test "sorts users by email and removes nils", %{
-      workspace_id: workspace_id,
-      socket: socket
-    } do
-      users = [
-        user_fixture(%{email: "z.user@localhost"}),
-        user_fixture(%{email: "a.user@localhost"}),
-        user_fixture(%{email: "m.user@localhost"}),
-        nil
-      ]
-
-      users_filtered = Enum.filter(users, &(&1 && &1.email)) |> Enum.sort_by(& &1.email)
-
-      with_mock Valentine.Composer, [:passthrough], list_users: fn -> users end do
-        {:ok, socket} =
-          ValentineWeb.WorkspaceLive.Collaboration.Index.mount(
-            %{"workspace_id" => workspace_id},
-            nil,
-            socket
-          )
-
-        assert socket.assigns.users == users_filtered
-      end
-    end
-
-    test "handles empty user list gracefully", %{
-      workspace_id: workspace_id,
-      socket: socket
-    } do
-      with_mock Valentine.Composer, [:passthrough], list_users: fn -> [] end do
-        {:ok, socket} =
-          ValentineWeb.WorkspaceLive.Collaboration.Index.mount(
-            %{"workspace_id" => workspace_id},
-            nil,
-            socket
-          )
-
-        assert socket.assigns.users == []
-      end
     end
   end
 

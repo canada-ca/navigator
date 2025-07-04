@@ -1182,9 +1182,14 @@ defmodule Valentine.ComposerTest do
 
     @invalid_attrs %{email: "an invalid email"}
 
-    test "list_users/0 returns all users" do
-      user = user_fixture()
-      assert Composer.list_users() == [user]
+    test "list_users/0 returns all users sorted by email" do
+      users = [
+        user_fixture(%{email: "z.user@localhost"}),
+        user_fixture(%{email: "a.user@localhost"}),
+        user_fixture(%{email: "m.user@localhost"})
+      ]
+
+      assert Composer.list_users() == Enum.sort_by(users, & &1.email)
     end
 
     test "get_user/1 returns the user with given id" do
