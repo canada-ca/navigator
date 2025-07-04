@@ -1530,7 +1530,7 @@ defmodule Valentine.Composer do
   end
 
   @doc """
-  Returns the list of users.
+  Returns the list of users ordered by email.
 
   ## Examples
 
@@ -1539,7 +1539,8 @@ defmodule Valentine.Composer do
 
   """
   def list_users do
-    Repo.all(User)
+    from(u in User, order_by: u.email)
+    |> Repo.all()
   end
 
   @doc """
