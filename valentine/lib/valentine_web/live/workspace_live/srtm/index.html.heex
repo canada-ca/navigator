@@ -49,6 +49,15 @@
       ]}
       filters={@filters}
     />
+    <.live_component
+      module={ValentineWeb.WorkspaceLive.Components.FilterComponent}
+      id="nist-family-filter"
+      class="mx-1"
+      icon="shield-lock"
+      name={:nist_family}
+      values={@nist_families}
+      filters={@filters}
+    />
   </:header>
 
   <div class="clearfix">

@@ -1378,23 +1378,38 @@ defmodule Valentine.Composer do
     |> Repo.all()
   end
 
-  def list_controls_by_tags(tags, classes \\ []) when is_list(tags) do
-    query =
-      from(c in Control,
-        where: fragment("?::text[] <@ ?::text[]", ^tags, c.tags)
-      )
+  def list_controls_by_filters(filters) when is_map(filters) do
+    tags = Map.get(filters, :tags, [])
+    classes = Map.get(filters, :classes, [])
+    nist_families = Map.get(filters, :nist_families, [])
 
-    # Apply class filter only if the classes list is not empty
-    query =
-      if classes != [] and classes != nil do
-        from(c in query, where: c.class in ^classes)
-      else
-        query
-      end
-
-    query
+    from(c in Control)
+    |> filter_controls_by_tag(tags)
+    |> filter_controls_by_class(classes)
+    |> filter_controls_by_nist_family(nist_families)
     |> sort_hierarchical_strings(:nist_id)
     |> Repo.all()
+  end
+
+  defp filter_controls_by_tag(query, tags) when tags == [] or is_nil(tags), do: query
+
+  defp filter_controls_by_tag(query, tags) do
+    from(c in query, where: fragment("?::text[] <@ ?::text[]", ^tags, c.tags))
+  end
+
+  defp filter_controls_by_class(query, classes) when classes == [] or is_nil(classes), do: query
+
+  defp filter_controls_by_class(query, classes) do
+    from(c in query, where: c.class in ^classes)
+  end
+
+  defp filter_controls_by_nist_family(query, nist_families)
+       when nist_families == [] or is_nil(nist_families),
+       do: query
+
+  defp filter_controls_by_nist_family(query, nist_families) do
+    patterns = Enum.map(nist_families, &"#{&1}-%")
+    from(c in query, where: fragment("? LIKE ANY(?::text[])", c.nist_id, ^patterns))
   end
 
   @spec sort_hierarchical_strings(any(), atom()) :: Ecto.Query.t()
@@ -1431,10 +1446,8 @@ defmodule Valentine.Composer do
   end
 
   def list_controls_in_families(families) do
-    patterns = Enum.map(families, &"#{&1}-%")
-
     from(c in Control)
-    |> where([c], fragment("? LIKE ANY(?::text[])", c.nist_id, ^patterns))
+    |> filter_controls_by_nist_family(families)
     |> sort_hierarchical_strings(:nist_id)
     |> Repo.all()
   end
