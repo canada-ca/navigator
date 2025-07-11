@@ -9,7 +9,9 @@ defmodule ValentineWeb.Workspace.Excel do
       if workspace.cloud_profile == nil && workspace.cloud_profile_type == nil do
         Composer.list_controls()
       else
-        Composer.list_controls_by_tags([workspace.cloud_profile, workspace.cloud_profile_type])
+        Composer.list_controls_by_filters(%{
+          tags: [workspace.cloud_profile, workspace.cloud_profile_type]
+        })
       end
       |> sort_into_families()
       |> append_tagged_entities(workspace)

@@ -11,6 +11,7 @@ defmodule ValentineWeb.WorkspaceLive.SRTM.Index do
 
     filters = %{
       class: [],
+      nist_family: [],
       profile: [workspace.cloud_profile],
       type: [workspace.cloud_profile_type]
     }
@@ -20,6 +21,7 @@ defmodule ValentineWeb.WorkspaceLive.SRTM.Index do
     {:ok,
      socket
      |> assign(:controls, map_controls(controls, workspace))
+     |> assign(:nist_families, Composer.list_control_families())
      |> assign(:filters, filters)
      |> assign(:workspace, workspace)}
   end
@@ -117,11 +119,17 @@ defmodule ValentineWeb.WorkspaceLive.SRTM.Index do
       "Client SaaS"
     ]
 
-    filters
-    |> Map.values()
-    |> List.flatten()
-    |> Enum.filter(&(&1 in valid_tags))
-    |> Composer.list_controls_by_tags(filters[:class])
+    # Only include valid profile/type tags
+    allowed_tags =
+      [:profile, :type]
+      |> Enum.flat_map(&Map.get(filters, &1, []))
+      |> Enum.filter(&(&1 in valid_tags))
+
+    Composer.list_controls_by_filters(%{
+      tags: allowed_tags,
+      classes: filters[:class] || [],
+      nist_families: filters[:nist_family] || []
+    })
   end
 
   defp get_workspace(id) do
