@@ -173,7 +173,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
   @impl true
   def update(%{selected_label_dropdown: {_id, field, value}}, socket) do
     # Convert string value to atom for enum fields
-    converted_value = 
+    converted_value =
       case field do
         "status" when is_binary(value) -> String.to_existing_atom(value)
         "priority" when is_binary(value) -> String.to_existing_atom(value)
