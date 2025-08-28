@@ -93,10 +93,22 @@ After making changes, **ALWAYS** perform these validation steps:
 
 ### Critical User Workflows to Test
 1. **Workspace Creation**: Create a new workspace and verify it appears in the list
-2. **Data Flow Diagram**: Create and edit a data flow diagram with entities and boundaries  
+2. **Data Flow Diagram**: Create and edit a data flow diagram with entities and boundaries (see screenshot example with Lambda, DynamoDB, KMS components)
 3. **Architecture Documentation**: Add architecture content using the markdown editor
 4. **Threat Analysis**: Generate threat statements using the AI assistant (if OpenAI key provided)
-5. **Export Functionality**: Test CSV/Excel export features
+5. **Properties Panel**: Edit component properties, descriptions, and associated threat statements
+6. **AI Assistant Integration**: Test the "Ask AI Assistant" functionality for threat analysis
+7. **Workspace Dashboard**: Verify threat model analytics display correctly (threat counts, prioritization charts, STRIDE distribution)
+8. **Export Functionality**: Test CSV/Excel export features from workspace dashboard
+
+### Expected Application Interface
+The application provides a modern web interface with:
+- Left sidebar navigation (Workspaces, Architecture, Data flow, Assumptions, Threats, Mitigations, etc.)
+- Main content area with interactive diagram editing or dashboard analytics
+- Properties panel for selected components
+- AI Assistant integration panel on the right
+- Toolbar with save, entity, boundary, and view options
+- Dashboard with threat statistics, prioritization charts, and STRIDE analysis
 
 ### Build Validation
 - Application starts without errors
