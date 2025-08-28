@@ -119,6 +119,36 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponentTest do
       assert updated_socket.assigns.threat.status == :not_useful
     end
 
+    test "assigns priority value from a label drop down", %{socket: socket} do
+      {:ok, updated_socket} =
+        ThreatComponent.update(
+          %{selected_label_dropdown: {nil, "priority", "high"}},
+          socket
+        )
+
+      assert updated_socket.assigns.threat.priority == :high
+    end
+
+    test "assigns status identified from a label drop down", %{socket: socket} do
+      {:ok, updated_socket} =
+        ThreatComponent.update(
+          %{selected_label_dropdown: {nil, "status", "identified"}},
+          socket
+        )
+
+      assert updated_socket.assigns.threat.status == :identified
+    end
+
+    test "assigns status resolved from a label drop down", %{socket: socket} do
+      {:ok, updated_socket} =
+        ThreatComponent.update(
+          %{selected_label_dropdown: {nil, "status", "resolved"}},
+          socket
+        )
+
+      assert updated_socket.assigns.threat.status == :resolved
+    end
+
     test "assigns an empty tag", %{assigns: assigns, socket: socket} do
       {:ok, updated_socket} = ThreatComponent.update(assigns, socket)
       assert updated_socket.assigns.tag == ""

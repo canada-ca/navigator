@@ -172,11 +172,22 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
 
   @impl true
   def update(%{selected_label_dropdown: {_id, field, value}}, socket) do
+    # Convert string value to atom for enum fields
+    converted_value = 
+      case field do
+        "status" when is_binary(value) -> String.to_existing_atom(value)
+        "priority" when is_binary(value) -> String.to_existing_atom(value)
+        _ -> value
+      end
+
+    # Convert field name to atom for the changeset
+    field_atom = String.to_existing_atom(field)
+
     {:ok, threat} =
       Composer.update_threat(
         socket.assigns.threat,
         %{}
-        |> Map.put(field, value)
+        |> Map.put(field_atom, converted_value)
       )
 
     {:ok,
