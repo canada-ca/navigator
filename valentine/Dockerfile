@@ -25,17 +25,15 @@ FROM ${BUILDER_IMAGE} AS builder
 RUN apt-get update -y && apt-get install -y build-essential git curl \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
-# Install Node.js
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-ENV NVM_DIR=/root/.nvm
-RUN . "$NVM_DIR/nvm.sh" && nvm install 22 && nvm use 22 && nvm alias default 22
-ENV PATH="/root/.nvm/versions/node/22/bin/:${PATH}"
+# Install Node.js from Debian packages
+RUN apt-get update -y && apt-get install -y nodejs npm \
+  && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # prepare build dir
 WORKDIR /app
 
 # install hex + rebar
-RUN mix local.hex --force && \
+RUN mix archive.install github hexpm/hex branch latest --force && \
   mix local.rebar --force
 
 # set build ENV
@@ -59,8 +57,8 @@ COPY lib lib
 COPY assets assets
 
 # compile assets
-RUN . "$NVM_DIR/nvm.sh" && mix assets.setup
-RUN . "$NVM_DIR/nvm.sh" && mix assets.deploy
+RUN mix assets.setup
+RUN mix assets.deploy
 
 # Compile the release
 RUN mix compile
