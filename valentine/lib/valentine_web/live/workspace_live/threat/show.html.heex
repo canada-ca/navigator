@@ -275,9 +275,12 @@
         is_full_width
         name="status"
         class="mt-2"
-        options={["", "Identified", "Resolved", "Not usefull"]}
+        options={
+          Ecto.Enum.values(Valentine.Composer.Threat, :status)
+          |> Enum.map(&{Phoenix.Naming.humanize(&1), &1})
+        }
         input_id="status"
-        selected={Phoenix.Naming.humanize(@changes[:status])}
+        selected={@changes[:status]}
       />
     </form>
     <.action_list_section_divider />
