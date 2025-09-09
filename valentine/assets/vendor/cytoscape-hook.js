@@ -308,13 +308,16 @@ const CytoscapeHook = {
         });
 
         let defaults = {
+            // Prevent self-linking
             canConnect: function (sourceNode, targetNode) {
                 return !sourceNode.same(targetNode);
             },
+            // Create edge with random ID and default label
             edgeParams: function (sourceNode, targetNode) {
                 id = "edge-" + Math.floor(Math.random() * 1000);
                 return { data: { id: id, label: "Data flow" } };
             },
+            // Behavior tuning
             hoverDelay: 150,
             snap: true,
             snapThreshold: 50,
@@ -394,7 +397,10 @@ const CytoscapeHook = {
             switch (event) {
                 case "add_node":
                     this.addNode(payload);
-                    this.fitView();
+                    // Dynamically decide whether to fit the view based on node layout and screen size
+                    if (this.shouldFitView()) {
+                        this.fitView();
+                    }
                     break;
 
                 case "clear_dfd":
@@ -557,6 +563,31 @@ const CytoscapeHook = {
 
     zoomOut() {
         this.cy.zoom(this.cy.zoom() * 0.8);
+    },
+
+    // Helper function to determine whether the view should auto-fit based on current node layout
+    shouldFitView() {
+        const nodeCount = this.cy.nodes().length;
+
+        // Avoid auto-fitting for early additions
+        if (nodeCount <= 3) {
+            return false;
+        }
+
+        const boundingBox = this.cy.elements().boundingBox();
+        const container = this.cy.container();
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+
+        // Evaluate how much of the canvas the diagram occupies
+        const widthRatio = boundingBox.w / containerWidth;
+        const heightRatio = boundingBox.h / containerHeight;
+
+        // Only fit if the layout is *almost* too large or too small
+        const layoutTooCramped = widthRatio > 0.85 || heightRatio > 0.85;
+        const layoutTooTiny = widthRatio < 0.25 && heightRatio < 0.25;
+
+        return layoutTooCramped || layoutTooTiny;
     }
 };
 
