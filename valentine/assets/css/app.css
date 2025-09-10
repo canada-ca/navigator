@@ -54,8 +54,9 @@ html[data-theme="dark"] {
 #cytoscape-container {
     position: relative;
     width: 100%;
-    height: 400px;
-    min-height: 400px;
+    height: 60vh;
+    min-height: 500px;
+    max-height: 100vh;     /* prevents over-expansion */
     overflow: hidden;
 }
 
