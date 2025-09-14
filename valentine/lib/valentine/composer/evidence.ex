@@ -26,9 +26,12 @@ defmodule Valentine.Composer.Evidence do
     field :name, :string
     field :description, :string
     field :evidence_type, Ecto.Enum, values: [:json_data, :blob_store_link]
-    field :content, :map  # For JSON data like OSCAL documents
-    field :blob_store_url, :string  # For external file links (images, documents, etc.)
-    field :nist_controls, {:array, :string}, default: []  # NIST control IDs
+    # For JSON data like OSCAL documents
+    field :content, :map
+    # For external file links (images, documents, etc.)
+    field :blob_store_url, :string
+    # NIST control IDs
+    field :nist_controls, {:array, :string}, default: []
     field :tags, {:array, :string}, default: []
 
     # Many-to-many relationships through join tables
@@ -77,15 +80,21 @@ defmodule Valentine.Composer.Evidence do
           add_error(changeset, :content, "must be provided when evidence_type is json_data")
         else
           changeset
-          |> put_change(:blob_store_url, nil)  # Clear blob_store_url for json_data type
+          # Clear blob_store_url for json_data type
+          |> put_change(:blob_store_url, nil)
         end
 
       :blob_store_link ->
         if is_nil(blob_store_url) or blob_store_url == "" do
-          add_error(changeset, :blob_store_url, "must be provided when evidence_type is blob_store_link")
+          add_error(
+            changeset,
+            :blob_store_url,
+            "must be provided when evidence_type is blob_store_link"
+          )
         else
           changeset
-          |> put_change(:content, nil)  # Clear content for blob_store_link type
+          # Clear content for blob_store_link type
+          |> put_change(:content, nil)
         end
 
       _ ->
@@ -95,16 +104,20 @@ defmodule Valentine.Composer.Evidence do
 
   defp validate_nist_controls(changeset) do
     nist_controls = get_field(changeset, :nist_controls) || []
-    
+
     # NIST control ID pattern: e.g., "AC-1", "SC-7.4", "AU-12"
     nist_id_regex = ~r/^[A-Z]{2}-\d+(\.\d+)?$/
 
-    invalid_controls = 
+    invalid_controls =
       nist_controls
       |> Enum.reject(&Regex.match?(nist_id_regex, &1))
 
     if length(invalid_controls) > 0 do
-      add_error(changeset, :nist_controls, "contains invalid NIST control IDs: #{Enum.join(invalid_controls, ", ")}")
+      add_error(
+        changeset,
+        :nist_controls,
+        "contains invalid NIST control IDs: #{Enum.join(invalid_controls, ", ")}"
+      )
     else
       changeset
     end

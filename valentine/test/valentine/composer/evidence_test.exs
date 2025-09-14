@@ -27,6 +27,7 @@ defmodule Valentine.Composer.EvidenceTest do
 
     test "create_evidence/1 with valid json_data creates evidence" do
       workspace = workspace_fixture()
+
       valid_attrs = %{
         workspace_id: workspace.id,
         name: "Test Evidence",
@@ -50,6 +51,7 @@ defmodule Valentine.Composer.EvidenceTest do
 
     test "create_evidence/1 with valid blob_store_link creates evidence" do
       workspace = workspace_fixture()
+
       valid_attrs = %{
         workspace_id: workspace.id,
         name: "External Document",
@@ -71,6 +73,7 @@ defmodule Valentine.Composer.EvidenceTest do
 
     test "create_evidence/1 with invalid json_data type returns error changeset" do
       workspace = workspace_fixture()
+
       invalid_attrs = %{
         workspace_id: workspace.id,
         name: "Test Evidence",
@@ -85,6 +88,7 @@ defmodule Valentine.Composer.EvidenceTest do
 
     test "create_evidence/1 with invalid blob_store_link type returns error changeset" do
       workspace = workspace_fixture()
+
       invalid_attrs = %{
         workspace_id: workspace.id,
         name: "Test Evidence",
@@ -94,11 +98,13 @@ defmodule Valentine.Composer.EvidenceTest do
       }
 
       assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(invalid_attrs)
+
       assert "must be provided when evidence_type is blob_store_link" in errors_on(changeset).blob_store_url
     end
 
     test "create_evidence/1 with invalid NIST controls returns error changeset" do
       workspace = workspace_fixture()
+
       invalid_attrs = %{
         workspace_id: workspace.id,
         name: "Test Evidence",
@@ -113,6 +119,7 @@ defmodule Valentine.Composer.EvidenceTest do
 
     test "create_evidence/1 with valid NIST controls succeeds" do
       workspace = workspace_fixture()
+
       valid_attrs = %{
         workspace_id: workspace.id,
         name: "Test Evidence",
@@ -136,6 +143,7 @@ defmodule Valentine.Composer.EvidenceTest do
 
     test "update_evidence/2 with valid data updates the evidence" do
       evidence = evidence_fixture()
+
       update_attrs = %{
         name: "Updated Evidence",
         description: "Updated description",
@@ -170,29 +178,33 @@ defmodule Valentine.Composer.EvidenceTest do
 
     test "numeric_id is auto-incremented within workspace" do
       workspace = workspace_fixture()
-      
-      {:ok, evidence1} = Composer.create_evidence(%{
-        workspace_id: workspace.id,
-        name: "Evidence 1",
-        evidence_type: :json_data,
-        content: %{"data" => "test1"}
-      })
-      
-      {:ok, evidence2} = Composer.create_evidence(%{
-        workspace_id: workspace.id,
-        name: "Evidence 2",
-        evidence_type: :json_data,
-        content: %{"data" => "test2"}
-      })
+
+      {:ok, evidence1} =
+        Composer.create_evidence(%{
+          workspace_id: workspace.id,
+          name: "Evidence 1",
+          evidence_type: :json_data,
+          content: %{"data" => "test1"}
+        })
+
+      {:ok, evidence2} =
+        Composer.create_evidence(%{
+          workspace_id: workspace.id,
+          name: "Evidence 2",
+          evidence_type: :json_data,
+          content: %{"data" => "test2"}
+        })
 
       # Different workspace should start from 1 again
       other_workspace = workspace_fixture()
-      {:ok, evidence3} = Composer.create_evidence(%{
-        workspace_id: other_workspace.id,
-        name: "Evidence 3",
-        evidence_type: :json_data,
-        content: %{"data" => "test3"}
-      })
+
+      {:ok, evidence3} =
+        Composer.create_evidence(%{
+          workspace_id: other_workspace.id,
+          name: "Evidence 3",
+          evidence_type: :json_data,
+          content: %{"data" => "test3"}
+        })
 
       assert evidence1.numeric_id == 1
       assert evidence2.numeric_id == 2
@@ -208,15 +220,16 @@ defmodule Valentine.Composer.EvidenceTest do
 
       # Load evidence with associations
       evidence = Valentine.Repo.preload(evidence, [:assumptions, :evidence_assumptions])
-      
+
       # Initially no associations
       assert evidence.assumptions == []
 
       # Create association through join table
-      {:ok, _join} = Valentine.Repo.insert(%Valentine.Composer.EvidenceAssumption{
-        evidence_id: evidence.id,
-        assumption_id: assumption.id
-      })
+      {:ok, _join} =
+        Valentine.Repo.insert(%Valentine.Composer.EvidenceAssumption{
+          evidence_id: evidence.id,
+          assumption_id: assumption.id
+        })
 
       # Reload and verify association
       evidence = Valentine.Repo.preload(Composer.get_evidence!(evidence.id), :assumptions)
@@ -231,15 +244,16 @@ defmodule Valentine.Composer.EvidenceTest do
 
       # Load evidence with associations
       evidence = Valentine.Repo.preload(evidence, [:threats, :evidence_threats])
-      
+
       # Initially no associations
       assert evidence.threats == []
 
       # Create association through join table
-      {:ok, _join} = Valentine.Repo.insert(%Valentine.Composer.EvidenceThreat{
-        evidence_id: evidence.id,
-        threat_id: threat.id
-      })
+      {:ok, _join} =
+        Valentine.Repo.insert(%Valentine.Composer.EvidenceThreat{
+          evidence_id: evidence.id,
+          threat_id: threat.id
+        })
 
       # Reload and verify association
       evidence = Valentine.Repo.preload(Composer.get_evidence!(evidence.id), :threats)
@@ -254,15 +268,16 @@ defmodule Valentine.Composer.EvidenceTest do
 
       # Load evidence with associations
       evidence = Valentine.Repo.preload(evidence, [:mitigations, :evidence_mitigations])
-      
+
       # Initially no associations
       assert evidence.mitigations == []
 
       # Create association through join table
-      {:ok, _join} = Valentine.Repo.insert(%Valentine.Composer.EvidenceMitigation{
-        evidence_id: evidence.id,
-        mitigation_id: mitigation.id
-      })
+      {:ok, _join} =
+        Valentine.Repo.insert(%Valentine.Composer.EvidenceMitigation{
+          evidence_id: evidence.id,
+          mitigation_id: mitigation.id
+        })
 
       # Reload and verify association
       evidence = Valentine.Repo.preload(Composer.get_evidence!(evidence.id), :mitigations)
@@ -276,10 +291,11 @@ defmodule Valentine.Composer.EvidenceTest do
       assumption = assumption_fixture(%{workspace_id: workspace.id})
 
       # Create association
-      {:ok, _join} = Valentine.Repo.insert(%Valentine.Composer.EvidenceAssumption{
-        evidence_id: evidence.id,
-        assumption_id: assumption.id
-      })
+      {:ok, _join} =
+        Valentine.Repo.insert(%Valentine.Composer.EvidenceAssumption{
+          evidence_id: evidence.id,
+          assumption_id: assumption.id
+        })
 
       # Load assumption with evidence
       assumption = Valentine.Repo.preload(Composer.get_assumption!(assumption.id), :evidence)
@@ -293,10 +309,11 @@ defmodule Valentine.Composer.EvidenceTest do
       threat = threat_fixture(%{workspace_id: workspace.id})
 
       # Create association
-      {:ok, _join} = Valentine.Repo.insert(%Valentine.Composer.EvidenceThreat{
-        evidence_id: evidence.id,
-        threat_id: threat.id
-      })
+      {:ok, _join} =
+        Valentine.Repo.insert(%Valentine.Composer.EvidenceThreat{
+          evidence_id: evidence.id,
+          threat_id: threat.id
+        })
 
       # Load threat with evidence
       threat = Valentine.Repo.preload(Composer.get_threat!(threat.id), :evidence)
@@ -310,10 +327,11 @@ defmodule Valentine.Composer.EvidenceTest do
       mitigation = mitigation_fixture(%{workspace_id: workspace.id})
 
       # Create association
-      {:ok, _join} = Valentine.Repo.insert(%Valentine.Composer.EvidenceMitigation{
-        evidence_id: evidence.id,
-        mitigation_id: mitigation.id
-      })
+      {:ok, _join} =
+        Valentine.Repo.insert(%Valentine.Composer.EvidenceMitigation{
+          evidence_id: evidence.id,
+          mitigation_id: mitigation.id
+        })
 
       # Load mitigation with evidence
       mitigation = Valentine.Repo.preload(Composer.get_mitigation!(mitigation.id), :evidence)
@@ -341,26 +359,35 @@ defmodule Valentine.Composer.EvidenceTest do
       mitigation = mitigation_fixture(%{workspace_id: workspace.id})
 
       # Create associations
-      {:ok, evidence_assumption} = Valentine.Repo.insert(%Valentine.Composer.EvidenceAssumption{
-        evidence_id: evidence.id,
-        assumption_id: assumption.id
-      })
-      {:ok, evidence_threat} = Valentine.Repo.insert(%Valentine.Composer.EvidenceThreat{
-        evidence_id: evidence.id,
-        threat_id: threat.id
-      })
-      {:ok, evidence_mitigation} = Valentine.Repo.insert(%Valentine.Composer.EvidenceMitigation{
-        evidence_id: evidence.id,
-        mitigation_id: mitigation.id
-      })
+      {:ok, evidence_assumption} =
+        Valentine.Repo.insert(%Valentine.Composer.EvidenceAssumption{
+          evidence_id: evidence.id,
+          assumption_id: assumption.id
+        })
+
+      {:ok, evidence_threat} =
+        Valentine.Repo.insert(%Valentine.Composer.EvidenceThreat{
+          evidence_id: evidence.id,
+          threat_id: threat.id
+        })
+
+      {:ok, evidence_mitigation} =
+        Valentine.Repo.insert(%Valentine.Composer.EvidenceMitigation{
+          evidence_id: evidence.id,
+          mitigation_id: mitigation.id
+        })
 
       # Delete evidence
       Composer.delete_evidence(evidence)
 
       # Associations should be deleted
-      assert Valentine.Repo.get(Valentine.Composer.EvidenceAssumption, evidence_assumption.id) == nil
+      assert Valentine.Repo.get(Valentine.Composer.EvidenceAssumption, evidence_assumption.id) ==
+               nil
+
       assert Valentine.Repo.get(Valentine.Composer.EvidenceThreat, evidence_threat.id) == nil
-      assert Valentine.Repo.get(Valentine.Composer.EvidenceMitigation, evidence_mitigation.id) == nil
+
+      assert Valentine.Repo.get(Valentine.Composer.EvidenceMitigation, evidence_mitigation.id) ==
+               nil
 
       # But the related entities should still exist
       assert Composer.get_assumption!(assumption.id)

@@ -8,8 +8,10 @@ defmodule Valentine.Repo.Migrations.CreateEvidence do
       add :name, :string, null: false
       add :description, :text
       add :evidence_type, :string, null: false
-      add :content, :map  # For JSON data like OSCAL documents
-      add :blob_store_url, :string  # For external file links
+      # For JSON data like OSCAL documents
+      add :content, :map
+      # For external file links
+      add :blob_store_url, :string
       add :nist_controls, {:array, :string}, default: []
       add :tags, {:array, :string}, default: []
       add :workspace_id, references(:workspaces, type: :binary_id, on_delete: :delete_all)
