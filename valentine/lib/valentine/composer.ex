@@ -10,6 +10,7 @@ defmodule Valentine.Composer do
   alias Valentine.Composer.Assumption
   alias Valentine.Composer.Mitigation
   alias Valentine.Composer.Threat
+  alias Valentine.Composer.Evidence
   alias Valentine.Composer.ApplicationInformation
   alias Valentine.Composer.DataFlowDiagram
   alias Valentine.Composer.Architecture
@@ -21,6 +22,9 @@ defmodule Valentine.Composer do
   alias Valentine.Composer.AssumptionThreat
   alias Valentine.Composer.AssumptionMitigation
   alias Valentine.Composer.MitigationThreat
+  alias Valentine.Composer.EvidenceAssumption
+  alias Valentine.Composer.EvidenceThreat
+  alias Valentine.Composer.EvidenceMitigation
 
   @doc """
   Returns the list of workspaces.
@@ -1764,5 +1768,99 @@ defmodule Valentine.Composer do
         attrs \\ %{}
       ) do
     ApiKey.changeset(api_key, attrs)
+  end
+
+  @doc """
+  Returns the list of evidence for a workspace.
+
+  ## Examples
+
+      iex> list_evidence(workspace_id)
+      [%Evidence{}, ...]
+
+  """
+  def list_evidence(workspace_id) do
+    Repo.all(from e in Evidence, where: e.workspace_id == ^workspace_id)
+  end
+
+  @doc """
+  Gets a single evidence.
+
+  Raises `Ecto.NoResultsError` if the Evidence does not exist.
+
+  ## Examples
+
+      iex> get_evidence!(123)
+      %Evidence{}
+
+      iex> get_evidence!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_evidence!(id), do: Repo.get!(Evidence, id)
+
+  @doc """
+  Creates evidence.
+
+  ## Examples
+
+      iex> create_evidence(%{field: value})
+      {:ok, %Evidence{}}
+
+      iex> create_evidence(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_evidence(attrs \\ %{}) do
+    %Evidence{}
+    |> Evidence.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates evidence.
+
+  ## Examples
+
+      iex> update_evidence(evidence, %{field: new_value})
+      {:ok, %Evidence{}}
+
+      iex> update_evidence(evidence, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_evidence(%Evidence{} = evidence, attrs) do
+    evidence
+    |> Evidence.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes evidence.
+
+  ## Examples
+
+      iex> delete_evidence(evidence)
+      {:ok, %Evidence{}}
+
+      iex> delete_evidence(evidence)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_evidence(%Evidence{} = evidence) do
+    Repo.delete(evidence)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking evidence changes.
+
+  ## Examples
+
+      iex> change_evidence(evidence)
+      %Ecto.Changeset{data: %Evidence{}}
+
+  """
+  def change_evidence(%Evidence{} = evidence, attrs \\ %{}) do
+    Evidence.changeset(evidence, attrs)
   end
 end
