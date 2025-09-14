@@ -56,6 +56,9 @@ defmodule Valentine.Composer.Threat do
     has_many :mitigation_threats, Valentine.Composer.MitigationThreat, on_replace: :delete
     has_many :mitigations, through: [:mitigation_threats, :mitigation]
 
+    has_many :evidence_threats, Valentine.Composer.EvidenceThreat, on_replace: :delete
+    has_many :evidence, through: [:evidence_threats, :evidence]
+
     timestamps(type: :utc_datetime)
   end
 

@@ -222,4 +222,48 @@ defmodule Valentine.ComposerFixtures do
 
     api_key
   end
+
+  @doc """
+  Generate evidence.
+  """
+  def evidence_fixture(attrs \\ %{}) do
+    workspace = workspace_fixture()
+
+    {:ok, evidence} =
+      attrs
+      |> Enum.into(%{
+        name: "some evidence",
+        description: "some description",
+        evidence_type: :json_data,
+        content: %{"document_type" => "OSCAL", "data" => "some data"},
+        nist_controls: ["AC-1", "SC-7.4"],
+        tags: ["security", "compliance"],
+        workspace_id: workspace.id
+      })
+      |> Valentine.Composer.create_evidence()
+
+    evidence
+  end
+
+  @doc """
+  Generate blob store evidence.
+  """
+  def blob_evidence_fixture(attrs \\ %{}) do
+    workspace = workspace_fixture()
+
+    {:ok, evidence} =
+      attrs
+      |> Enum.into(%{
+        name: "some blob evidence",
+        description: "some external file description",
+        evidence_type: :blob_store_link,
+        blob_store_url: "https://example.com/evidence/document.pdf",
+        nist_controls: ["AU-12"],
+        tags: ["external", "document"],
+        workspace_id: workspace.id
+      })
+      |> Valentine.Composer.create_evidence()
+
+    evidence
+  end
 end

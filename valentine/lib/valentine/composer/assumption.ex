@@ -31,6 +31,9 @@ defmodule Valentine.Composer.Assumption do
     has_many :assumption_threats, Valentine.Composer.AssumptionThreat, on_replace: :delete
     has_many :threats, through: [:assumption_threats, :threat]
 
+    has_many :evidence_assumptions, Valentine.Composer.EvidenceAssumption, on_replace: :delete
+    has_many :evidence, through: [:evidence_assumptions, :evidence]
+
     timestamps(type: :utc_datetime)
   end
 
