@@ -550,7 +550,7 @@ defmodule Valentine.Composer.EvidenceTest do
       workspace = workspace_fixture()
       
       # Create assumption with tags that would match NIST controls
-      assumption_with_tags = assumption_fixture(%{
+      _assumption_with_tags = assumption_fixture(%{
         workspace_id: workspace.id,
         content: "Access controls assumption",
         tags: ["AC-1", "security"]
@@ -647,7 +647,7 @@ defmodule Valentine.Composer.EvidenceTest do
         tags: ["AC-1", "security"]  # Has AC-1
       })
       
-      assumption_without_match = assumption_fixture(%{
+      _assumption_without_match = assumption_fixture(%{
         workspace_id: workspace.id,
         content: "Non-matching assumption", 
         tags: ["SC-7", "network"]  # No AC-1

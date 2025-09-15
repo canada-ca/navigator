@@ -421,7 +421,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
     test "NIST control linking only works within same workspace", %{conn: conn, api_key: api_key} do
       # Create entities in different workspace
       other_workspace = workspace_fixture(%{name: "Other Workspace", owner: "other_owner"})
-      other_assumption = assumption_fixture(%{
+      _other_assumption = assumption_fixture(%{
         workspace_id: other_workspace.id,
         content: "Access controls in other workspace",
         tags: ["AC-1", "security"]
@@ -449,7 +449,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
 
     test "direct ID linking takes precedence over NIST control linking", %{conn: conn, api_key: api_key, workspace: workspace} do
       # Create entity with tags that would match NIST controls
-      assumption_with_tags = assumption_fixture(%{
+      _assumption_with_tags = assumption_fixture(%{
         workspace_id: workspace.id,
         content: "Access controls assumption",
         tags: ["AC-1", "security"]
