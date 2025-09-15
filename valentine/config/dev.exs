@@ -2,7 +2,8 @@ import Config
 
 # Configure your database
 config :valentine, Valentine.Repo,
-  url: System.get_env("DATABASE_URL") <> "/valentine_dev",
+  url:
+    (System.get_env("DATABASE_URL") || "ecto://postgres:postgres@localhost") <> "/valentine_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
