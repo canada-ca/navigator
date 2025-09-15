@@ -31,25 +31,25 @@ defmodule ValentineWeb.Workspace.Mermaid do
   """
   def generate_nodes(nodes) do
     # Separate trust boundaries and regular nodes
-    {trust_boundaries, regular_nodes} = 
+    {trust_boundaries, regular_nodes} =
       nodes
-      |> Enum.split_with(fn {_id, node} -> 
-        node["data"]["type"] == "trust_boundary" 
+      |> Enum.split_with(fn {_id, node} ->
+        node["data"]["type"] == "trust_boundary"
       end)
 
     # Generate regular nodes (those not inside trust boundaries)
-    standalone_nodes = 
+    standalone_nodes =
       regular_nodes
-      |> Enum.filter(fn {_id, node} -> 
-        is_nil(node["data"]["parent"]) 
+      |> Enum.filter(fn {_id, node} ->
+        is_nil(node["data"]["parent"])
       end)
       |> Enum.map(fn {_id, node} -> format_node(node) end)
 
     # Generate trust boundaries with their nested nodes
-    boundary_nodes = 
+    boundary_nodes =
       trust_boundaries
-      |> Enum.map(fn {_boundary_id, boundary_node} -> 
-        format_trust_boundary(boundary_node, nodes) 
+      |> Enum.map(fn {_boundary_id, boundary_node} ->
+        format_trust_boundary(boundary_node, nodes)
       end)
 
     (standalone_nodes ++ boundary_nodes)
@@ -88,14 +88,14 @@ defmodule ValentineWeb.Workspace.Mermaid do
     boundary_data = boundary_node["data"]
     boundary_id = boundary_data["id"]
     boundary_label = sanitize_state_name(boundary_data["label"] || "Trust_Boundary")
-    
+
     # Find all nodes that belong to this trust boundary
-    child_nodes = 
+    child_nodes =
       all_nodes
-      |> Enum.filter(fn {_id, node} -> 
+      |> Enum.filter(fn {_id, node} ->
         node["data"]["parent"] == boundary_id && node["data"]["type"] != "trust_boundary"
       end)
-      |> Enum.map(fn {_id, node} -> 
+      |> Enum.map(fn {_id, node} ->
         data = node["data"]
         id = sanitize_id(data["id"])
         label = sanitize_label(data["label"] || data["type"] || "Unknown")

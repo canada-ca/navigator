@@ -80,7 +80,10 @@ defmodule ValentineWeb.Workspace.MermaidTest do
       }
 
       result = Mermaid.generate_nodes(nodes)
-      expected = "    state GitHub {\n        node_5 : GitHub Authentication\n        node_6 : Public repositories\n    }"
+
+      expected =
+        "    state GitHub {\n        node_5 : GitHub Authentication\n        node_6 : Public repositories\n    }"
+
       assert result == expected
     end
 
@@ -167,7 +170,10 @@ defmodule ValentineWeb.Workspace.MermaidTest do
       }
 
       result = Mermaid.generate_nodes(nodes)
-      expected = "    node_1 : External User\n    state GitHub {\n        node_3 : Authentication Service\n        node_4 : Repository Storage\n    }"
+
+      expected =
+        "    node_1 : External User\n    state GitHub {\n        node_3 : Authentication Service\n        node_4 : Repository Storage\n    }"
+
       assert result == expected
     end
 
@@ -264,12 +270,12 @@ defmodule ValentineWeb.Workspace.MermaidTest do
       }
 
       result = Mermaid.generate_nodes(nodes)
-      
+
       # The expected format should have:
       # 1. Standalone nodes listed first
       # 2. Trust boundary as a state with the label as the state name
       # 3. Nested nodes inside the trust boundary state
-      
+
       # Since the order of nodes within each category might vary,
       # let's verify the key structural elements are present
       assert String.contains?(result, "state GitHub {")
@@ -283,20 +289,23 @@ defmodule ValentineWeb.Workspace.MermaidTest do
       assert String.contains?(result, "node_89858 : SSH Key")
       assert String.contains?(result, "node_90306 : Fine-grained personal access token")
       assert String.contains?(result, "node_92226 : Anonymous user")
-      
+
       # Verify that all the nested nodes are properly indented within the state
       lines = String.split(result, "\n")
       github_state_start = Enum.find_index(lines, &String.contains?(&1, "state GitHub {"))
-      github_state_end = Enum.find_index(lines, fn line -> 
-        String.trim(line) == "}" && 
-        Enum.find_index(lines, &(&1 == line)) > github_state_start
-      end)
-      
+
+      github_state_end =
+        Enum.find_index(lines, fn line ->
+          String.trim(line) == "}" &&
+            Enum.find_index(lines, &(&1 == line)) > github_state_start
+        end)
+
       # All lines between the start and end should be indented nested nodes
       assert github_state_start != nil
       assert github_state_end != nil
-      
+
       nested_lines = Enum.slice(lines, (github_state_start + 1)..(github_state_end - 1))
+
       Enum.each(nested_lines, fn line ->
         assert String.starts_with?(line, "        node_")
       end)
