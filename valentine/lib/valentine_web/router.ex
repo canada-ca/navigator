@@ -68,6 +68,7 @@ defmodule ValentineWeb.Router do
     get "/workspaces/:workspace_id/export/assumptions", WorkspaceController, :export_assumptions
     get "/workspaces/:workspace_id/export/mitigations", WorkspaceController, :export_mitigations
     get "/workspaces/:workspace_id/export/threats", WorkspaceController, :export_threats
+    get "/workspaces/:workspace_id/data_flow/mermaid", WorkspaceController, :export_dfd_mermaid
     get "/workspaces/:workspace_id/threat_model/markdown", WorkspaceController, :markdown
     get "/workspaces/:workspace_id/srtm/excel", WorkspaceController, :excel
 

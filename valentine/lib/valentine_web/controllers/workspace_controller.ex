@@ -127,6 +127,20 @@ defmodule ValentineWeb.WorkspaceController do
     )
   end
 
+  def export_dfd_mermaid(conn, %{"workspace_id" => workspace_id}) do
+    workspace = get_workspace(workspace_id)
+    mermaid_content = ValentineWeb.Workspace.Mermaid.generate_flowchart(workspace_id)
+
+    log(:info, get_session(conn, :user_id), "exported dfd mermaid", workspace.id, "workspace")
+
+    send_download(
+      conn,
+      {:binary, mermaid_content},
+      content_type: "text/plain",
+      filename: "DFD_#{workspace.name}.mmd"
+    )
+  end
+
   defp get_workspace(id) do
     Composer.get_workspace!(id, [
       :application_information,
