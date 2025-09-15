@@ -16,7 +16,10 @@ defmodule Valentine.Composer.Evidence do
              :content,
              :blob_store_url,
              :nist_controls,
-             :tags
+             :tags,
+             :assumptions,
+             :threats,
+             :mitigations
            ]}
 
   schema "evidence" do

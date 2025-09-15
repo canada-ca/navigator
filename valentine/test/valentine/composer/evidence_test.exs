@@ -395,4 +395,421 @@ defmodule Valentine.Composer.EvidenceTest do
       assert Composer.get_mitigation!(mitigation.id)
     end
   end
+
+  describe "NIST control linking" do
+    test "create_evidence_with_linking/2 links evidence to assumption based on NIST control overlap" do
+      workspace = workspace_fixture()
+
+      # Create assumption with NIST control in tags
+      assumption =
+        assumption_fixture(%{
+          workspace_id: workspace.id,
+          content: "Access controls are implemented",
+          tags: ["AC-1", "security", "access-control"]
+        })
+
+      # Create evidence with matching NIST control
+      evidence_attrs = %{
+        workspace_id: workspace.id,
+        name: "NIST Control Evidence",
+        evidence_type: :json_data,
+        content: %{"audit_findings" => "AC-1 controls verified"},
+        nist_controls: ["AC-1"]
+      }
+
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+      assert evidence.name == "NIST Control Evidence"
+      assert length(evidence.assumptions) == 1
+      assert List.first(evidence.assumptions).id == assumption.id
+    end
+
+    test "create_evidence_with_linking/2 links evidence to threat based on NIST control overlap" do
+      workspace = workspace_fixture()
+
+      # Create threat with NIST control in tags
+      threat =
+        threat_fixture(%{
+          workspace_id: workspace.id,
+          threat_action: "Unauthorized access attempt",
+          tags: ["AU-12", "logging", "monitoring"]
+        })
+
+      # Create evidence with matching NIST control
+      evidence_attrs = %{
+        workspace_id: workspace.id,
+        name: "Audit Evidence",
+        evidence_type: :json_data,
+        content: %{"findings" => "AU-12 logging verified"},
+        nist_controls: ["AU-12"]
+      }
+
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+      assert evidence.name == "Audit Evidence"
+      assert length(evidence.threats) == 1
+      assert List.first(evidence.threats).id == threat.id
+    end
+
+    test "create_evidence_with_linking/2 links evidence to mitigation based on NIST control overlap" do
+      workspace = workspace_fixture()
+
+      # Create mitigation with NIST control in tags
+      mitigation =
+        mitigation_fixture(%{
+          workspace_id: workspace.id,
+          content: "Implement proper network segmentation",
+          tags: ["SC-7", "network", "segmentation"]
+        })
+
+      # Create evidence with matching NIST control
+      evidence_attrs = %{
+        workspace_id: workspace.id,
+        name: "Network Evidence",
+        evidence_type: :json_data,
+        content: %{"report" => "SC-7 network controls verified"},
+        nist_controls: ["SC-7"]
+      }
+
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+      assert evidence.name == "Network Evidence"
+      assert length(evidence.mitigations) == 1
+      assert List.first(evidence.mitigations).id == mitigation.id
+    end
+
+    test "create_evidence_with_linking/2 links evidence to multiple entities with overlapping NIST controls" do
+      workspace = workspace_fixture()
+
+      # Create entities with overlapping NIST controls in tags
+      assumption =
+        assumption_fixture(%{
+          workspace_id: workspace.id,
+          content: "Access controls are implemented",
+          tags: ["AC-1", "security"]
+        })
+
+      threat =
+        threat_fixture(%{
+          workspace_id: workspace.id,
+          threat_action: "Unauthorized access",
+          tags: ["AU-12", "logging"]
+        })
+
+      mitigation =
+        mitigation_fixture(%{
+          workspace_id: workspace.id,
+          content: "Implement controls",
+          tags: ["AC-1", "AU-12", "controls"]
+        })
+
+      # Create evidence with NIST controls that overlap with multiple entities
+      evidence_attrs = %{
+        workspace_id: workspace.id,
+        name: "Multi-Control Evidence",
+        evidence_type: :json_data,
+        content: %{"findings" => "AC-1 and AU-12 controls verified"},
+        nist_controls: ["AC-1", "AU-12"]
+      }
+
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+
+      # Should link to assumption (has AC-1 tag)
+      assert length(evidence.assumptions) == 1
+      assert List.first(evidence.assumptions).id == assumption.id
+
+      # Should link to threat (has AU-12 tag)
+      assert length(evidence.threats) == 1
+      assert List.first(evidence.threats).id == threat.id
+
+      # Should link to mitigation (has both AC-1 and AU-12 tags)
+      assert length(evidence.mitigations) == 1
+      assert List.first(evidence.mitigations).id == mitigation.id
+    end
+
+    test "create_evidence_with_linking/2 respects workspace isolation for NIST control linking" do
+      workspace1 = workspace_fixture(%{name: "Workspace 1"})
+      workspace2 = workspace_fixture(%{name: "Workspace 2"})
+
+      # Create assumption in different workspace with matching NIST control
+      _other_assumption =
+        assumption_fixture(%{
+          workspace_id: workspace2.id,
+          content: "Access controls in other workspace",
+          tags: ["AC-1", "security"]
+        })
+
+      # Create evidence in workspace1 with NIST control
+      evidence_attrs = %{
+        workspace_id: workspace1.id,
+        name: "Isolated Evidence",
+        evidence_type: :json_data,
+        content: %{"findings" => "AC-1 controls verified"},
+        nist_controls: ["AC-1"]
+      }
+
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+
+      # Should not link to entities from different workspace
+      assert length(evidence.assumptions) == 0
+      assert length(evidence.threats) == 0
+      assert length(evidence.mitigations) == 0
+    end
+
+    test "create_evidence_with_linking/2 direct ID linking takes precedence over NIST control linking" do
+      workspace = workspace_fixture()
+
+      # Create assumption with tags that would match NIST controls
+      _assumption_with_tags =
+        assumption_fixture(%{
+          workspace_id: workspace.id,
+          content: "Access controls assumption",
+          tags: ["AC-1", "security"]
+        })
+
+      # Create different assumption for direct linking
+      assumption_for_direct_link =
+        assumption_fixture(%{
+          workspace_id: workspace.id,
+          content: "Different assumption",
+          # No overlap with evidence NIST controls
+          tags: ["SC-7", "network"]
+        })
+
+      evidence_attrs = %{
+        workspace_id: workspace.id,
+        name: "Precedence Test Evidence",
+        evidence_type: :json_data,
+        content: %{"data" => "test"},
+        # Would match assumption_with_tags
+        nist_controls: ["AC-1"]
+      }
+
+      linking_opts = %{
+        # Direct link to different entity
+        assumption_id: assumption_for_direct_link.id
+      }
+
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, linking_opts)
+
+      # Should only link to directly specified entity, not NIST control matches
+      assert length(evidence.assumptions) == 1
+      assert List.first(evidence.assumptions).id == assumption_for_direct_link.id
+      # Should NOT link to assumption_with_tags despite NIST control overlap
+    end
+
+    test "create_evidence_with_linking/2 creates orphaned evidence when no NIST controls provided" do
+      workspace = workspace_fixture()
+
+      # Create entities with tags
+      _assumption =
+        assumption_fixture(%{
+          workspace_id: workspace.id,
+          content: "Access controls assumption",
+          tags: ["AC-1", "security"]
+        })
+
+      # Create evidence without NIST controls
+      evidence_attrs = %{
+        workspace_id: workspace.id,
+        name: "Evidence Without NIST Controls",
+        evidence_type: :json_data,
+        content: %{"data" => "test"}
+        # No nist_controls field
+      }
+
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+
+      # Should not link to any entities
+      assert length(evidence.assumptions) == 0
+      assert length(evidence.threats) == 0
+      assert length(evidence.mitigations) == 0
+    end
+
+    test "create_evidence_with_linking/2 handles empty NIST controls array" do
+      workspace = workspace_fixture()
+
+      # Create entities with tags
+      _assumption =
+        assumption_fixture(%{
+          workspace_id: workspace.id,
+          content: "Access controls assumption",
+          tags: ["AC-1", "security"]
+        })
+
+      # Create evidence with empty NIST controls
+      evidence_attrs = %{
+        workspace_id: workspace.id,
+        name: "Evidence With Empty NIST Controls",
+        evidence_type: :json_data,
+        content: %{"data" => "test"},
+        # Empty array
+        nist_controls: []
+      }
+
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+
+      # Should not link to any entities
+      assert length(evidence.assumptions) == 0
+      assert length(evidence.threats) == 0
+      assert length(evidence.mitigations) == 0
+    end
+
+    test "create_evidence_with_linking/2 links only to entities with overlapping tags" do
+      workspace = workspace_fixture()
+
+      # Create entities with different tags
+      assumption_with_match =
+        assumption_fixture(%{
+          workspace_id: workspace.id,
+          content: "Matching assumption",
+          # Has AC-1
+          tags: ["AC-1", "security"]
+        })
+
+      _assumption_without_match =
+        assumption_fixture(%{
+          workspace_id: workspace.id,
+          content: "Non-matching assumption",
+          # No AC-1
+          tags: ["SC-7", "network"]
+        })
+
+      # Create evidence with specific NIST control
+      evidence_attrs = %{
+        workspace_id: workspace.id,
+        name: "Selective Linking Evidence",
+        evidence_type: :json_data,
+        content: %{"findings" => "AC-1 controls verified"},
+        nist_controls: ["AC-1"]
+      }
+
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+
+      # Should only link to entity with matching tag
+      assert length(evidence.assumptions) == 1
+      assert List.first(evidence.assumptions).id == assumption_with_match.id
+      # Should not link to assumption_without_match
+    end
+  end
+
+  describe "evidence linking" do
+    test "create_evidence_with_linking/2 creates evidence and links to assumption" do
+      workspace = workspace_fixture()
+      assumption = assumption_fixture(%{workspace_id: workspace.id})
+
+      evidence_attrs = %{
+        workspace_id: workspace.id,
+        name: "Linked Evidence",
+        evidence_type: :json_data,
+        content: %{"data" => "test"}
+      }
+
+      linking_opts = %{assumption_id: assumption.id}
+
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, linking_opts)
+      assert evidence.name == "Linked Evidence"
+      assert length(evidence.assumptions) == 1
+      assert List.first(evidence.assumptions).id == assumption.id
+    end
+
+    test "create_evidence_with_linking/2 creates evidence and links to multiple entities" do
+      workspace = workspace_fixture()
+      assumption = assumption_fixture(%{workspace_id: workspace.id})
+      threat = threat_fixture(%{workspace_id: workspace.id})
+      mitigation = mitigation_fixture(%{workspace_id: workspace.id})
+
+      evidence_attrs = %{
+        workspace_id: workspace.id,
+        name: "Multi-Linked Evidence",
+        evidence_type: :json_data,
+        content: %{"data" => "test"}
+      }
+
+      linking_opts = %{
+        assumption_id: assumption.id,
+        threat_id: threat.id,
+        mitigation_id: mitigation.id
+      }
+
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, linking_opts)
+      assert length(evidence.assumptions) == 1
+      assert length(evidence.threats) == 1
+      assert length(evidence.mitigations) == 1
+    end
+
+    test "create_evidence_with_linking/2 handles invalid entity IDs gracefully" do
+      workspace = workspace_fixture()
+      invalid_uuid = "00000000-0000-0000-0000-000000000000"
+
+      evidence_attrs = %{
+        workspace_id: workspace.id,
+        name: "Evidence with Invalid Links",
+        evidence_type: :json_data,
+        content: %{"data" => "test"}
+      }
+
+      linking_opts = %{
+        assumption_id: invalid_uuid,
+        threat_id: invalid_uuid,
+        mitigation_id: invalid_uuid
+      }
+
+      # Should create evidence successfully but with no links
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, linking_opts)
+      assert evidence.name == "Evidence with Invalid Links"
+      assert length(evidence.assumptions) == 0
+      assert length(evidence.threats) == 0
+      assert length(evidence.mitigations) == 0
+    end
+
+    test "create_evidence_with_linking/2 prevents cross-workspace linking" do
+      workspace1 = workspace_fixture(%{name: "Workspace 1"})
+      workspace2 = workspace_fixture(%{name: "Workspace 2"})
+
+      assumption = assumption_fixture(%{workspace_id: workspace2.id})
+
+      evidence_attrs = %{
+        workspace_id: workspace1.id,
+        name: "Evidence in Workspace 1",
+        evidence_type: :json_data,
+        content: %{"data" => "test"}
+      }
+
+      linking_opts = %{assumption_id: assumption.id}
+
+      # Should create evidence but not link to assumption from different workspace
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, linking_opts)
+      assert evidence.workspace_id == workspace1.id
+      assert length(evidence.assumptions) == 0
+    end
+
+    test "create_evidence_with_linking/2 creates orphaned evidence when no linking options" do
+      workspace = workspace_fixture()
+
+      evidence_attrs = %{
+        workspace_id: workspace.id,
+        name: "Orphaned Evidence",
+        evidence_type: :json_data,
+        content: %{"data" => "test"}
+      }
+
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+      assert evidence.name == "Orphaned Evidence"
+      assert length(evidence.assumptions) == 0
+      assert length(evidence.threats) == 0
+      assert length(evidence.mitigations) == 0
+    end
+
+    test "create_evidence_with_linking/2 returns error for invalid evidence attributes" do
+      workspace = workspace_fixture()
+
+      invalid_attrs = %{
+        workspace_id: workspace.id,
+        # Missing required name and evidence_type
+        content: %{"data" => "test"}
+      }
+
+      assert {:error, changeset} = Composer.create_evidence_with_linking(invalid_attrs, %{})
+      assert changeset.errors[:name]
+      assert changeset.errors[:evidence_type]
+    end
+  end
 end
