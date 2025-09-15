@@ -16,7 +16,7 @@ defmodule ValentineWeb.Workspace.MermaidTest do
       }
 
       result = Mermaid.generate_nodes(nodes)
-      assert result == "  node_1[User]"
+      assert result == "    node_1 : User"
     end
 
     test "formats process nodes correctly" do
@@ -31,7 +31,7 @@ defmodule ValentineWeb.Workspace.MermaidTest do
       }
 
       result = Mermaid.generate_nodes(nodes)
-      assert result == "  node_2(Login Process)"
+      assert result == "    node_2 : Login Process"
     end
 
     test "formats datastore nodes correctly" do
@@ -46,7 +46,7 @@ defmodule ValentineWeb.Workspace.MermaidTest do
       }
 
       result = Mermaid.generate_nodes(nodes)
-      assert result == "  node_3[(User Database)]"
+      assert result == "    node_3 : User Database"
     end
 
     test "formats trust boundary correctly" do
@@ -61,7 +61,7 @@ defmodule ValentineWeb.Workspace.MermaidTest do
       }
 
       result = Mermaid.generate_nodes(nodes)
-      assert result == "  subgraph node_4 [Secure Zone]"
+      assert result == "    state node_4 {\n        node_4_inner : Secure Zone\n    }"
     end
 
     test "sanitizes node IDs with special characters" do
@@ -76,7 +76,7 @@ defmodule ValentineWeb.Workspace.MermaidTest do
       }
 
       result = Mermaid.generate_nodes(nodes)
-      assert result == "  node_special_[Special Node]"
+      assert result == "    node_special_ : Special Node"
     end
 
     test "handles nodes with special characters in labels" do
@@ -91,7 +91,7 @@ defmodule ValentineWeb.Workspace.MermaidTest do
       }
 
       result = Mermaid.generate_nodes(nodes)
-      assert result == "  node_1[User &#91;Admin&#93;]"
+      assert result == "    node_1 : User &#91;Admin&#93;"
     end
   end
 
@@ -114,7 +114,7 @@ defmodule ValentineWeb.Workspace.MermaidTest do
       }
 
       result = Mermaid.generate_edges(edges, nodes)
-      assert result == "  node_1 -->|Data flow| node_2"
+      assert result == "    node_1 --> node_2 : Data flow"
     end
 
     test "formats edges without labels" do
@@ -135,7 +135,7 @@ defmodule ValentineWeb.Workspace.MermaidTest do
       }
 
       result = Mermaid.generate_edges(edges, nodes)
-      assert result == "  node_1 --> node_2"
+      assert result == "    node_1 --> node_2"
     end
 
     test "skips edges with missing source or target nodes" do
@@ -160,7 +160,7 @@ defmodule ValentineWeb.Workspace.MermaidTest do
   end
 
   describe "generate_flowchart/1" do
-    test "generates a complete Mermaid flowchart" do
+    test "generates a complete Mermaid state diagram" do
       # This would require mocking DataFlowDiagram.get/1
       # For now, we'll test the structure indirectly through the component functions
       nodes = %{
@@ -194,8 +194,8 @@ defmodule ValentineWeb.Workspace.MermaidTest do
       nodes_output = Mermaid.generate_nodes(nodes)
       edges_output = Mermaid.generate_edges(edges, nodes)
 
-      assert nodes_output == "  node_1[User]\n  node_2(Process)"
-      assert edges_output == "  node_1 -->|Request| node_2"
+      assert nodes_output == "    node_1 : User\n    node_2 : Process"
+      assert edges_output == "    node_1 --> node_2 : Request"
     end
   end
 end

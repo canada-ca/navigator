@@ -2,18 +2,18 @@ defmodule ValentineWeb.Workspace.Mermaid do
   @moduledoc """
   Converts data flow diagrams to Mermaid.js format.
 
-  Generates Mermaid.js flowchart syntax from Navigator's data flow diagram structure.
+  Generates Mermaid.js state diagram syntax from Navigator's data flow diagram structure.
   """
 
   alias Valentine.Composer.DataFlowDiagram
 
   @doc """
-  Generates a Mermaid.js flowchart from a workspace's data flow diagram.
+  Generates a Mermaid.js state diagram from a workspace's data flow diagram.
 
   ## Examples
 
       iex> ValentineWeb.Workspace.Mermaid.generate_flowchart(workspace_id)
-      "flowchart TD\\n  A[Actor] --> B[Process]\\n  B --> C[Datastore]"
+      "stateDiagram-v2\\n    [*] --> Actor\\n    Actor --> Process"
   """
   def generate_flowchart(workspace_id) do
     dfd = DataFlowDiagram.get(workspace_id)
@@ -21,13 +21,13 @@ defmodule ValentineWeb.Workspace.Mermaid do
     nodes_mermaid = generate_nodes(dfd.nodes)
     edges_mermaid = generate_edges(dfd.edges, dfd.nodes)
 
-    ["flowchart TD", nodes_mermaid, edges_mermaid]
+    ["stateDiagram-v2", nodes_mermaid, edges_mermaid]
     |> Enum.reject(&(&1 == ""))
     |> Enum.join("\n")
   end
 
   @doc """
-  Generates node definitions for Mermaid.js flowchart.
+  Generates node definitions for Mermaid.js state diagram.
   """
   def generate_nodes(nodes) do
     nodes
@@ -37,7 +37,7 @@ defmodule ValentineWeb.Workspace.Mermaid do
   end
 
   @doc """
-  Generates edge definitions for Mermaid.js flowchart.
+  Generates edge definitions for Mermaid.js state diagram.
   """
   def generate_edges(edges, nodes) do
     edges
@@ -55,19 +55,19 @@ defmodule ValentineWeb.Workspace.Mermaid do
 
     case data["type"] do
       "actor" ->
-        "  #{id}[#{label}]"
+        "    #{id} : #{label}"
 
       "process" ->
-        "  #{id}(#{label})"
+        "    #{id} : #{label}"
 
       "datastore" ->
-        "  #{id}[(#{label})]"
+        "    #{id} : #{label}"
 
       "trust_boundary" ->
-        "  subgraph #{id} [#{label}]"
+        "    state #{id} {\n        #{id}_inner : #{label}\n    }"
 
       _ ->
-        "  #{id}[#{label}]"
+        "    #{id} : #{label}"
     end
   end
 
@@ -83,9 +83,9 @@ defmodule ValentineWeb.Workspace.Mermaid do
 
     if source_exists && target_exists do
       if label != "" do
-        "  #{source_id} -->|#{label}| #{target_id}"
+        "    #{source_id} --> #{target_id} : #{label}"
       else
-        "  #{source_id} --> #{target_id}"
+        "    #{source_id} --> #{target_id}"
       end
     else
       nil

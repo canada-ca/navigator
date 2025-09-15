@@ -158,7 +158,7 @@ defmodule ValentineWeb.WorkspaceControllerTest do
     assert List.keyfind(conn.resp_headers, "content-type", 0) ==
              {"content-type", "text/plain"}
 
-    # The response should be a valid Mermaid flowchart
-    assert String.starts_with?(conn.resp_body, "flowchart TD")
+    # The response should be a valid Mermaid state diagram
+    assert String.starts_with?(conn.resp_body, "stateDiagram-v2")
   end
 end
