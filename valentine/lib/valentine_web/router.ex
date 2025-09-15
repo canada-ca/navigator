@@ -38,6 +38,7 @@ defmodule ValentineWeb.Router do
     pipe_through :api
 
     get "/workspace", WorkspaceController, :index
+    post "/evidence", EvidenceController, :create
   end
 
   scope "/auth", ValentineWeb do
