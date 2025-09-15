@@ -46,8 +46,14 @@ jobs:
       - name: Setup Elixir and Erlang/OTP
         uses: erlef/setup-beam@v1
         with:
-          otp-version: 28.0
+          otp-version: 27.2
           elixir-version: 1.18.4
+
+      - name: Install hex and rebar
+        working-directory: ./valentine
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -59,6 +65,10 @@ jobs:
       - name: Install Elixir dependencies
         working-directory: ./valentine
         run: mix deps.get
+
+      - name: Compile Elixir dependencies
+        working-directory: ./valentine
+        run: mix deps.compile
 
       - name: Install JavaScript dependencies
         working-directory: ./valentine/assets
@@ -72,7 +82,3 @@ jobs:
         run: |
           mix ecto.create --quiet
           mix ecto.migrate --quiet
-
-      - name: Compile Elixir dependencies
-        working-directory: ./valentine
-        run: mix deps.compile
