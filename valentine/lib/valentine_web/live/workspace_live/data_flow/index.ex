@@ -116,15 +116,6 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
      |> assign(:show_threat_statement_linker, !socket.assigns.show_threat_statement_linker)}
   end
 
-  # Handle export to Mermaid.js event
-  @impl true
-  def handle_event("export_mermaid", _params, socket) do
-    # Redirect to the Mermaid export URL
-    {:noreply,
-     socket
-     |> redirect(external: "/workspaces/#{socket.assigns.workspace_id}/data_flow/mermaid")}
-  end
-
   # Local event from HTML or JS
   @impl true
   def handle_event(event, params, socket) do
