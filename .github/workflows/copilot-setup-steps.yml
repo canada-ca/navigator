@@ -16,10 +16,6 @@ jobs:
   copilot-setup-steps:
     runs-on: ubuntu-24.04
 
-    env:
-      DATABASE_URL: "ecto://postgres:postgres@localhost"
-      MIX_ENV: test
-
     # Set the permissions to the lowest permissions possible needed for your steps.
     # Copilot will be given its own token for its operations.
     permissions:
@@ -62,10 +58,16 @@ jobs:
       - name: Install Elixir dependencies
         working-directory: ./valentine
         run: mix deps.get
+        env:
+          DATABASE_URL: "ecto://postgres:postgres@localhost"
+          MIX_ENV: test
 
       - name: Compile Elixir dependencies
         working-directory: ./valentine
         run: mix deps.compile
+        env:
+          DATABASE_URL: "ecto://postgres:postgres@localhost"
+          MIX_ENV: test
 
       - name: Install JavaScript dependencies
         working-directory: ./valentine/assets
