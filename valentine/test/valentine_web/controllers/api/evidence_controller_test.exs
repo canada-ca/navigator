@@ -370,5 +370,176 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
 
       assert error_message =~ "must be provided when evidence_type is blob_store_link"
     end
+
+    test "links evidence to entities based on NIST control overlap", %{conn: conn, api_key: api_key, workspace: workspace} do
+      # Create entities with NIST controls in their tags
+      assumption = assumption_fixture(%{
+        workspace_id: workspace.id,
+        content: "Access controls are implemented",
+        tags: ["AC-1", "security", "access-control"]
+      })
+      
+      threat = threat_fixture(%{
+        workspace_id: workspace.id,
+        threat_action: "Unauthorized access",
+        tags: ["AU-12", "logging", "monitoring"]
+      })
+      
+      mitigation = mitigation_fixture(%{
+        workspace_id: workspace.id,
+        content: "Implement proper access controls", 
+        tags: ["AC-1", "AU-12", "controls"]
+      })
+      
+      # Create evidence with NIST controls that overlap with entity tags
+      evidence_params = %{
+        "name" => "NIST Control Evidence",
+        "evidence_type" => "json_data",
+        "content" => %{"audit_findings" => "AC-1 and AU-12 controls verified"},
+        "nist_controls" => ["AC-1", "AU-12"]
+      }
+
+      conn = put_req_header(conn, "authorization", "Bearer #{api_key.key}")
+      conn = post(conn, ~p"/api/evidence", %{"evidence" => evidence_params})
+
+      response = json_response(conn, 201)
+      evidence_data = response["evidence"]
+
+      # Should link to assumption (has AC-1 tag)
+      assert length(evidence_data["assumptions"]) == 1
+      assert List.first(evidence_data["assumptions"])["id"] == assumption.id
+      
+      # Should link to threat (has AU-12 tag)  
+      assert length(evidence_data["threats"]) == 1
+      assert List.first(evidence_data["threats"])["id"] == threat.id
+      
+      # Should link to mitigation (has both AC-1 and AU-12 tags)
+      assert length(evidence_data["mitigations"]) == 1
+      assert List.first(evidence_data["mitigations"])["id"] == mitigation.id
+    end
+
+    test "NIST control linking only works within same workspace", %{conn: conn, api_key: api_key} do
+      # Create entities in different workspace
+      other_workspace = workspace_fixture(%{name: "Other Workspace", owner: "other_owner"})
+      other_assumption = assumption_fixture(%{
+        workspace_id: other_workspace.id,
+        content: "Access controls in other workspace",
+        tags: ["AC-1", "security"]
+      })
+      
+      # Create evidence with NIST controls
+      evidence_params = %{
+        "name" => "NIST Control Evidence", 
+        "evidence_type" => "json_data",
+        "content" => %{"audit_findings" => "AC-1 controls verified"},
+        "nist_controls" => ["AC-1"]
+      }
+
+      conn = put_req_header(conn, "authorization", "Bearer #{api_key.key}")
+      conn = post(conn, ~p"/api/evidence", %{"evidence" => evidence_params})
+
+      response = json_response(conn, 201)
+      evidence_data = response["evidence"]
+
+      # Should not link to entities from other workspace
+      assert length(evidence_data["assumptions"]) == 0
+      assert length(evidence_data["threats"]) == 0
+      assert length(evidence_data["mitigations"]) == 0
+    end
+
+    test "direct ID linking takes precedence over NIST control linking", %{conn: conn, api_key: api_key, workspace: workspace} do
+      # Create entity with tags that would match NIST controls
+      assumption_with_tags = assumption_fixture(%{
+        workspace_id: workspace.id,
+        content: "Access controls assumption",
+        tags: ["AC-1", "security"]
+      })
+      
+      # Create different entity for direct linking
+      assumption_for_direct_link = assumption_fixture(%{
+        workspace_id: workspace.id,
+        content: "Different assumption",
+        tags: ["SC-7", "network"]  # No overlap with evidence NIST controls
+      })
+      
+      evidence_params = %{
+        "name" => "Test Evidence",
+        "evidence_type" => "json_data", 
+        "content" => %{"data" => "test"},
+        "nist_controls" => ["AC-1"]  # Would match assumption_with_tags
+      }
+
+      linking_params = %{
+        "assumption_id" => assumption_for_direct_link.id  # Direct link to different entity
+      }
+
+      conn = put_req_header(conn, "authorization", "Bearer #{api_key.key}")
+      conn = post(conn, ~p"/api/evidence", %{
+        "evidence" => evidence_params,
+        "linking" => linking_params
+      })
+
+      response = json_response(conn, 201)
+      evidence_data = response["evidence"]
+
+      # Should only link to directly specified entity, not NIST control matches
+      assert length(evidence_data["assumptions"]) == 1
+      assert List.first(evidence_data["assumptions"])["id"] == assumption_for_direct_link.id
+      # Should NOT link to assumption_with_tags despite NIST control overlap
+    end
+
+    test "creates evidence without linking when no NIST controls provided", %{conn: conn, api_key: api_key, workspace: workspace} do
+      # Create entity with tags
+      _assumption = assumption_fixture(%{
+        workspace_id: workspace.id,
+        content: "Access controls assumption", 
+        tags: ["AC-1", "security"]
+      })
+      
+      evidence_params = %{
+        "name" => "Evidence Without NIST Controls",
+        "evidence_type" => "json_data",
+        "content" => %{"data" => "test"}
+        # No nist_controls field
+      }
+
+      conn = put_req_header(conn, "authorization", "Bearer #{api_key.key}")
+      conn = post(conn, ~p"/api/evidence", %{"evidence" => evidence_params})
+
+      response = json_response(conn, 201)
+      evidence_data = response["evidence"]
+
+      # Should not link to any entities
+      assert length(evidence_data["assumptions"]) == 0
+      assert length(evidence_data["threats"]) == 0  
+      assert length(evidence_data["mitigations"]) == 0
+    end
+
+    test "creates evidence without linking when empty NIST controls provided", %{conn: conn, api_key: api_key, workspace: workspace} do
+      # Create entity with tags
+      _assumption = assumption_fixture(%{
+        workspace_id: workspace.id,
+        content: "Access controls assumption",
+        tags: ["AC-1", "security"] 
+      })
+      
+      evidence_params = %{
+        "name" => "Evidence With Empty NIST Controls",
+        "evidence_type" => "json_data", 
+        "content" => %{"data" => "test"},
+        "nist_controls" => []  # Empty array
+      }
+
+      conn = put_req_header(conn, "authorization", "Bearer #{api_key.key}")
+      conn = post(conn, ~p"/api/evidence", %{"evidence" => evidence_params})
+
+      response = json_response(conn, 201)
+      evidence_data = response["evidence"]
+
+      # Should not link to any entities
+      assert length(evidence_data["assumptions"]) == 0
+      assert length(evidence_data["threats"]) == 0
+      assert length(evidence_data["mitigations"]) == 0
+    end
   end
 end

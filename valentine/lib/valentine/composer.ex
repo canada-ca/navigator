@@ -1915,8 +1915,8 @@ defmodule Valentine.Composer do
     if has_direct_linking_ids?(linking_opts) do
       apply_direct_evidence_linking(evidence, linking_opts)
     else
-      # Future: NIST control or AI-based linking would go here
-      evidence
+      # NIST control-based linking when evidence has nist_controls
+      apply_nist_control_evidence_linking(evidence, linking_opts)
     end
   end
 
@@ -1964,6 +1964,62 @@ defmodule Valentine.Composer do
     rescue
       Ecto.NoResultsError -> :ok
     end
+  end
+
+  defp apply_nist_control_evidence_linking(evidence, _linking_opts) do
+    # Only proceed if evidence has NIST controls defined
+    if evidence.nist_controls && length(evidence.nist_controls) > 0 do
+      link_evidence_by_nist_controls(evidence)
+    end
+    
+    evidence
+  end
+
+  defp link_evidence_by_nist_controls(evidence) do
+    workspace_id = evidence.workspace_id
+    nist_controls = evidence.nist_controls
+
+    # Find assumptions with overlapping NIST controls in tags
+    assumptions = find_assumptions_by_nist_tags(workspace_id, nist_controls)
+    Enum.each(assumptions, fn assumption ->
+      %EvidenceAssumption{evidence_id: evidence.id, assumption_id: assumption.id}
+      |> Repo.insert()
+    end)
+
+    # Find threats with overlapping NIST controls in tags  
+    threats = find_threats_by_nist_tags(workspace_id, nist_controls)
+    Enum.each(threats, fn threat ->
+      %EvidenceThreat{evidence_id: evidence.id, threat_id: threat.id}
+      |> Repo.insert()
+    end)
+
+    # Find mitigations with overlapping NIST controls in tags
+    mitigations = find_mitigations_by_nist_tags(workspace_id, nist_controls)
+    Enum.each(mitigations, fn mitigation ->
+      %EvidenceMitigation{evidence_id: evidence.id, mitigation_id: mitigation.id}
+      |> Repo.insert()
+    end)
+  end
+
+  defp find_assumptions_by_nist_tags(workspace_id, nist_controls) do
+    from(a in Assumption,
+      where: a.workspace_id == ^workspace_id and fragment("? && ?", a.tags, ^nist_controls)
+    )
+    |> Repo.all()
+  end
+
+  defp find_threats_by_nist_tags(workspace_id, nist_controls) do
+    from(t in Threat,
+      where: t.workspace_id == ^workspace_id and fragment("? && ?", t.tags, ^nist_controls)
+    )
+    |> Repo.all()
+  end
+
+  defp find_mitigations_by_nist_tags(workspace_id, nist_controls) do
+    from(m in Mitigation,
+      where: m.workspace_id == ^workspace_id and fragment("? && ?", m.tags, ^nist_controls)
+    )
+    |> Repo.all()
   end
 
   defp link_evidence_to_mitigation_by_id(evidence, mitigation_id) do
