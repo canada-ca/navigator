@@ -30,8 +30,29 @@ defmodule ValentineWeb.Workspace.Mermaid do
   Generates node definitions for Mermaid.js state diagram.
   """
   def generate_nodes(nodes) do
-    nodes
-    |> Enum.map(fn {_id, node} -> format_node(node) end)
+    # Separate trust boundaries and regular nodes
+    {trust_boundaries, regular_nodes} = 
+      nodes
+      |> Enum.split_with(fn {_id, node} -> 
+        node["data"]["type"] == "trust_boundary" 
+      end)
+
+    # Generate regular nodes (those not inside trust boundaries)
+    standalone_nodes = 
+      regular_nodes
+      |> Enum.filter(fn {_id, node} -> 
+        is_nil(node["data"]["parent"]) 
+      end)
+      |> Enum.map(fn {_id, node} -> format_node(node) end)
+
+    # Generate trust boundaries with their nested nodes
+    boundary_nodes = 
+      trust_boundaries
+      |> Enum.map(fn {_boundary_id, boundary_node} -> 
+        format_trust_boundary(boundary_node, nodes) 
+      end)
+
+    (standalone_nodes ++ boundary_nodes)
     |> Enum.filter(&(&1 != nil))
     |> Enum.join("\n")
   end
@@ -54,20 +75,39 @@ defmodule ValentineWeb.Workspace.Mermaid do
     label = sanitize_label(data["label"] || data["type"] || "Unknown")
 
     case data["type"] do
-      "actor" ->
-        "    #{id} : #{label}"
-
-      "process" ->
-        "    #{id} : #{label}"
-
-      "datastore" ->
-        "    #{id} : #{label}"
-
       "trust_boundary" ->
-        "    state #{id} {\n        #{id}_inner : #{label}\n    }"
+        # Trust boundaries are handled separately in format_trust_boundary
+        nil
 
       _ ->
         "    #{id} : #{label}"
+    end
+  end
+
+  defp format_trust_boundary(boundary_node, all_nodes) do
+    boundary_data = boundary_node["data"]
+    boundary_id = boundary_data["id"]
+    boundary_label = sanitize_state_name(boundary_data["label"] || "Trust_Boundary")
+    
+    # Find all nodes that belong to this trust boundary
+    child_nodes = 
+      all_nodes
+      |> Enum.filter(fn {_id, node} -> 
+        node["data"]["parent"] == boundary_id && node["data"]["type"] != "trust_boundary"
+      end)
+      |> Enum.map(fn {_id, node} -> 
+        data = node["data"]
+        id = sanitize_id(data["id"])
+        label = sanitize_label(data["label"] || data["type"] || "Unknown")
+        "        #{id} : #{label}"
+      end)
+
+    if Enum.empty?(child_nodes) do
+      # Empty trust boundary - still create the state but with no content
+      "    state #{boundary_label} {\n    }"
+    else
+      child_content = Enum.join(child_nodes, "\n")
+      "    state #{boundary_label} {\n#{child_content}\n    }"
     end
   end
 
@@ -99,6 +139,16 @@ defmodule ValentineWeb.Workspace.Mermaid do
   end
 
   defp sanitize_id(_), do: "unknown"
+
+  # For state names, we want to allow more characters but still keep it valid
+  defp sanitize_state_name(name) when is_binary(name) do
+    name
+    |> String.replace(~r/[^a-zA-Z0-9_\s]/, "_")
+    |> String.replace(~r/\s+/, "_")
+    |> String.replace(~r/^(\d)/, "_\\1")
+  end
+
+  defp sanitize_state_name(_), do: "Unknown"
 
   defp sanitize_label(label) when is_binary(label) do
     label
