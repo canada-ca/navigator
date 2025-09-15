@@ -395,4 +395,127 @@ defmodule Valentine.Composer.EvidenceTest do
       assert Composer.get_mitigation!(mitigation.id)
     end
   end
+
+  describe "evidence linking" do
+    test "create_evidence_with_linking/2 creates evidence and links to assumption" do
+      workspace = workspace_fixture()
+      assumption = assumption_fixture(%{workspace_id: workspace.id})
+
+      evidence_attrs = %{
+        workspace_id: workspace.id,
+        name: "Linked Evidence",
+        evidence_type: :json_data,
+        content: %{"data" => "test"}
+      }
+
+      linking_opts = %{assumption_id: assumption.id}
+
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, linking_opts)
+      assert evidence.name == "Linked Evidence"
+      assert length(evidence.assumptions) == 1
+      assert List.first(evidence.assumptions).id == assumption.id
+    end
+
+    test "create_evidence_with_linking/2 creates evidence and links to multiple entities" do
+      workspace = workspace_fixture()
+      assumption = assumption_fixture(%{workspace_id: workspace.id})
+      threat = threat_fixture(%{workspace_id: workspace.id})
+      mitigation = mitigation_fixture(%{workspace_id: workspace.id})
+
+      evidence_attrs = %{
+        workspace_id: workspace.id,
+        name: "Multi-Linked Evidence",
+        evidence_type: :json_data,
+        content: %{"data" => "test"}
+      }
+
+      linking_opts = %{
+        assumption_id: assumption.id,
+        threat_id: threat.id,
+        mitigation_id: mitigation.id
+      }
+
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, linking_opts)
+      assert length(evidence.assumptions) == 1
+      assert length(evidence.threats) == 1
+      assert length(evidence.mitigations) == 1
+    end
+
+    test "create_evidence_with_linking/2 handles invalid entity IDs gracefully" do
+      workspace = workspace_fixture()
+      invalid_uuid = "00000000-0000-0000-0000-000000000000"
+
+      evidence_attrs = %{
+        workspace_id: workspace.id,
+        name: "Evidence with Invalid Links",
+        evidence_type: :json_data,
+        content: %{"data" => "test"}
+      }
+
+      linking_opts = %{
+        assumption_id: invalid_uuid,
+        threat_id: invalid_uuid,
+        mitigation_id: invalid_uuid
+      }
+
+      # Should create evidence successfully but with no links
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, linking_opts)
+      assert evidence.name == "Evidence with Invalid Links"
+      assert length(evidence.assumptions) == 0
+      assert length(evidence.threats) == 0
+      assert length(evidence.mitigations) == 0
+    end
+
+    test "create_evidence_with_linking/2 prevents cross-workspace linking" do
+      workspace1 = workspace_fixture(%{name: "Workspace 1"})
+      workspace2 = workspace_fixture(%{name: "Workspace 2"})
+      
+      assumption = assumption_fixture(%{workspace_id: workspace2.id})
+
+      evidence_attrs = %{
+        workspace_id: workspace1.id,
+        name: "Evidence in Workspace 1",
+        evidence_type: :json_data,
+        content: %{"data" => "test"}
+      }
+
+      linking_opts = %{assumption_id: assumption.id}
+
+      # Should create evidence but not link to assumption from different workspace
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, linking_opts)
+      assert evidence.workspace_id == workspace1.id
+      assert length(evidence.assumptions) == 0
+    end
+
+    test "create_evidence_with_linking/2 creates orphaned evidence when no linking options" do
+      workspace = workspace_fixture()
+
+      evidence_attrs = %{
+        workspace_id: workspace.id,
+        name: "Orphaned Evidence",
+        evidence_type: :json_data,
+        content: %{"data" => "test"}
+      }
+
+      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+      assert evidence.name == "Orphaned Evidence"
+      assert length(evidence.assumptions) == 0
+      assert length(evidence.threats) == 0
+      assert length(evidence.mitigations) == 0
+    end
+
+    test "create_evidence_with_linking/2 returns error for invalid evidence attributes" do
+      workspace = workspace_fixture()
+
+      invalid_attrs = %{
+        workspace_id: workspace.id,
+        # Missing required name and evidence_type
+        content: %{"data" => "test"}
+      }
+
+      assert {:error, changeset} = Composer.create_evidence_with_linking(invalid_attrs, %{})
+      assert changeset.errors[:name]
+      assert changeset.errors[:evidence_type]
+    end
+  end
 end

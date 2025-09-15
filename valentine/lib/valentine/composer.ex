@@ -1863,4 +1863,118 @@ defmodule Valentine.Composer do
   def change_evidence(%Evidence{} = evidence, attrs \\ %{}) do
     Evidence.changeset(evidence, attrs)
   end
+
+  @doc """
+  Creates evidence with automatic linking based on provided parameters.
+
+  This function handles the creation of evidence and its automatic linking to 
+  assumptions, threats, and mitigations based on the provided linking strategy.
+
+  ## Parameters
+    - evidence_attrs: Evidence attributes for creation
+    - linking_opts: Map containing linking options:
+      - assumption_id: Direct link to assumption
+      - threat_id: Direct link to threat  
+      - mitigation_id: Direct link to mitigation
+      - use_ai: Boolean flag for AI-based linking (stubbed)
+
+  ## Returns
+    {:ok, evidence_with_associations} | {:error, changeset}
+
+  ## Examples
+
+      iex> create_evidence_with_linking(%{name: "Test", evidence_type: :json_data, content: %{}}, %{assumption_id: "uuid"})
+      {:ok, %Evidence{}}
+
+  """
+  def create_evidence_with_linking(evidence_attrs, linking_opts \\ %{}) do
+    case create_evidence(evidence_attrs) do
+      {:ok, evidence} ->
+        # This would be called by the API controller for centralized linking logic
+        linked_evidence = apply_evidence_linking(evidence, linking_opts)
+        evidence_with_associations = Repo.preload(linked_evidence, [:assumptions, :threats, :mitigations])
+        {:ok, evidence_with_associations}
+      
+      {:error, changeset} ->
+        {:error, changeset}
+    end
+  end
+
+  @doc """
+  Applies linking logic to evidence based on provided options.
+
+  ## Parameters
+    - evidence: The evidence to link
+    - linking_opts: Map containing linking strategy options
+
+  ## Returns
+    The evidence (linking is done via side effects to join tables)
+  """
+  def apply_evidence_linking(evidence, linking_opts) do
+    # Direct ID linking takes precedence
+    if has_direct_linking_ids?(linking_opts) do
+      apply_direct_evidence_linking(evidence, linking_opts)
+    else
+      # Future: NIST control or AI-based linking would go here
+      evidence
+    end
+  end
+
+  defp has_direct_linking_ids?(linking_opts) do
+    Map.get(linking_opts, :assumption_id) ||
+    Map.get(linking_opts, :threat_id) ||
+    Map.get(linking_opts, :mitigation_id)
+  end
+
+  defp apply_direct_evidence_linking(evidence, linking_opts) do
+    if assumption_id = Map.get(linking_opts, :assumption_id) do
+      link_evidence_to_assumption_by_id(evidence, assumption_id)
+    end
+
+    if threat_id = Map.get(linking_opts, :threat_id) do
+      link_evidence_to_threat_by_id(evidence, threat_id)
+    end
+
+    if mitigation_id = Map.get(linking_opts, :mitigation_id) do
+      link_evidence_to_mitigation_by_id(evidence, mitigation_id)
+    end
+
+    evidence
+  end
+
+  defp link_evidence_to_assumption_by_id(evidence, assumption_id) do
+    try do
+      assumption = get_assumption!(assumption_id)
+      if assumption.workspace_id == evidence.workspace_id do
+        %EvidenceAssumption{evidence_id: evidence.id, assumption_id: assumption.id}
+        |> Repo.insert()
+      end
+    rescue
+      Ecto.NoResultsError -> :ok
+    end
+  end
+
+  defp link_evidence_to_threat_by_id(evidence, threat_id) do
+    try do
+      threat = get_threat!(threat_id)
+      if threat.workspace_id == evidence.workspace_id do
+        %EvidenceThreat{evidence_id: evidence.id, threat_id: threat.id}
+        |> Repo.insert()
+      end
+    rescue
+      Ecto.NoResultsError -> :ok
+    end
+  end
+
+  defp link_evidence_to_mitigation_by_id(evidence, mitigation_id) do
+    try do
+      mitigation = get_mitigation!(mitigation_id)
+      if mitigation.workspace_id == evidence.workspace_id do
+        %EvidenceMitigation{evidence_id: evidence.id, mitigation_id: mitigation.id}
+        |> Repo.insert()
+      end
+    rescue
+      Ecto.NoResultsError -> :ok
+    end
+  end
 end
