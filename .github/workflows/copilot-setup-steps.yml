@@ -22,13 +22,12 @@ jobs:
       # If you want to clone the repository as part of your setup steps, for example to install dependencies, you'll need the `contents: read` permission. If you don't clone the repository in your setup steps, Copilot will do this for you automatically after the steps complete.
       contents: read
 
-    # PostgreSQL service for database operations
+    # PostgreSQL service for database operations  
     services:
       postgres:
-        image: postgres:13
+        image: postgres
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: valentine_dev
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -49,12 +48,6 @@ jobs:
           otp-version: 27.2
           elixir-version: 1.18.4
 
-      - name: Install hex and rebar
-        working-directory: ./valentine
-        run: |
-          mix local.hex --force
-          mix local.rebar --force
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -73,12 +66,3 @@ jobs:
       - name: Install JavaScript dependencies
         working-directory: ./valentine/assets
         run: npm ci
-
-      - name: Set up database
-        working-directory: ./valentine
-        env:
-          DATABASE_URL: "ecto://postgres:postgres@localhost/valentine_dev"
-          MIX_ENV: dev
-        run: |
-          mix ecto.create --quiet
-          mix ecto.migrate --quiet
