@@ -399,14 +399,15 @@ defmodule Valentine.Composer.EvidenceTest do
   describe "NIST control linking" do
     test "create_evidence_with_linking/2 links evidence to assumption based on NIST control overlap" do
       workspace = workspace_fixture()
-      
+
       # Create assumption with NIST control in tags
-      assumption = assumption_fixture(%{
-        workspace_id: workspace.id,
-        content: "Access controls are implemented",
-        tags: ["AC-1", "security", "access-control"]
-      })
-      
+      assumption =
+        assumption_fixture(%{
+          workspace_id: workspace.id,
+          content: "Access controls are implemented",
+          tags: ["AC-1", "security", "access-control"]
+        })
+
       # Create evidence with matching NIST control
       evidence_attrs = %{
         workspace_id: workspace.id,
@@ -424,14 +425,15 @@ defmodule Valentine.Composer.EvidenceTest do
 
     test "create_evidence_with_linking/2 links evidence to threat based on NIST control overlap" do
       workspace = workspace_fixture()
-      
+
       # Create threat with NIST control in tags
-      threat = threat_fixture(%{
-        workspace_id: workspace.id,
-        threat_action: "Unauthorized access attempt",
-        tags: ["AU-12", "logging", "monitoring"]
-      })
-      
+      threat =
+        threat_fixture(%{
+          workspace_id: workspace.id,
+          threat_action: "Unauthorized access attempt",
+          tags: ["AU-12", "logging", "monitoring"]
+        })
+
       # Create evidence with matching NIST control
       evidence_attrs = %{
         workspace_id: workspace.id,
@@ -449,14 +451,15 @@ defmodule Valentine.Composer.EvidenceTest do
 
     test "create_evidence_with_linking/2 links evidence to mitigation based on NIST control overlap" do
       workspace = workspace_fixture()
-      
+
       # Create mitigation with NIST control in tags
-      mitigation = mitigation_fixture(%{
-        workspace_id: workspace.id,
-        content: "Implement proper network segmentation",
-        tags: ["SC-7", "network", "segmentation"]
-      })
-      
+      mitigation =
+        mitigation_fixture(%{
+          workspace_id: workspace.id,
+          content: "Implement proper network segmentation",
+          tags: ["SC-7", "network", "segmentation"]
+        })
+
       # Create evidence with matching NIST control
       evidence_attrs = %{
         workspace_id: workspace.id,
@@ -474,26 +477,29 @@ defmodule Valentine.Composer.EvidenceTest do
 
     test "create_evidence_with_linking/2 links evidence to multiple entities with overlapping NIST controls" do
       workspace = workspace_fixture()
-      
+
       # Create entities with overlapping NIST controls in tags
-      assumption = assumption_fixture(%{
-        workspace_id: workspace.id,
-        content: "Access controls are implemented",
-        tags: ["AC-1", "security"]
-      })
-      
-      threat = threat_fixture(%{
-        workspace_id: workspace.id,
-        threat_action: "Unauthorized access",
-        tags: ["AU-12", "logging"]
-      })
-      
-      mitigation = mitigation_fixture(%{
-        workspace_id: workspace.id,
-        content: "Implement controls",
-        tags: ["AC-1", "AU-12", "controls"]
-      })
-      
+      assumption =
+        assumption_fixture(%{
+          workspace_id: workspace.id,
+          content: "Access controls are implemented",
+          tags: ["AC-1", "security"]
+        })
+
+      threat =
+        threat_fixture(%{
+          workspace_id: workspace.id,
+          threat_action: "Unauthorized access",
+          tags: ["AU-12", "logging"]
+        })
+
+      mitigation =
+        mitigation_fixture(%{
+          workspace_id: workspace.id,
+          content: "Implement controls",
+          tags: ["AC-1", "AU-12", "controls"]
+        })
+
       # Create evidence with NIST controls that overlap with multiple entities
       evidence_attrs = %{
         workspace_id: workspace.id,
@@ -504,15 +510,15 @@ defmodule Valentine.Composer.EvidenceTest do
       }
 
       assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
-      
+
       # Should link to assumption (has AC-1 tag)
       assert length(evidence.assumptions) == 1
       assert List.first(evidence.assumptions).id == assumption.id
-      
+
       # Should link to threat (has AU-12 tag)
       assert length(evidence.threats) == 1
       assert List.first(evidence.threats).id == threat.id
-      
+
       # Should link to mitigation (has both AC-1 and AU-12 tags)
       assert length(evidence.mitigations) == 1
       assert List.first(evidence.mitigations).id == mitigation.id
@@ -521,14 +527,15 @@ defmodule Valentine.Composer.EvidenceTest do
     test "create_evidence_with_linking/2 respects workspace isolation for NIST control linking" do
       workspace1 = workspace_fixture(%{name: "Workspace 1"})
       workspace2 = workspace_fixture(%{name: "Workspace 2"})
-      
+
       # Create assumption in different workspace with matching NIST control
-      _other_assumption = assumption_fixture(%{
-        workspace_id: workspace2.id,
-        content: "Access controls in other workspace",
-        tags: ["AC-1", "security"]
-      })
-      
+      _other_assumption =
+        assumption_fixture(%{
+          workspace_id: workspace2.id,
+          content: "Access controls in other workspace",
+          tags: ["AC-1", "security"]
+        })
+
       # Create evidence in workspace1 with NIST control
       evidence_attrs = %{
         workspace_id: workspace1.id,
@@ -539,7 +546,7 @@ defmodule Valentine.Composer.EvidenceTest do
       }
 
       assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
-      
+
       # Should not link to entities from different workspace
       assert length(evidence.assumptions) == 0
       assert length(evidence.threats) == 0
@@ -548,35 +555,40 @@ defmodule Valentine.Composer.EvidenceTest do
 
     test "create_evidence_with_linking/2 direct ID linking takes precedence over NIST control linking" do
       workspace = workspace_fixture()
-      
+
       # Create assumption with tags that would match NIST controls
-      _assumption_with_tags = assumption_fixture(%{
-        workspace_id: workspace.id,
-        content: "Access controls assumption",
-        tags: ["AC-1", "security"]
-      })
-      
+      _assumption_with_tags =
+        assumption_fixture(%{
+          workspace_id: workspace.id,
+          content: "Access controls assumption",
+          tags: ["AC-1", "security"]
+        })
+
       # Create different assumption for direct linking
-      assumption_for_direct_link = assumption_fixture(%{
-        workspace_id: workspace.id,
-        content: "Different assumption",
-        tags: ["SC-7", "network"]  # No overlap with evidence NIST controls
-      })
-      
+      assumption_for_direct_link =
+        assumption_fixture(%{
+          workspace_id: workspace.id,
+          content: "Different assumption",
+          # No overlap with evidence NIST controls
+          tags: ["SC-7", "network"]
+        })
+
       evidence_attrs = %{
         workspace_id: workspace.id,
         name: "Precedence Test Evidence",
         evidence_type: :json_data,
         content: %{"data" => "test"},
-        nist_controls: ["AC-1"]  # Would match assumption_with_tags
+        # Would match assumption_with_tags
+        nist_controls: ["AC-1"]
       }
 
       linking_opts = %{
-        assumption_id: assumption_for_direct_link.id  # Direct link to different entity
+        # Direct link to different entity
+        assumption_id: assumption_for_direct_link.id
       }
 
       assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, linking_opts)
-      
+
       # Should only link to directly specified entity, not NIST control matches
       assert length(evidence.assumptions) == 1
       assert List.first(evidence.assumptions).id == assumption_for_direct_link.id
@@ -585,14 +597,15 @@ defmodule Valentine.Composer.EvidenceTest do
 
     test "create_evidence_with_linking/2 creates orphaned evidence when no NIST controls provided" do
       workspace = workspace_fixture()
-      
+
       # Create entities with tags
-      _assumption = assumption_fixture(%{
-        workspace_id: workspace.id,
-        content: "Access controls assumption",
-        tags: ["AC-1", "security"]
-      })
-      
+      _assumption =
+        assumption_fixture(%{
+          workspace_id: workspace.id,
+          content: "Access controls assumption",
+          tags: ["AC-1", "security"]
+        })
+
       # Create evidence without NIST controls
       evidence_attrs = %{
         workspace_id: workspace.id,
@@ -603,7 +616,7 @@ defmodule Valentine.Composer.EvidenceTest do
       }
 
       assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
-      
+
       # Should not link to any entities
       assert length(evidence.assumptions) == 0
       assert length(evidence.threats) == 0
@@ -612,25 +625,27 @@ defmodule Valentine.Composer.EvidenceTest do
 
     test "create_evidence_with_linking/2 handles empty NIST controls array" do
       workspace = workspace_fixture()
-      
+
       # Create entities with tags
-      _assumption = assumption_fixture(%{
-        workspace_id: workspace.id,
-        content: "Access controls assumption",
-        tags: ["AC-1", "security"]
-      })
-      
+      _assumption =
+        assumption_fixture(%{
+          workspace_id: workspace.id,
+          content: "Access controls assumption",
+          tags: ["AC-1", "security"]
+        })
+
       # Create evidence with empty NIST controls
       evidence_attrs = %{
         workspace_id: workspace.id,
         name: "Evidence With Empty NIST Controls",
         evidence_type: :json_data,
         content: %{"data" => "test"},
-        nist_controls: []  # Empty array
+        # Empty array
+        nist_controls: []
       }
 
       assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
-      
+
       # Should not link to any entities
       assert length(evidence.assumptions) == 0
       assert length(evidence.threats) == 0
@@ -639,20 +654,24 @@ defmodule Valentine.Composer.EvidenceTest do
 
     test "create_evidence_with_linking/2 links only to entities with overlapping tags" do
       workspace = workspace_fixture()
-      
+
       # Create entities with different tags
-      assumption_with_match = assumption_fixture(%{
-        workspace_id: workspace.id,
-        content: "Matching assumption",
-        tags: ["AC-1", "security"]  # Has AC-1
-      })
-      
-      _assumption_without_match = assumption_fixture(%{
-        workspace_id: workspace.id,
-        content: "Non-matching assumption", 
-        tags: ["SC-7", "network"]  # No AC-1
-      })
-      
+      assumption_with_match =
+        assumption_fixture(%{
+          workspace_id: workspace.id,
+          content: "Matching assumption",
+          # Has AC-1
+          tags: ["AC-1", "security"]
+        })
+
+      _assumption_without_match =
+        assumption_fixture(%{
+          workspace_id: workspace.id,
+          content: "Non-matching assumption",
+          # No AC-1
+          tags: ["SC-7", "network"]
+        })
+
       # Create evidence with specific NIST control
       evidence_attrs = %{
         workspace_id: workspace.id,
@@ -663,7 +682,7 @@ defmodule Valentine.Composer.EvidenceTest do
       }
 
       assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
-      
+
       # Should only link to entity with matching tag
       assert length(evidence.assumptions) == 1
       assert List.first(evidence.assumptions).id == assumption_with_match.id
@@ -744,7 +763,7 @@ defmodule Valentine.Composer.EvidenceTest do
     test "create_evidence_with_linking/2 prevents cross-workspace linking" do
       workspace1 = workspace_fixture(%{name: "Workspace 1"})
       workspace2 = workspace_fixture(%{name: "Workspace 2"})
-      
+
       assumption = assumption_fixture(%{workspace_id: workspace2.id})
 
       evidence_attrs = %{

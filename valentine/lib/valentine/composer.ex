@@ -1892,9 +1892,12 @@ defmodule Valentine.Composer do
       {:ok, evidence} ->
         # This would be called by the API controller for centralized linking logic
         linked_evidence = apply_evidence_linking(evidence, linking_opts)
-        evidence_with_associations = Repo.preload(linked_evidence, [:assumptions, :threats, :mitigations])
+
+        evidence_with_associations =
+          Repo.preload(linked_evidence, [:assumptions, :threats, :mitigations])
+
         {:ok, evidence_with_associations}
-      
+
       {:error, changeset} ->
         {:error, changeset}
     end
@@ -1922,8 +1925,8 @@ defmodule Valentine.Composer do
 
   defp has_direct_linking_ids?(linking_opts) do
     Map.get(linking_opts, :assumption_id) ||
-    Map.get(linking_opts, :threat_id) ||
-    Map.get(linking_opts, :mitigation_id)
+      Map.get(linking_opts, :threat_id) ||
+      Map.get(linking_opts, :mitigation_id)
   end
 
   defp apply_direct_evidence_linking(evidence, linking_opts) do
@@ -1945,11 +1948,13 @@ defmodule Valentine.Composer do
   defp link_evidence_to_assumption_by_id(evidence, assumption_id) do
     try do
       assumption = get_assumption!(assumption_id)
+
       if assumption.workspace_id == evidence.workspace_id do
         case %EvidenceAssumption{evidence_id: evidence.id, assumption_id: assumption.id}
              |> Repo.insert() do
           {:ok, _} -> :ok
-          {:error, _} -> :ok  # Ignore duplicates or constraint errors
+          # Ignore duplicates or constraint errors
+          {:error, _} -> :ok
         end
       end
     rescue
@@ -1960,11 +1965,13 @@ defmodule Valentine.Composer do
   defp link_evidence_to_threat_by_id(evidence, threat_id) do
     try do
       threat = get_threat!(threat_id)
+
       if threat.workspace_id == evidence.workspace_id do
         case %EvidenceThreat{evidence_id: evidence.id, threat_id: threat.id}
              |> Repo.insert() do
           {:ok, _} -> :ok
-          {:error, _} -> :ok  # Ignore duplicates or constraint errors
+          # Ignore duplicates or constraint errors
+          {:error, _} -> :ok
         end
       end
     rescue
@@ -1977,7 +1984,7 @@ defmodule Valentine.Composer do
     if evidence.nist_controls && length(evidence.nist_controls) > 0 do
       link_evidence_by_nist_controls(evidence)
     end
-    
+
     evidence
   end
 
@@ -1987,31 +1994,37 @@ defmodule Valentine.Composer do
 
     # Find assumptions with overlapping NIST controls in tags
     assumptions = find_assumptions_by_nist_tags(workspace_id, nist_controls)
+
     Enum.each(assumptions, fn assumption ->
       case %EvidenceAssumption{evidence_id: evidence.id, assumption_id: assumption.id}
            |> Repo.insert() do
         {:ok, _} -> :ok
-        {:error, _} -> :ok  # Ignore duplicates or constraint errors
+        # Ignore duplicates or constraint errors
+        {:error, _} -> :ok
       end
     end)
 
     # Find threats with overlapping NIST controls in tags  
     threats = find_threats_by_nist_tags(workspace_id, nist_controls)
+
     Enum.each(threats, fn threat ->
       case %EvidenceThreat{evidence_id: evidence.id, threat_id: threat.id}
            |> Repo.insert() do
         {:ok, _} -> :ok
-        {:error, _} -> :ok  # Ignore duplicates or constraint errors
+        # Ignore duplicates or constraint errors
+        {:error, _} -> :ok
       end
     end)
 
     # Find mitigations with overlapping NIST controls in tags
     mitigations = find_mitigations_by_nist_tags(workspace_id, nist_controls)
+
     Enum.each(mitigations, fn mitigation ->
       case %EvidenceMitigation{evidence_id: evidence.id, mitigation_id: mitigation.id}
            |> Repo.insert() do
         {:ok, _} -> :ok
-        {:error, _} -> :ok  # Ignore duplicates or constraint errors
+        # Ignore duplicates or constraint errors
+        {:error, _} -> :ok
       end
     end)
   end
@@ -2040,11 +2053,13 @@ defmodule Valentine.Composer do
   defp link_evidence_to_mitigation_by_id(evidence, mitigation_id) do
     try do
       mitigation = get_mitigation!(mitigation_id)
+
       if mitigation.workspace_id == evidence.workspace_id do
         case %EvidenceMitigation{evidence_id: evidence.id, mitigation_id: mitigation.id}
              |> Repo.insert() do
           {:ok, _} -> :ok
-          {:error, _} -> :ok  # Ignore duplicates or constraint errors
+          # Ignore duplicates or constraint errors
+          {:error, _} -> :ok
         end
       end
     rescue
