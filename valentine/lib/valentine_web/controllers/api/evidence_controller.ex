@@ -12,7 +12,7 @@ defmodule ValentineWeb.Api.EvidenceController do
       assumption_id: get_in(params, ["linking", "assumption_id"]),
       threat_id: get_in(params, ["linking", "threat_id"]),
       mitigation_id: get_in(params, ["linking", "mitigation_id"]),
-      use_ai: get_in(params, ["linking", "use_ai"], false)
+      use_ai: get_in(params, ["linking", "use_ai"]) || false
     }
 
     # Add workspace_id to evidence params
