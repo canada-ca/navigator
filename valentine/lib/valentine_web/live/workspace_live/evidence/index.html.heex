@@ -113,7 +113,10 @@
               <.octicon name="discussion-closed-16" class="mr-1" />
               {gettext("Linked to")}
               <%= for {assumption, index} <- Enum.with_index(evidence.assumptions) do %>
-                <.link navigate={~p"/workspaces/#{@workspace_id}/assumptions"} class="Link--primary">
+                <.link
+                  navigate={~p"/workspaces/#{@workspace_id}/assumptions"}
+                  class="Link--primary"
+                >
                   {gettext("Assumption")} #{assumption.numeric_id}
                 </.link>
                 {if index < length(evidence.assumptions) - 1, do: ", "}
@@ -138,7 +141,10 @@
               <.octicon name="check-circle-16" class="mr-1" />
               {gettext("Linked to")}
               <%= for {mitigation, index} <- Enum.with_index(evidence.mitigations) do %>
-                <.link navigate={~p"/workspaces/#{@workspace_id}/mitigations"} class="Link--primary">
+                <.link
+                  navigate={~p"/workspaces/#{@workspace_id}/mitigations"}
+                  class="Link--primary"
+                >
                   {gettext("Mitigation")} #{mitigation.numeric_id}
                 </.link>
                 {if index < length(evidence.mitigations) - 1, do: ", "}

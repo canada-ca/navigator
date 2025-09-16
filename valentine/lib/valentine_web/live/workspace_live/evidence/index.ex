@@ -85,11 +85,12 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
   end
 
   defp get_filtered_evidence_list(workspace_id, filters) do
-    base_query = from(e in Evidence,
-      where: e.workspace_id == ^workspace_id,
-      preload: [:assumptions, :threats, :mitigations],
-      order_by: [desc: e.inserted_at]
-    )
+    base_query =
+      from(e in Evidence,
+        where: e.workspace_id == ^workspace_id,
+        preload: [:assumptions, :threats, :mitigations],
+        order_by: [desc: e.inserted_at]
+      )
 
     apply_filters(base_query, filters)
     |> Valentine.Repo.all()
