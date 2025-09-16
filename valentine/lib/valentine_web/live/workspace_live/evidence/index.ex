@@ -11,19 +11,14 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
     workspace = get_workspace(workspace_id)
     ValentineWeb.Endpoint.subscribe("workspace_" <> workspace.id)
 
+    evidence = get_evidence_list(workspace_id)
+
     {:ok,
      socket
      |> assign(:workspace_id, workspace_id)
      |> assign(:workspace, workspace)
      |> assign(:filters, %{})
-     |> assign(:sort_by, :inserted_at)
-     |> assign(:sort_order, :desc)
-     |> assign(:page, 1)
-     |> assign(:page_size, 10)
-     |> assign(
-       :evidence_list,
-       get_evidence_list(workspace_id, %{}, :inserted_at, :desc, 1, 10)
-     )}
+     |> assign(:evidence, evidence)}
   end
 
   @impl true
@@ -56,17 +51,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
             {:noreply,
              socket
              |> put_flash(:info, gettext("Evidence deleted successfully"))
-             |> assign(
-               :evidence_list,
-               get_evidence_list(
-                 socket.assigns.workspace_id,
-                 socket.assigns.filters,
-                 socket.assigns.sort_by,
-                 socket.assigns.sort_order,
-                 socket.assigns.page,
-                 socket.assigns.page_size
-               )
-             )}
+             |> assign(:evidence, get_evidence_list(socket.assigns.workspace_id))}
 
           {:error, _} ->
             {:noreply, socket |> put_flash(:error, gettext("Failed to delete evidence"))}
@@ -79,115 +64,35 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
     {:noreply,
      socket
      |> assign(:filters, %{})
-     |> assign(:page, 1)
-     |> assign(
-       :evidence_list,
-       get_evidence_list(
-         socket.assigns.workspace_id,
-         %{},
-         socket.assigns.sort_by,
-         socket.assigns.sort_order,
-         1,
-         socket.assigns.page_size
-       )
-     )}
-  end
-
-  @impl true
-  def handle_event("sort", %{"sort_by" => sort_by}, socket) do
-    sort_by_atom = String.to_existing_atom(sort_by)
-
-    sort_order =
-      if socket.assigns.sort_by == sort_by_atom and socket.assigns.sort_order == :asc,
-        do: :desc,
-        else: :asc
-
-    {:noreply,
-     socket
-     |> assign(:sort_by, sort_by_atom)
-     |> assign(:sort_order, sort_order)
-     |> assign(:page, 1)
-     |> assign(
-       :evidence_list,
-       get_evidence_list(
-         socket.assigns.workspace_id,
-         socket.assigns.filters,
-         sort_by_atom,
-         sort_order,
-         1,
-         socket.assigns.page_size
-       )
-     )}
-  end
-
-  @impl true
-  def handle_event("change_page", %{"page" => page}, socket) do
-    page = String.to_integer(page)
-
-    {:noreply,
-     socket
-     |> assign(:page, page)
-     |> assign(
-       :evidence_list,
-       get_evidence_list(
-         socket.assigns.workspace_id,
-         socket.assigns.filters,
-         socket.assigns.sort_by,
-         socket.assigns.sort_order,
-         page,
-         socket.assigns.page_size
-       )
-     )}
+     |> assign(:evidence, get_evidence_list(socket.assigns.workspace_id))}
   end
 
   @impl true
   def handle_info({:update_filter, filters}, socket) do
-    {
-      :noreply,
-      socket
-      |> assign(:filters, filters)
-      |> assign(:page, 1)
-      |> assign(
-        :evidence_list,
-        get_evidence_list(
-          socket.assigns.workspace_id,
-          filters,
-          socket.assigns.sort_by,
-          socket.assigns.sort_order,
-          1,
-          socket.assigns.page_size
-        )
-      )
-    }
+    {:noreply,
+     socket
+     |> assign(:filters, filters)
+     |> assign(:evidence, get_filtered_evidence_list(socket.assigns.workspace_id, filters))}
   end
 
-  defp get_evidence_list(workspace_id, filters, sort_by, sort_order, page, page_size) do
-    offset = (page - 1) * page_size
-
-    evidence_query =
-      from(e in Evidence,
-        where: e.workspace_id == ^workspace_id,
-        preload: [:assumptions, :threats, :mitigations],
-        order_by: [{^sort_order, ^sort_by}],
-        limit: ^page_size,
-        offset: ^offset
-      )
-
-    evidence_query = apply_filters(evidence_query, filters)
-
-    %{
-      evidence: Valentine.Repo.all(evidence_query),
-      total_count: get_total_count(workspace_id, filters),
-      current_page: page,
-      page_size: page_size,
-      total_pages: ceil(get_total_count(workspace_id, filters) / page_size)
-    }
+  defp get_evidence_list(workspace_id) do
+    from(e in Evidence,
+      where: e.workspace_id == ^workspace_id,
+      preload: [:assumptions, :threats, :mitigations],
+      order_by: [desc: e.inserted_at]
+    )
+    |> Valentine.Repo.all()
   end
 
-  defp get_total_count(workspace_id, filters) do
-    count_query = from(e in Evidence, where: e.workspace_id == ^workspace_id)
-    count_query = apply_filters(count_query, filters)
-    Valentine.Repo.aggregate(count_query, :count, :id)
+  defp get_filtered_evidence_list(workspace_id, filters) do
+    base_query = from(e in Evidence,
+      where: e.workspace_id == ^workspace_id,
+      preload: [:assumptions, :threats, :mitigations],
+      order_by: [desc: e.inserted_at]
+    )
+
+    apply_filters(base_query, filters)
+    |> Valentine.Repo.all()
   end
 
   defp apply_filters(query, filters) do
@@ -218,17 +123,6 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
 
   defp format_date(datetime) do
     Calendar.strftime(datetime, "%Y-%m-%d %H:%M")
-  end
-
-  defp sort_indicator(current_sort, target_sort, sort_order) do
-    if current_sort == target_sort do
-      case sort_order do
-        :asc -> "↑"
-        :desc -> "↓"
-      end
-    else
-      ""
-    end
   end
 
   defp get_all_tags(evidence_list) when is_list(evidence_list) and length(evidence_list) > 0 do

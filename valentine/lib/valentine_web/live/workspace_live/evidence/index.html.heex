@@ -2,242 +2,183 @@
   {gettext("Evidence Overview")}
 </.subhead>
 
-<.box id="evidence" row_id={fn r -> "evidence-#{r.id}" end}>
-  <:header class="d-flex flex-items-center">
-    {gettext("Filters")}:
-    <.live_component
-      module={ValentineWeb.WorkspaceLive.Components.FilterComponent}
-      id="evidence-type-filter"
-      class="mx-1"
-      icon="file"
-      name={:evidence_type}
-      values={Ecto.Enum.values(Valentine.Composer.Evidence, :evidence_type)}
-      filters={@filters}
-    />
-    <%= if length(get_all_tags(@evidence_list.evidence)) > 0 do %>
-      <.live_component
-        module={ValentineWeb.WorkspaceLive.Components.FilterComponent}
-        id="tags-filter"
-        class="mx-1"
-        icon="tag"
-        name={:tags}
-        values={get_all_tags(@evidence_list.evidence)}
-        filters={@filters}
-      />
-    <% end %>
-    <%= if length(get_all_nist_controls(@evidence_list.evidence)) > 0 do %>
-      <.live_component
-        module={ValentineWeb.WorkspaceLive.Components.FilterComponent}
-        id="nist-controls-filter"
-        class="mx-1"
-        icon="shield"
-        name={:nist_controls}
-        values={get_all_nist_controls(@evidence_list.evidence)}
-        filters={@filters}
-      />
-    <% end %>
-  </:header>
-
-  <:header class="d-flex flex-items-center">
-    {gettext("Sort by")}:
-    <.button class="btn-sm mx-1" phx-click="sort" phx-value-sort_by="name">
-      {gettext("Name")} {sort_indicator(@sort_by, :name, @sort_order)}
-    </.button>
-    <.button class="btn-sm mx-1" phx-click="sort" phx-value-sort_by="inserted_at">
-      {gettext("Created")} {sort_indicator(@sort_by, :inserted_at, @sort_order)}
-    </.button>
-    <.button class="btn-sm mx-1" phx-click="sort" phx-value-sort_by="updated_at">
-      {gettext("Updated")} {sort_indicator(@sort_by, :updated_at, @sort_order)}
-    </.button>
-  </:header>
-
-  <div class="stream-row hidden">
-    <%= if length(@evidence_list.evidence) == 0 do %>
-      <%= if @filters && @filters != %{} do %>
-        <.blankslate class="color-bg-default">
-          <:octicon name="question-24" />
-          <:action>
-            <.button phx-click="clear_filters">{gettext("Clear all filters")}</.button>
-          </:action>
-          <h3>{gettext("No results found")}</h3>
-          <p>{gettext("You may have filters set that are hiding evidence")}</p>
-        </.blankslate>
-      <% else %>
-        <.blankslate class="color-bg-default">
-          <:octicon name="file-24" />
-          <h3>{gettext("No evidence found")}</h3>
-          <p>
-            {gettext(
-              "Evidence will appear here when created through the API or linked to threats, assumptions, or mitigations."
-            )}
-          </p>
-        </.blankslate>
-      <% end %>
-    <% end %>
-  </div>
-
-  <:row
-    :for={evidence <- @evidence_list.evidence}
-    class="d-flex flex-items-start flex-justify-between py-3"
-  >
-    <div class="flex-auto">
-      <div class="d-flex flex-items-center mb-2">
-        <h3 class="f3 text-bold mr-2">
-          {evidence.name}
-        </h3>
-        <.label class="mr-2">
-          {format_evidence_type(evidence.evidence_type)}
-        </.label>
-        <.label :if={evidence.numeric_id} is_secondary class="mr-2">
-          #{evidence.numeric_id}
-        </.label>
-      </div>
-
-      <p :if={evidence.description} class="f5 color-fg-muted mb-2">
-        {evidence.description}
+<%= if length(@evidence) == 0 do %>
+  <%= if @filters && @filters != %{} do %>
+    <.blankslate class="color-bg-default">
+      <:octicon name="question-24" />
+      <:action>
+        <.button phx-click="clear_filters">{gettext("Clear all filters")}</.button>
+      </:action>
+      <h3>{gettext("No results found")}</h3>
+      <p>{gettext("You may have filters set that are hiding evidence")}</p>
+    </.blankslate>
+  <% else %>
+    <.blankslate class="color-bg-default">
+      <:octicon name="file-24" />
+      <h3>{gettext("No evidence found")}</h3>
+      <p>
+        {gettext(
+          "Evidence will appear here when created through the API or linked to threats, assumptions, or mitigations."
+        )}
       </p>
+    </.blankslate>
+  <% end %>
+<% else %>
+  <.live_component
+    module={ValentineWeb.WorkspaceLive.Components.PaginatedListComponent}
+    id="evidence-list"
+    title={gettext("Evidence")}
+    collection={@evidence}
+  >
+    <:filters>
+      <span class="f6 color-fg-muted mr-2">{gettext("Filters")}:</span>
+      <.live_component
+        module={ValentineWeb.WorkspaceLive.Components.FilterComponent}
+        id="evidence-type-filter"
+        class="mx-1"
+        icon="file"
+        name={:evidence_type}
+        values={Ecto.Enum.values(Valentine.Composer.Evidence, :evidence_type)}
+        filters={@filters}
+      />
+      <%= if length(get_all_tags(@evidence)) > 0 do %>
+        <.live_component
+          module={ValentineWeb.WorkspaceLive.Components.FilterComponent}
+          id="tags-filter"
+          class="mx-1"
+          icon="tag"
+          name={:tags}
+          values={get_all_tags(@evidence)}
+          filters={@filters}
+        />
+      <% end %>
+      <%= if length(get_all_nist_controls(@evidence)) > 0 do %>
+        <.live_component
+          module={ValentineWeb.WorkspaceLive.Components.FilterComponent}
+          id="nist-controls-filter"
+          class="mx-1"
+          icon="shield"
+          name={:nist_controls}
+          values={get_all_nist_controls(@evidence)}
+          filters={@filters}
+        />
+      <% end %>
+    </:filters>
+    <:row :let={evidence}>
+      <div class="d-flex flex-items-start flex-justify-between py-3">
+        <div class="flex-auto">
+          <div class="d-flex flex-items-center mb-2">
+            <h3 class="f3 text-bold mr-2">
+              {evidence.name}
+            </h3>
+            <.label class="mr-2">
+              {format_evidence_type(evidence.evidence_type)}
+            </.label>
+            <.label :if={evidence.numeric_id} is_secondary class="mr-2">
+              #{evidence.numeric_id}
+            </.label>
+          </div>
 
-      <div class="d-flex flex-items-center mb-2">
-        <span class="f6 color-fg-muted mr-3">
-          <.octicon name="clock-16" class="mr-1" />
-          {gettext("Created")}: {format_date(evidence.inserted_at)}
-        </span>
-        <span :if={evidence.inserted_at != evidence.updated_at} class="f6 color-fg-muted mr-3">
-          <.octicon name="sync-16" class="mr-1" />
-          {gettext("Updated")}: {format_date(evidence.updated_at)}
-        </span>
-      </div>
+          <p :if={evidence.description} class="f5 color-fg-muted mb-2">
+            {evidence.description}
+          </p>
 
-      <div :if={length(evidence.tags) > 0} class="mb-2">
-        <span class="f6 color-fg-muted mr-2">{gettext("Tags")}:</span>
-        <.label :for={tag <- evidence.tags} class="mr-1">
-          {tag}
-        </.label>
-      </div>
+          <div class="d-flex flex-items-center mb-2">
+            <span class="f6 color-fg-muted mr-3">
+              <.octicon name="clock-16" class="mr-1" />
+              {gettext("Created")}: {format_date(evidence.inserted_at)}
+            </span>
+            <span :if={evidence.inserted_at != evidence.updated_at} class="f6 color-fg-muted mr-3">
+              <.octicon name="sync-16" class="mr-1" />
+              {gettext("Updated")}: {format_date(evidence.updated_at)}
+            </span>
+          </div>
 
-      <div :if={length(evidence.nist_controls) > 0} class="mb-2">
-        <span class="f6 color-fg-muted mr-2">{gettext("NIST Controls")}:</span>
-        <.label :for={control <- evidence.nist_controls} is_secondary class="mr-1">
-          {control}
-        </.label>
-      </div>
+          <div :if={length(evidence.tags) > 0} class="mb-2">
+            <span class="f6 color-fg-muted mr-2">{gettext("Tags")}:</span>
+            <.label :for={tag <- evidence.tags} class="mr-1">
+              {tag}
+            </.label>
+          </div>
 
-      <div class="d-flex flex-items-center flex-wrap">
-        <span :if={length(evidence.assumptions) > 0} class="mr-3">
-          <.octicon name="discussion-closed-16" class="mr-1" />
-          {gettext("Linked to")}
-          <%= for {assumption, index} <- Enum.with_index(evidence.assumptions) do %>
-            <.link navigate={~p"/workspaces/#{@workspace_id}/assumptions"} class="Link--primary">
-              {gettext("Assumption")} #{assumption.numeric_id}
-            </.link>
-            {if index < length(evidence.assumptions) - 1, do: ", "}
-          <% end %>
-        </span>
+          <div :if={length(evidence.nist_controls) > 0} class="mb-2">
+            <span class="f6 color-fg-muted mr-2">{gettext("NIST Controls")}:</span>
+            <.label :for={control <- evidence.nist_controls} is_secondary class="mr-1">
+              {control}
+            </.label>
+          </div>
 
-        <span :if={length(evidence.threats) > 0} class="mr-3">
-          <.octicon name="squirrel-16" class="mr-1" />
-          {gettext("Linked to")}
-          <%= for {threat, index} <- Enum.with_index(evidence.threats) do %>
-            <.link
-              navigate={~p"/workspaces/#{@workspace_id}/threats/#{threat.id}"}
-              class="Link--primary"
+          <div class="d-flex flex-items-center flex-wrap">
+            <span :if={length(evidence.assumptions) > 0} class="mr-3">
+              <.octicon name="discussion-closed-16" class="mr-1" />
+              {gettext("Linked to")}
+              <%= for {assumption, index} <- Enum.with_index(evidence.assumptions) do %>
+                <.link navigate={~p"/workspaces/#{@workspace_id}/assumptions"} class="Link--primary">
+                  {gettext("Assumption")} #{assumption.numeric_id}
+                </.link>
+                {if index < length(evidence.assumptions) - 1, do: ", "}
+              <% end %>
+            </span>
+
+            <span :if={length(evidence.threats) > 0} class="mr-3">
+              <.octicon name="squirrel-16" class="mr-1" />
+              {gettext("Linked to")}
+              <%= for {threat, index} <- Enum.with_index(evidence.threats) do %>
+                <.link
+                  navigate={~p"/workspaces/#{@workspace_id}/threats/#{threat.id}"}
+                  class="Link--primary"
+                >
+                  {gettext("Threat")} #{threat.numeric_id}
+                </.link>
+                {if index < length(evidence.threats) - 1, do: ", "}
+              <% end %>
+            </span>
+
+            <span :if={length(evidence.mitigations) > 0} class="mr-3">
+              <.octicon name="check-circle-16" class="mr-1" />
+              {gettext("Linked to")}
+              <%= for {mitigation, index} <- Enum.with_index(evidence.mitigations) do %>
+                <.link navigate={~p"/workspaces/#{@workspace_id}/mitigations"} class="Link--primary">
+                  {gettext("Mitigation")} #{mitigation.numeric_id}
+                </.link>
+                {if index < length(evidence.mitigations) - 1, do: ", "}
+              <% end %>
+            </span>
+
+            <span
+              :if={
+                length(evidence.assumptions) == 0 and length(evidence.threats) == 0 and
+                  length(evidence.mitigations) == 0
+              }
+              class="color-fg-muted"
             >
-              {gettext("Threat")} #{threat.numeric_id}
-            </.link>
-            {if index < length(evidence.threats) - 1, do: ", "}
-          <% end %>
-        </span>
+              <.octicon name="unlink-16" class="mr-1" />
+              {gettext("Not linked to any entities")}
+            </span>
+          </div>
+        </div>
 
-        <span :if={length(evidence.mitigations) > 0} class="mr-3">
-          <.octicon name="check-circle-16" class="mr-1" />
-          {gettext("Linked to")}
-          <%= for {mitigation, index} <- Enum.with_index(evidence.mitigations) do %>
-            <.link navigate={~p"/workspaces/#{@workspace_id}/mitigations"} class="Link--primary">
-              {gettext("Mitigation")} #{mitigation.numeric_id}
-            </.link>
-            {if index < length(evidence.mitigations) - 1, do: ", "}
-          <% end %>
-        </span>
-
-        <span
-          :if={
-            length(evidence.assumptions) == 0 and length(evidence.threats) == 0 and
-              length(evidence.mitigations) == 0
-          }
-          class="color-fg-muted"
-        >
-          <.octicon name="unlink-16" class="mr-1" />
-          {gettext("Not linked to any entities")}
-        </span>
+        <div class="flex-shrink-0 ml-3">
+          <.action_menu>
+            <:toggle class="btn-octicon btn-sm">
+              <.octicon name="kebab-horizontal-16" />
+            </:toggle>
+            <.action_list>
+              <.action_list_item
+                phx-click="delete"
+                phx-value-id={evidence.id}
+                data-confirm={gettext("Are you sure you want to delete this evidence?")}
+                is_danger
+              >
+                <:leading_visual>
+                  <.octicon name="trash-16" />
+                </:leading_visual>
+                {gettext("Delete")}
+              </.action_list_item>
+            </.action_list>
+          </.action_menu>
+        </div>
       </div>
-    </div>
-
-    <div class="flex-shrink-0 ml-3">
-      <.action_menu>
-        <:toggle class="btn-octicon btn-sm">
-          <.octicon name="kebab-horizontal-16" />
-        </:toggle>
-        <.action_list>
-          <.action_list_item
-            phx-click="delete"
-            phx-value-id={evidence.id}
-            data-confirm={gettext("Are you sure you want to delete this evidence?")}
-            is_danger
-          >
-            <:leading_visual>
-              <.octicon name="trash-16" />
-            </:leading_visual>
-            {gettext("Delete")}
-          </.action_list_item>
-        </.action_list>
-      </.action_menu>
-    </div>
-  </:row>
-</.box>
-
-<%= if @evidence_list.total_pages > 1 do %>
-  <div class="d-flex flex-justify-center mt-3">
-    <nav aria-label="Evidence pagination">
-      <div class="pagination">
-        <%= if @evidence_list.current_page > 1 do %>
-          <.button
-            class="btn-sm mr-1"
-            phx-click="change_page"
-            phx-value-page={@evidence_list.current_page - 1}
-          >
-            {gettext("Previous")}
-          </.button>
-        <% end %>
-
-        <%= for page <- max(1, @evidence_list.current_page - 2)..min(@evidence_list.total_pages, @evidence_list.current_page + 2) do %>
-          <%= if page == @evidence_list.current_page do %>
-            <.button class="btn-sm mr-1" is_selected>
-              {page}
-            </.button>
-          <% else %>
-            <.button class="btn-sm mr-1" phx-click="change_page" phx-value-page={page}>
-              {page}
-            </.button>
-          <% end %>
-        <% end %>
-
-        <%= if @evidence_list.current_page < @evidence_list.total_pages do %>
-          <.button
-            class="btn-sm"
-            phx-click="change_page"
-            phx-value-page={@evidence_list.current_page + 1}
-          >
-            {gettext("Next")}
-          </.button>
-        <% end %>
-      </div>
-    </nav>
-  </div>
+    </:row>
+  </.live_component>
 <% end %>
-
-<div class="mt-3 f6 color-fg-muted text-center">
-  {gettext("Showing")} {(@page - 1) * @page_size + 1} - {min(
-    @page * @page_size,
-    @evidence_list.total_count
-  )} {gettext("of")} {@evidence_list.total_count} {gettext("evidence items")}
-</div>
