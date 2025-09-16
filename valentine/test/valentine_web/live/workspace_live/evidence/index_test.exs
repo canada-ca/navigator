@@ -15,7 +15,11 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.IndexTest do
   describe "Evidence Index" do
     setup [:create_workspace, :create_evidence]
 
-    test "displays evidence overview page", %{conn: conn, workspace: workspace, evidence: evidence} do
+    test "displays evidence overview page", %{
+      conn: conn,
+      workspace: workspace,
+      evidence: evidence
+    } do
       conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
       {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{workspace.id}/evidence")
 
@@ -23,7 +27,11 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.IndexTest do
       assert html =~ evidence.name
     end
 
-    test "shows evidence details with tags and controls", %{conn: conn, workspace: workspace, evidence: evidence} do
+    test "shows evidence details with tags and controls", %{
+      conn: conn,
+      workspace: workspace,
+      evidence: evidence
+    } do
       conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
       {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{workspace.id}/evidence")
 
@@ -37,9 +45,10 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.IndexTest do
       {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace.id}/evidence")
 
       # Sort by created date
-      html = index_live
-      |> element("button[phx-value-sort_by='inserted_at']")
-      |> render_click()
+      html =
+        index_live
+        |> element("button[phx-value-sort_by='inserted_at']")
+        |> render_click()
 
       assert html =~ "Created"
     end

@@ -237,13 +237,16 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
     |> Enum.uniq()
     |> Enum.sort()
   end
+
   defp get_all_tags(_), do: []
 
-  defp get_all_nist_controls(evidence_list) when is_list(evidence_list) and length(evidence_list) > 0 do
+  defp get_all_nist_controls(evidence_list)
+       when is_list(evidence_list) and length(evidence_list) > 0 do
     evidence_list
     |> Enum.flat_map(& &1.nist_controls)
     |> Enum.uniq()
     |> Enum.sort()
   end
+
   defp get_all_nist_controls(_), do: []
 end
