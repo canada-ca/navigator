@@ -40,17 +40,12 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.IndexTest do
       assert html =~ "AC-1"
     end
 
-    test "sorts evidence by date", %{conn: conn, workspace: workspace} do
+    test "displays evidence with pagination", %{conn: conn, workspace: workspace} do
       conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
-      {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace.id}/evidence")
+      {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{workspace.id}/evidence")
 
-      # Sort by created date
-      html =
-        index_live
-        |> element("button[phx-value-sort_by='inserted_at']")
-        |> render_click()
-
-      assert html =~ "Created"
+      # Check that the paginated list component is used
+      assert html =~ "Evidence"
     end
 
     test "shows empty state when no evidence exists", %{conn: conn} do

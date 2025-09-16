@@ -32,14 +32,16 @@ defmodule ValentineWeb.WorkspaceLive.Components.PaginatedListComponent do
           </.button_group>
         </:header>
         <:header_title class="flex-auto">
-          <div class="float-left mt-2">
+          <div class="float-left mt-2 mr-2">
             {@title}
             <span :if={length(@selected) > 0} class="Counter Counter--gray">
               {length(@selected)}
             </span>
           </div>
-          <div class="float-left ml-2">
-            {render_slot(@filters)}
+          <div class="float-left">
+            <div class="d-flex">
+              {render_slot(@filters)}
+            </div>
           </div>
         </:header_title>
         <:row
