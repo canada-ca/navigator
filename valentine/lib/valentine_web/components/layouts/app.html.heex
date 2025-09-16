@@ -229,6 +229,20 @@
             workspace_id={@workspace_id}
           />
         </:item>
+        <:item
+          :if={@workspace_id}
+          is_selected={@active_module == "Evidence"}
+          navigate={~p"/workspaces/#{@workspace_id}/evidence"}
+          class="d-flex flex-items-center flex-justify-between"
+        >
+          <span><.octicon name="file-badge-16" /> {gettext("Evidence")}</span>
+          <ValentineWeb.WorkspaceLive.Components.PresenceIndicatorComponent.render
+            current_user={@current_user}
+            presence={@presence}
+            active_module="Evidence"
+            workspace_id={@workspace_id}
+          />
+        </:item>
       </.side_nav>
       <.side_nav :if={@workspace_id} aria_label="model" class="mt-4" is_border>
         <:item
