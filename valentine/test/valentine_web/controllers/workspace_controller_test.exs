@@ -139,4 +139,26 @@ defmodule ValentineWeb.WorkspaceControllerTest do
              }
            ]
   end
+
+  test "GET /workspaces/:workspace_id/data_flow/mermaid returns a Mermaid.js export of the data flow diagram for download",
+       %{conn: conn} do
+    workspace = workspace_fixture()
+
+    conn =
+      conn
+      |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+      |> get(~p"/workspaces/#{workspace.id}/data_flow/mermaid")
+
+    assert conn.status == 200
+
+    assert List.keyfind(conn.resp_headers, "content-disposition", 0) ==
+             {"content-disposition",
+              "attachment; filename=\"DFD_some%20name.mmd\"; filename*=utf-8''DFD_some%20name.mmd"}
+
+    assert List.keyfind(conn.resp_headers, "content-type", 0) ==
+             {"content-type", "text/plain"}
+
+    # The response should be a valid Mermaid state diagram
+    assert String.starts_with?(conn.resp_body, "stateDiagram-v2")
+  end
 end

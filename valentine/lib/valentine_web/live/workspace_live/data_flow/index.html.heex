@@ -138,6 +138,20 @@
         </.button>
       </.button_group>
     </div>
+    <div class="d-flex flex-column mr-2">
+      <span class="text-small text-bold mb-1">{gettext("Export")}</span>
+      <.button_group class="mr-2">
+        <a href={"/workspaces/#{@workspace_id}/data_flow/mermaid"} target="_blank">
+          <.button
+            is_icon_button
+            aria-label={gettext("Export to Mermaid.js")}
+            title={gettext("Export to Mermaid.js")}
+          >
+            <.octicon name="download-24" />
+          </.button>
+        </a>
+      </.button_group>
+    </div>
   </div>
   <.live_component
     module={ValentineWeb.WorkspaceLive.Components.DataFlowComponent}
