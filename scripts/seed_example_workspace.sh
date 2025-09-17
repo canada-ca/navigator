@@ -10,17 +10,18 @@
 # - The valentine application must be set up with a development database
 # - Run `mix ecto.create && mix ecto.migrate` in the valentine directory first
 #
-# Usage: ./seed_example_workspace.sh [workspace_name] [owner]
+# Usage: ./seed_example_workspace.sh [workspace_name] [owner_email]
 # 
 # Arguments:
 #   workspace_name: Optional. Name for the workspace (default: "GitHub Authentication Threat Model")
-#   owner:          Optional. Owner identifier (default: "copilot-dev")
+#   owner_email:    Optional. Email address for the workspace owner (default: "copilot-dev@example.com")
 #
 # Examples:
 #   ./seed_example_workspace.sh
 #   ./seed_example_workspace.sh "My GitHub Security Model" "developer@example.com"
 #
 # The script will:
+# - Check if a user with the specified email exists, create one if not
 # - Import the GitHub authentication threat model from examples/github_auth.json
 # - Create a complete workspace with threats, mitigations, assumptions, and data flow diagram
 # - Output the workspace UUID for easy access
@@ -33,10 +34,10 @@ set -e
 
 # Default values
 DEFAULT_WORKSPACE_NAME="GitHub Authentication Threat Model"
-DEFAULT_OWNER="copilot-dev"
+DEFAULT_OWNER="copilot-dev@example.com"
 
 WORKSPACE_NAME="${1:-$DEFAULT_WORKSPACE_NAME}"
-OWNER="${2:-$DEFAULT_OWNER}"
+OWNER_EMAIL="${2:-$DEFAULT_OWNER}"
 
 # Get script directory and navigate to project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -47,7 +48,7 @@ EXAMPLE_FILE="$PROJECT_ROOT/examples/github_auth.json"
 echo "Navigator Example Workspace Seeder"
 echo "=================================="
 echo "Workspace Name: $WORKSPACE_NAME"
-echo "Owner: $OWNER"
+echo "Owner Email: $OWNER_EMAIL"
 echo "Example File: $EXAMPLE_FILE"
 echo ""
 
@@ -107,49 +108,14 @@ fi
 echo ""
 echo "Creating workspace from example data..."
 
-# Create the workspace using the JSON import functionality
-RESULT=$(MIX_ENV=dev mix run -e "
-# Read and parse the JSON file
-{:ok, content} = File.read(\"$EXAMPLE_FILE\")
-{:ok, data} = Jason.decode(content)
-
-# Get the workspace data and update the name
-workspace_data = data[\"workspace\"]
-updated_workspace_data = Map.put(workspace_data, \"name\", \"$WORKSPACE_NAME\")
-
-# Import the workspace
-case ValentineWeb.WorkspaceLive.Import.JsonImport.build_workspace(updated_workspace_data, \"$OWNER\") do
-  {:ok, workspace} ->
-    IO.puts(\"SUCCESS:#{workspace.id}\")
-    
-    # Get counts of imported items
-    assumptions_count = Valentine.Repo.aggregate(
-      from(a in Valentine.Composer.Assumption, where: a.workspace_id == ^workspace.id),
-      :count
-    )
-    
-    mitigations_count = Valentine.Repo.aggregate(
-      from(m in Valentine.Composer.Mitigation, where: m.workspace_id == ^workspace.id),
-      :count
-    )
-    
-    threats_count = Valentine.Repo.aggregate(
-      from(t in Valentine.Composer.Threat, where: t.workspace_id == ^workspace.id),
-      :count
-    )
-    
-    IO.puts(\"STATS:#{assumptions_count}:#{mitigations_count}:#{threats_count}\")
-    
-  {:error, reason} ->
-    IO.puts(\"ERROR:#{inspect(reason)}\")
-    System.halt(1)
-end
-" 2>&1)
+# Create the workspace using the separate Elixir script
+RESULT=$(cd "$VALENTINE_DIR" && MIX_ENV=dev mix run "$SCRIPT_DIR/create_workspace.exs" "$WORKSPACE_NAME" "$OWNER_EMAIL" "$EXAMPLE_FILE" 2>&1)
 
 # Parse the result
 if echo "$RESULT" | grep -q "^SUCCESS:"; then
     WORKSPACE_ID=$(echo "$RESULT" | grep "^SUCCESS:" | cut -d: -f2)
     STATS_LINE=$(echo "$RESULT" | grep "^STATS:")
+    OWNER_ID_LINE=$(echo "$RESULT" | grep "^OWNER_ID:")
     
     if [ -n "$STATS_LINE" ]; then
         ASSUMPTIONS_COUNT=$(echo "$STATS_LINE" | cut -d: -f2)
@@ -161,6 +127,12 @@ if echo "$RESULT" | grep -q "^SUCCESS:"; then
         THREATS_COUNT="?"
     fi
     
+    if [ -n "$OWNER_ID_LINE" ]; then
+        OWNER_ID=$(echo "$OWNER_ID_LINE" | cut -d: -f2)
+    else
+        OWNER_ID="unknown"
+    fi
+    
     echo ""
     echo "✓ Workspace created successfully!"
     echo ""
@@ -168,7 +140,8 @@ if echo "$RESULT" | grep -q "^SUCCESS:"; then
     echo "=================="
     echo "ID: $WORKSPACE_ID"
     echo "Name: $WORKSPACE_NAME"
-    echo "Owner: $OWNER"
+    echo "Owner Email: $OWNER_EMAIL"
+    echo "Owner ID: $OWNER_ID"
     echo ""
     echo "Imported Content:"
     echo "=================="
