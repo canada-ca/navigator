@@ -2,6 +2,54 @@
 
 This directory contains utility scripts for the Navigator application.
 
+## Example Workspace Seeder
+
+### `seed_example_workspace.sh`
+
+A script that creates an example workspace using the GitHub authentication threat model from `examples/github_auth.json`. This is designed for Copilot development environments to provide realistic sample data.
+
+**Purpose:** Creates a complete threat modeling workspace with real-world security scenarios for development and testing purposes.
+
+**Prerequisites:**
+- Development database must be set up (`mix ecto.create && mix ecto.migrate`)
+- Must be run from the project root directory
+
+**Usage:**
+```bash
+./scripts/seed_example_workspace.sh [workspace_name] [owner]
+```
+
+**Parameters:**
+- `workspace_name`: Optional. Name for the workspace (default: "GitHub Authentication Threat Model")
+- `owner`: Optional. Owner identifier (default: "copilot-dev")
+
+**Examples:**
+```bash
+# Create workspace with default settings
+./scripts/seed_example_workspace.sh
+
+# Create workspace with custom name and owner
+./scripts/seed_example_workspace.sh "My GitHub Security Model" "developer@example.com"
+```
+
+**Generated Workspace Content:**
+- **Complete Threat Model**: Based on GitHub authentication and repository security
+- **Assumptions**: 31 security assumptions covering access control, authentication, and compliance
+- **Mitigations**: 13 security controls and mitigation strategies
+- **Threats**: 47 identified threats using STRIDE methodology
+- **Data Flow Diagram**: Visual representation of GitHub authentication flows
+- **Architecture Documentation**: Detailed description of GitHub's security architecture
+
+**Post-Creation Access:**
+- Workspaces Overview: `http://localhost:4000/workspaces`
+- Workspace Details: `http://localhost:4000/workspaces/{workspace_id}`
+
+**Use Cases:**
+- Copilot development environment setup
+- Security training and education
+- Demonstration of threat modeling capabilities
+- Testing Navigator features with realistic data
+
 ## Evidence Generation Script
 
 ### `generate_evidence.sh`
