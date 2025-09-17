@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigator - Workspaces Overview</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f6f8fa;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #d1d9e0;
+        }
+        .workspaces-grid {
+            display: grid;
+            gap: 20px;
+        }
+        .workspace-card {
+            background: white;
+            border: 1px solid #d1d9e0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+        .workspace-card:hover {
+            border-color: #0969da;
+            box-shadow: 0 3px 12px rgba(9, 105, 218, 0.1);
+        }
+        .workspace-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0969da;
+            margin-bottom: 8px;
+        }
+        .workspace-meta {
+            color: #656d76;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .workspace-stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+        }
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            color: #656d76;
+        }
+        .stat-value {
+            font-weight: 600;
+            color: #24292f;
+        }
+        .btn {
+            background: #0969da;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: #0860ca;
+        }
+        .new-workspace {
+            border: 2px dashed #d1d9e0;
+            background: #f6f8fa;
+            text-align: center;
+            padding: 40px 20px;
+            color: #656d76;
+        }
+        .highlight {
+            background: #fff8dc;
+            border: 2px solid #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Navigator - Workspaces Overview</h1>
+        <p>Manage your threat modeling workspaces and security assessments</p>
+    </div>
+
+    <div class="workspaces-grid">
+        <!-- Newly created workspace from seed script -->
+        <div class="workspace-card highlight">
+            <div class="workspace-title">🆕 GitHub Authentication Threat Model</div>
+            <div class="workspace-meta">
+                Created by copilot-dev • Just now • ID: 550e8400-e29b-41d4-a716-446655440000
+            </div>
+            <p>Complete threat model for GitHub repositories and authentication systems, covering source code security, access controls, and supply chain risks.</p>
+            <div class="workspace-stats">
+                <div class="stat">
+                    ⚠️ <span class="stat-value">33</span> Threats
+                </div>
+                <div class="stat">
+                    🛡️ <span class="stat-value">12</span> Mitigations
+                </div>
+                <div class="stat">
+                    📋 <span class="stat-value">30</span> Assumptions
+                </div>
+            </div>
+            <div style="margin-top: 16px;">
+                <a href="#" class="btn">Open Workspace</a>
+            </div>
+        </div>
+
+        <!-- Example existing workspace -->
+        <div class="workspace-card">
+            <div class="workspace-title">E-commerce Platform Security</div>
+            <div class="workspace-meta">
+                Created by dev-team • 2 days ago • ID: 123e4567-e89b-12d3-a456-426614174000
+            </div>
+            <p>Security assessment for the main e-commerce platform including payment processing and customer data protection.</p>
+            <div class="workspace-stats">
+                <div class="stat">
+                    ⚠️ <span class="stat-value">28</span> Threats
+                </div>
+                <div class="stat">
+                    🛡️ <span class="stat-value">15</span> Mitigations
+                </div>
+                <div class="stat">
+                    📋 <span class="stat-value">22</span> Assumptions
+                </div>
+            </div>
+            <div style="margin-top: 16px;">
+                <a href="#" class="btn">Open Workspace</a>
+            </div>
+        </div>
+
+        <!-- New workspace option -->
+        <div class="workspace-card new-workspace">
+            <h3>Create New Workspace</h3>
+            <p>Start a new threat modeling session</p>
+            <a href="#" class="btn">+ New Workspace</a>
+        </div>
+    </div>
+</body>
+</html>

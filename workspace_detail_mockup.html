@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigator - GitHub Authentication Threat Model</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f6f8fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: #24292f;
+            color: white;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .nav-item {
+            padding: 8px 12px;
+            margin: 4px 0;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .nav-item:hover {
+            background: #32383f;
+        }
+        .nav-item.active {
+            background: #0969da;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #d1d9e0;
+        }
+        .workspace-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .workspace-meta {
+            color: #656d76;
+            margin-bottom: 16px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #d1d9e0;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 8px 8px 0 0;
+            padding: 0 20px;
+        }
+        .tab {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: #656d76;
+        }
+        .tab.active {
+            border-bottom-color: #0969da;
+            color: #0969da;
+            font-weight: 600;
+        }
+        .content-area {
+            background: white;
+            border-radius: 0 0 8px 8px;
+            border: 1px solid #d1d9e0;
+            padding: 20px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #f6f8fa;
+            border: 1px solid #d1d9e0;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0969da;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            color: #656d76;
+            font-size: 14px;
+        }
+        .threat-item {
+            border: 1px solid #d1d9e0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: #fafbfc;
+        }
+        .threat-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .threat-title {
+            font-weight: 600;
+            color: #24292f;
+        }
+        .priority-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        .priority-high {
+            background: #ffebe9;
+            color: #d1242f;
+        }
+        .priority-medium {
+            background: #fff8dc;
+            color: #bf8700;
+        }
+        .priority-low {
+            background: #dcfce7;
+            color: #116329;
+        }
+        .threat-meta {
+            font-size: 14px;
+            color: #656d76;
+            margin-bottom: 8px;
+        }
+        .stride-tags {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .stride-tag {
+            background: #0969da;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2 style="margin-top: 0;">Navigator</h2>
+        <div class="nav-item active">📊 Dashboard</div>
+        <div class="nav-item">🏗️ Architecture</div>
+        <div class="nav-item">🔄 Data Flow</div>
+        <div class="nav-item">📋 Assumptions</div>
+        <div class="nav-item">⚠️ Threats</div>
+        <div class="nav-item">🛡️ Mitigations</div>
+        <div class="nav-item">📄 Evidence</div>
+        <div class="nav-item">⚙️ Settings</div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <div class="workspace-title">GitHub Authentication Threat Model</div>
+            <div class="workspace-meta">
+                Created by copilot-dev • ID: 550e8400-e29b-41d4-a716-446655440000
+            </div>
+            <p>Complete threat model for GitHub repositories and authentication systems, covering source code security, authentication flows, and supply chain risks.</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active">Overview</div>
+            <div class="tab">Threat Analysis</div>
+            <div class="tab">Risk Assessment</div>
+            <div class="tab">Reports</div>
+        </div>
+
+        <div class="content-area">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">33</div>
+                    <div class="stat-label">Total Threats</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">Mitigations</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">30</div>
+                    <div class="stat-label">Assumptions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">High Priority</div>
+                </div>
+            </div>
+
+            <h3>Recent Threat Analysis</h3>
+            
+            <div class="threat-item">
+                <div class="threat-header">
+                    <div class="threat-title">External threat actor exploits failover mechanisms during disaster recovery</div>
+                    <div class="priority-badge priority-medium">Medium</div>
+                </div>
+                <div class="threat-meta">Source: external threat actor • Impact: compromise repository availability during system restoration</div>
+                <div class="stride-tags">
+                    <span class="stride-tag">Denial of Service</span>
+                    <span class="stride-tag">Tampering</span>
+                </div>
+            </div>
+
+            <div class="threat-item">
+                <div class="threat-header">
+                    <div class="threat-title">Malicious user bypasses code review controls to merge unreviewed changes</div>
+                    <div class="priority-badge priority-high">High</div>
+                </div>
+                <div class="threat-meta">Source: malicious user • Impact: inject malicious code, backdoors, or vulnerabilities</div>
+                <div class="stride-tags">
+                    <span class="stride-tag">Tampering</span>
+                    <span class="stride-tag">Elevation of Privilege</span>
+                </div>
+            </div>
+
+            <div class="threat-item">
+                <div class="threat-header">
+                    <div class="threat-title">Internal threat actor shares private repository contents with unauthorized collaborators</div>
+                    <div class="priority-badge priority-high">High</div>
+                </div>
+                <div class="threat-meta">Source: internal threat actor • Impact: unauthorized access to proprietary source code and intellectual property</div>
+                <div class="stride-tags">
+                    <span class="stride-tag">Information Disclosure</span>
+                    <span class="stride-tag">Spoofing</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; text-align: center; color: #656d76;">
+                <p>Showing 3 of 33 threats • <a href="#" style="color: #0969da;">View all threats →</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
