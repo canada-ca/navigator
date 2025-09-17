@@ -4,7 +4,7 @@ cover:
 	cd valentine && mix test --cover
 
 dev:
-	cd valentine && mix phx.server
+	cd valentine && MIX_ENV=dev mix phx.server
 
 docker: 
 	docker build --build-arg GIT_SHA=$(shell git rev-parse HEAD) -t valentine valentine/.
@@ -20,3 +20,6 @@ setup:
 
 test:
 	cd valentine && mix test
+
+usage_rules:
+	cd valentine && mix usage_rules.sync AGENTS.md --all --inline usage_rules:all --link-to-folder deps

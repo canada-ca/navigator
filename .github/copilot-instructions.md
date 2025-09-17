@@ -15,25 +15,6 @@ Navigator is a real-time collaborative threat modeling tool built with Elixir/Ph
 ### Bootstrap and Build Process
 **NEVER CANCEL builds or long-running commands. Set timeouts to 60+ minutes.**
 
-### Docker Compose Approach (RECOMMENDED) 
-**NOTE**: The Dockerfile currently has network connectivity issues that prevent the full build. Use this approach for database only or with manual fixes.
-
-```bash
-# Start database only (VALIDATED - works correctly)
-docker compose up db -d
-# Takes 10-30 seconds for PostgreSQL 13 to start
-
-# Build and run the full application stack (requires Dockerfile fixes)
-docker compose up --build  
-```
-- **NEVER CANCEL**: Initial build would take 15-45 minutes if network issues are resolved. Set timeout to 60+ minutes.
-- Application would run on `http://localhost:4000`
-- Database starts successfully in 10-30 seconds
-- To use OpenAI features: `OPENAI_API_KEY=sk-proj... docker compose up`
-- To rebuild after code changes: `docker compose up -d --no-deps --build app`
-
-**CURRENT ISSUE**: The Dockerfile has network connectivity problems during the build process. Use native development or fix the Dockerfile network issues first.
-
 #### Native Development Setup
 **NOTE**: Requires exact Elixir 1.18.4 and Erlang/OTP 27.0.1. Ubuntu packages provide older versions that cause compatibility issues.
 
@@ -45,8 +26,8 @@ make setup
 
 # Start development server
 make dev  
-# Runs: cd valentine && mix phx.server
-# Starts server on http://localhost:4000
+# Runs: cd valentine && MIX_ENV=dev mix phx.server
+# Starts server on http://0.0.0.0:4000
 ```
 
 **CURRENT LIMITATION**: The system Elixir version (1.14.0) is incompatible with project requirements (1.18.4). Use version managers like asdf or rely on Docker development.
@@ -85,8 +66,8 @@ make install
 After making changes, **ALWAYS** perform these validation steps:
 
 ### Basic Application Validation
-1. Start the application with `make dev` or `docker compose up`
-2. Navigate to `http://localhost:4000`
+1. Start the application with `make dev`
+2. Navigate to `http://0.0.0.0:4000`
 3. Verify the main navigation works (Workspaces, Architecture, Data flow, etc.)
 4. Create a new workspace to test basic functionality
 5. Test the threat modeling features (create threats, assumptions, mitigations)
