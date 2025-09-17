@@ -55,20 +55,52 @@ jobs:
           cache: "npm"
           cache-dependency-path: valentine/assets/package-lock.json
 
+      - name: Install Hex and Rebar
+        working-directory: ./valentine
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+
+      - name: Cache Elixir dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            valentine/deps
+            valentine/_build
+          key: ${{ runner.os }}-mix-${{ hashFiles('valentine/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
+
       - name: Install Elixir dependencies
         working-directory: ./valentine
         run: mix deps.get
         env:
           DATABASE_URL: "ecto://postgres:postgres@localhost"
-          MIX_ENV: test
+          MIX_ENV: dev
 
       - name: Compile Elixir dependencies
         working-directory: ./valentine
         run: mix deps.compile
         env:
           DATABASE_URL: "ecto://postgres:postgres@localhost"
-          MIX_ENV: test
+          MIX_ENV: dev
 
       - name: Install JavaScript dependencies
         working-directory: ./valentine/assets
         run: npm ci
+
+      - name: Setup databases
+        working-directory: ./valentine
+        run: |
+          mix ecto.create
+          mix ecto.migrate
+        env:
+          DATABASE_URL: "ecto://postgres:postgres@localhost"
+          MIX_ENV: dev
+
+      - name: Seed development database
+        working-directory: ./valentine
+        run: mix run priv/repo/seeds.exs
+        env:
+          DATABASE_URL: "ecto://postgres:postgres@localhost"
+          MIX_ENV: dev
