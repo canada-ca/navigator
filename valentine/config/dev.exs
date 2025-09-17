@@ -1,8 +1,5 @@
 import Config
 
-# Force build autumn from source to avoid network issues
-config :rustler_precompiled, :force_build, autumn: true
-
 # Configure your database
 config :valentine, Valentine.Repo,
   url:

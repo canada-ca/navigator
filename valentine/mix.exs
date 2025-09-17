@@ -52,7 +52,7 @@ defmodule Valentine.MixProject do
       {:bandit, "~> 1.5"},
       {:mock, "~> 0.3.0", only: :test},
       {:primer_live, "~> 0.9"},
-      # {:mdex, "~> 0.2"}, # Temporarily disabled due to autumn NIF download issues
+      {:mdex, "~> 0.2"},
       {:langchain, github: "brainlid/langchain", ref: "315e787c7f4e52c014b52bda0142aa631d3dd28f"},
       {:cachex, "~> 4.0"},
       {:csv, "~> 3.2"},
@@ -62,8 +62,7 @@ defmodule Valentine.MixProject do
       {:elixlsx, "~> 0.6.0"},
       {:logger_formatter_json, "~> 0.8"},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
-      {:guardian, "~> 2.3"},
-      {:rustler, ">= 0.0.0", optional: true}
+      {:guardian, "~> 2.3"}
     ]
   end
 
