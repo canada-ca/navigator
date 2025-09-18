@@ -242,9 +242,31 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
   def handle_info(%{event: event, payload: payload}, socket) do
     Logger.info("Remote event: #{inspect(event)}, payload: #{inspect(payload)}")
 
+    # For undo/redo events, we need to update the DFD state so button states re-render
+    # and format the payload correctly for the canvas
+    {updated_socket, canvas_payload} =
+      case event do
+        "undo" ->
+          {socket |> assign(:dfd, payload),
+           %{
+             event: "refresh_graph",
+             payload: %{nodes: Map.values(payload.nodes), edges: Map.values(payload.edges)}
+           }}
+
+        "redo" ->
+          {socket |> assign(:dfd, payload),
+           %{
+             event: "refresh_graph",
+             payload: %{nodes: Map.values(payload.nodes), edges: Map.values(payload.edges)}
+           }}
+
+        _ ->
+          {socket, %{event: event, payload: payload}}
+      end
+
     {:noreply,
-     socket
-     |> push_event("updateGraph", %{event: event, payload: payload})
+     updated_socket
+     |> push_event("updateGraph", canvas_payload)
      |> assign(:saved, if(event == :saved, do: true, else: false))}
   end
 
