@@ -126,7 +126,11 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
     handle_event("redo", %{}, socket)
   end
 
-  def handle_event("handle_keydown", %{"key" => "Z", "ctrlKey" => true, "shiftKey" => true}, socket) do
+  def handle_event(
+        "handle_keydown",
+        %{"key" => "Z", "ctrlKey" => true, "shiftKey" => true},
+        socket
+      ) do
     handle_event("redo", %{}, socket)
   end
 

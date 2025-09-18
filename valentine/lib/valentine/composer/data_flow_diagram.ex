@@ -548,7 +548,7 @@ defmodule Valentine.Composer.DataFlowDiagram do
     }
 
     # Add current state to history and limit the stack size
-    updated_history_stack = 
+    updated_history_stack =
       [history_state | history_stack]
       |> Enum.take(@history_limit)
 

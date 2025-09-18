@@ -429,7 +429,7 @@ defmodule Valentine.Composer.DataFlowDiagramTest do
   test "push_to_history/1 adds current state to history", %{workspace_id: workspace_id} do
     DataFlowDiagram.add_node(workspace_id, %{"type" => "test"})
     DataFlowDiagram.push_to_history(workspace_id)
-    
+
     assert DataFlowDiagram.can_undo?(workspace_id)
   end
 
@@ -444,19 +444,19 @@ defmodule Valentine.Composer.DataFlowDiagramTest do
   test "undo/2 restores previous state", %{workspace_id: workspace_id} do
     # Add initial node and save to history
     DataFlowDiagram.add_node(workspace_id, %{"type" => "test"})
-    
+
     # Add another node
     node2 = DataFlowDiagram.add_node(workspace_id, %{"type" => "test2"})
-    
+
     # Undo should restore state before second node
     result = DataFlowDiagram.undo(workspace_id, %{})
-    
+
     refute result == {:error, "No states to undo"}
-    
+
     # Check that the second node is no longer in the diagram
     dfd = DataFlowDiagram.get(workspace_id)
     refute Map.has_key?(dfd.nodes, node2["data"]["id"])
-    
+
     # Should now be able to redo
     assert DataFlowDiagram.can_redo?(workspace_id)
   end
@@ -464,23 +464,23 @@ defmodule Valentine.Composer.DataFlowDiagramTest do
   test "redo/2 restores future state", %{workspace_id: workspace_id} do
     # Add initial node
     node1 = DataFlowDiagram.add_node(workspace_id, %{"type" => "test"})
-    
+
     # Add another node
     node2 = DataFlowDiagram.add_node(workspace_id, %{"type" => "test2"})
-    
+
     # Undo
     DataFlowDiagram.undo(workspace_id, %{})
-    
+
     # Redo should restore the second node
     result = DataFlowDiagram.redo(workspace_id, %{})
-    
+
     refute result == {:error, "No states to redo"}
-    
+
     # Check that both nodes are back
     dfd = DataFlowDiagram.get(workspace_id)
     assert Map.has_key?(dfd.nodes, node1["data"]["id"])
     assert Map.has_key?(dfd.nodes, node2["data"]["id"])
-    
+
     # Should not be able to redo anymore
     refute DataFlowDiagram.can_redo?(workspace_id)
   end
@@ -488,19 +488,19 @@ defmodule Valentine.Composer.DataFlowDiagramTest do
   test "new changes after undo clear future states", %{workspace_id: workspace_id} do
     # Add initial node
     DataFlowDiagram.add_node(workspace_id, %{"type" => "test"})
-    
+
     # Add another node
     DataFlowDiagram.add_node(workspace_id, %{"type" => "test2"})
-    
+
     # Undo
     DataFlowDiagram.undo(workspace_id, %{})
-    
+
     # Should be able to redo
     assert DataFlowDiagram.can_redo?(workspace_id)
-    
+
     # Add a different node (this should clear future states)
     DataFlowDiagram.add_node(workspace_id, %{"type" => "test3"})
-    
+
     # Should no longer be able to redo
     refute DataFlowDiagram.can_redo?(workspace_id)
   end
@@ -510,9 +510,9 @@ defmodule Valentine.Composer.DataFlowDiagramTest do
     for i <- 1..55 do
       DataFlowDiagram.add_node(workspace_id, %{"type" => "test#{i}"})
     end
-    
+
     {history_stack, _} = DataFlowDiagram.get_history_stacks(workspace_id)
-    
+
     # History should be limited to 50 entries
     assert length(history_stack) <= 50
   end
