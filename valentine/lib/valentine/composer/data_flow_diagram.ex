@@ -151,7 +151,7 @@ defmodule Valentine.Composer.DataFlowDiagram do
 
     dfd
     |> Map.update!(:nodes, &Map.put(&1, node["id"], new_node))
-    |> put_with_history()
+    |> put()
 
     new_node
   end
@@ -291,7 +291,7 @@ defmodule Valentine.Composer.DataFlowDiagram do
 
     dfd
     |> Map.update!(:nodes, &Map.put(&1, node["id"], new_node))
-    |> put_with_history()
+    |> put()
 
     new_node
   end

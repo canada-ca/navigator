@@ -516,4 +516,40 @@ defmodule Valentine.Composer.DataFlowDiagramTest do
     # History should be limited to 50 entries
     assert length(history_stack) <= 50
   end
+
+  test "drag operation creates only one history entry", %{workspace_id: workspace_id} do
+    # Add a node
+    node = DataFlowDiagram.add_node(workspace_id, %{"type" => "test"})
+
+    # Simulate starting a drag (grab)
+    DataFlowDiagram.grab(workspace_id, %{"node" => %{"id" => node["data"]["id"]}})
+
+    # Get history stack after grab
+    {history_after_grab, _} = DataFlowDiagram.get_history_stacks(workspace_id)
+    grab_history_count = length(history_after_grab)
+
+    # Simulate multiple position changes during drag
+    DataFlowDiagram.position(workspace_id, %{
+      "node" => %{"id" => node["data"]["id"], "position" => %{"x" => 10, "y" => 10}}
+    })
+
+    DataFlowDiagram.position(workspace_id, %{
+      "node" => %{"id" => node["data"]["id"], "position" => %{"x" => 20, "y" => 20}}
+    })
+
+    DataFlowDiagram.position(workspace_id, %{
+      "node" => %{"id" => node["data"]["id"], "position" => %{"x" => 30, "y" => 30}}
+    })
+
+    # Simulate ending drag (free)
+    DataFlowDiagram.free(workspace_id, %{"node" => %{"id" => node["data"]["id"]}})
+
+    # Get final history stack
+    {final_history, _} = DataFlowDiagram.get_history_stacks(workspace_id)
+    final_history_count = length(final_history)
+
+    # Should have only one additional history entry from the grab operation
+    # Position changes should not add to history, and free should not add to history
+    assert final_history_count == grab_history_count
+  end
 end
