@@ -149,17 +149,21 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
          socket
          |> put_flash(:error, reason)}
 
-      payload ->
+      _payload ->
+        # Get the updated DFD state after undo
+        updated_dfd = DataFlowDiagram.get(socket.assigns.workspace_id)
+
         broadcast("workspace_dataflow:#{socket.assigns.workspace_id}", %{
           event: "undo",
-          payload: payload
+          payload: updated_dfd
         })
 
         {:noreply,
          socket
+         |> assign(:dfd, updated_dfd)
          |> push_event("updateGraph", %{
-           event: "undo",
-           payload: %{nodes: Map.values(payload.nodes), edges: Map.values(payload.edges)}
+           event: "refresh_graph",
+           payload: %{nodes: Map.values(updated_dfd.nodes), edges: Map.values(updated_dfd.edges)}
          })
          |> assign(:saved, false)}
     end
@@ -176,17 +180,21 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
          socket
          |> put_flash(:error, reason)}
 
-      payload ->
+      _payload ->
+        # Get the updated DFD state after redo
+        updated_dfd = DataFlowDiagram.get(socket.assigns.workspace_id)
+
         broadcast("workspace_dataflow:#{socket.assigns.workspace_id}", %{
           event: "redo",
-          payload: payload
+          payload: updated_dfd
         })
 
         {:noreply,
          socket
+         |> assign(:dfd, updated_dfd)
          |> push_event("updateGraph", %{
-           event: "redo",
-           payload: %{nodes: Map.values(payload.nodes), edges: Map.values(payload.edges)}
+           event: "refresh_graph",
+           payload: %{nodes: Map.values(updated_dfd.nodes), edges: Map.values(updated_dfd.edges)}
          })
          |> assign(:saved, false)}
     end

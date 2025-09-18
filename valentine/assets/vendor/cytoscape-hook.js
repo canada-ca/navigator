@@ -463,6 +463,10 @@ const CytoscapeHook = {
                     this.zoomOut();
                     break;
 
+                case "refresh_graph":
+                    this.refreshGraph(payload);
+                    break;
+
                 default:
                     console.warn("Unknown update type:", event);
             }
@@ -563,6 +567,19 @@ const CytoscapeHook = {
 
     zoomOut() {
         this.cy.zoom(this.cy.zoom() * 0.8);
+    },
+
+    refreshGraph({ nodes, edges }) {
+        console.log("Refreshing graph with:", nodes, edges);
+        
+        // Clear existing elements
+        this.cy.elements().remove();
+        
+        // Add new elements
+        this.cy.add([...nodes, ...edges]);
+        
+        // Fit the view to show all elements
+        this.cy.fit();
     },
 
     // Helper function to determine whether the view should auto-fit based on current node layout
