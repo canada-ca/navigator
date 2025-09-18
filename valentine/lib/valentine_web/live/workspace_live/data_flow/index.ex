@@ -116,6 +116,60 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
      |> assign(:show_threat_statement_linker, !socket.assigns.show_threat_statement_linker)}
   end
 
+  # Handle undo event
+  @impl true
+  def handle_event("undo", params, socket) do
+    Logger.info("Undo event: #{inspect(params)}")
+
+    case DataFlowDiagram.undo(socket.assigns.workspace_id, params) do
+      {:error, reason} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, reason)}
+
+      payload ->
+        broadcast("workspace_dataflow:#{socket.assigns.workspace_id}", %{
+          event: "undo",
+          payload: payload
+        })
+
+        {:noreply,
+         socket
+         |> push_event("updateGraph", %{
+           event: "undo",
+           payload: %{nodes: Map.values(payload.nodes), edges: Map.values(payload.edges)}
+         })
+         |> assign(:saved, false)}
+    end
+  end
+
+  # Handle redo event
+  @impl true
+  def handle_event("redo", params, socket) do
+    Logger.info("Redo event: #{inspect(params)}")
+
+    case DataFlowDiagram.redo(socket.assigns.workspace_id, params) do
+      {:error, reason} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, reason)}
+
+      payload ->
+        broadcast("workspace_dataflow:#{socket.assigns.workspace_id}", %{
+          event: "redo",
+          payload: payload
+        })
+
+        {:noreply,
+         socket
+         |> push_event("updateGraph", %{
+           event: "redo",
+           payload: %{nodes: Map.values(payload.nodes), edges: Map.values(payload.edges)}
+         })
+         |> assign(:saved, false)}
+    end
+  end
+
   # Local event from HTML or JS
   @impl true
   def handle_event(event, params, socket) do

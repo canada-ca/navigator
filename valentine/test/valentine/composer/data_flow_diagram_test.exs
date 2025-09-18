@@ -416,4 +416,104 @@ defmodule Valentine.Composer.DataFlowDiagramTest do
   test "zoom_out/2 returns nil", %{workspace_id: workspace_id} do
     assert DataFlowDiagram.zoom_out(workspace_id, %{}) == nil
   end
+
+  # History functionality tests
+  test "can_undo?/1 returns false when no history exists", %{workspace_id: workspace_id} do
+    refute DataFlowDiagram.can_undo?(workspace_id)
+  end
+
+  test "can_redo?/1 returns false when no future states exist", %{workspace_id: workspace_id} do
+    refute DataFlowDiagram.can_redo?(workspace_id)
+  end
+
+  test "push_to_history/1 adds current state to history", %{workspace_id: workspace_id} do
+    DataFlowDiagram.add_node(workspace_id, %{"type" => "test"})
+    DataFlowDiagram.push_to_history(workspace_id)
+    
+    assert DataFlowDiagram.can_undo?(workspace_id)
+  end
+
+  test "undo/2 returns error when no history exists", %{workspace_id: workspace_id} do
+    assert DataFlowDiagram.undo(workspace_id, %{}) == {:error, "No states to undo"}
+  end
+
+  test "redo/2 returns error when no future states exist", %{workspace_id: workspace_id} do
+    assert DataFlowDiagram.redo(workspace_id, %{}) == {:error, "No states to redo"}
+  end
+
+  test "undo/2 restores previous state", %{workspace_id: workspace_id} do
+    # Add initial node and save to history
+    DataFlowDiagram.add_node(workspace_id, %{"type" => "test"})
+    
+    # Add another node
+    node2 = DataFlowDiagram.add_node(workspace_id, %{"type" => "test2"})
+    
+    # Undo should restore state before second node
+    result = DataFlowDiagram.undo(workspace_id, %{})
+    
+    refute result == {:error, "No states to undo"}
+    
+    # Check that the second node is no longer in the diagram
+    dfd = DataFlowDiagram.get(workspace_id)
+    refute Map.has_key?(dfd.nodes, node2["data"]["id"])
+    
+    # Should now be able to redo
+    assert DataFlowDiagram.can_redo?(workspace_id)
+  end
+
+  test "redo/2 restores future state", %{workspace_id: workspace_id} do
+    # Add initial node
+    node1 = DataFlowDiagram.add_node(workspace_id, %{"type" => "test"})
+    
+    # Add another node
+    node2 = DataFlowDiagram.add_node(workspace_id, %{"type" => "test2"})
+    
+    # Undo
+    DataFlowDiagram.undo(workspace_id, %{})
+    
+    # Redo should restore the second node
+    result = DataFlowDiagram.redo(workspace_id, %{})
+    
+    refute result == {:error, "No states to redo"}
+    
+    # Check that both nodes are back
+    dfd = DataFlowDiagram.get(workspace_id)
+    assert Map.has_key?(dfd.nodes, node1["data"]["id"])
+    assert Map.has_key?(dfd.nodes, node2["data"]["id"])
+    
+    # Should not be able to redo anymore
+    refute DataFlowDiagram.can_redo?(workspace_id)
+  end
+
+  test "new changes after undo clear future states", %{workspace_id: workspace_id} do
+    # Add initial node
+    DataFlowDiagram.add_node(workspace_id, %{"type" => "test"})
+    
+    # Add another node
+    DataFlowDiagram.add_node(workspace_id, %{"type" => "test2"})
+    
+    # Undo
+    DataFlowDiagram.undo(workspace_id, %{})
+    
+    # Should be able to redo
+    assert DataFlowDiagram.can_redo?(workspace_id)
+    
+    # Add a different node (this should clear future states)
+    DataFlowDiagram.add_node(workspace_id, %{"type" => "test3"})
+    
+    # Should no longer be able to redo
+    refute DataFlowDiagram.can_redo?(workspace_id)
+  end
+
+  test "history is limited to maximum size", %{workspace_id: workspace_id} do
+    # Add more nodes than the history limit
+    for i <- 1..55 do
+      DataFlowDiagram.add_node(workspace_id, %{"type" => "test#{i}"})
+    end
+    
+    {history_stack, _} = DataFlowDiagram.get_history_stacks(workspace_id)
+    
+    # History should be limited to 50 entries
+    assert length(history_stack) <= 50
+  end
 end
