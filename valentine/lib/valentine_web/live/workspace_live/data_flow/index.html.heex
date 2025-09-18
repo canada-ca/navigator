@@ -9,6 +9,7 @@
   data-edges={Jason.encode!(Map.values(@dfd.edges))}
   data-selectedtheme={@theme}
   user={"user-#{System.unique_integer([:positive])}"}
+  phx-window-keydown="handle_keydown"
 >
   <div class="d-flex mb-2">
     <div class="d-flex flex-column mr-4">

@@ -116,6 +116,24 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
      |> assign(:show_threat_statement_linker, !socket.assigns.show_threat_statement_linker)}
   end
 
+  # Handle keyboard shortcuts
+  @impl true
+  def handle_event("handle_keydown", %{"key" => "z", "ctrlKey" => true}, socket) do
+    handle_event("undo", %{}, socket)
+  end
+
+  def handle_event("handle_keydown", %{"key" => "y", "ctrlKey" => true}, socket) do
+    handle_event("redo", %{}, socket)
+  end
+
+  def handle_event("handle_keydown", %{"key" => "Z", "ctrlKey" => true, "shiftKey" => true}, socket) do
+    handle_event("redo", %{}, socket)
+  end
+
+  def handle_event("handle_keydown", _params, socket) do
+    {:noreply, socket}
+  end
+
   # Handle undo event
   @impl true
   def handle_event("undo", params, socket) do
