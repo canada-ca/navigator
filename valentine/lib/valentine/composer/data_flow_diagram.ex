@@ -297,6 +297,14 @@ defmodule Valentine.Composer.DataFlowDiagram do
   end
 
   def put(dfd) do
+    # Change DFD into struct if it is not a struct
+    dfd =
+      if is_map(dfd) and not Map.has_key?(dfd, :__struct__) do
+        struct(__MODULE__, dfd)
+      else
+        dfd
+      end
+
     Cache.put({__MODULE__, :dfd, dfd.workspace_id}, dfd)
     dfd
   end
