@@ -18,6 +18,7 @@ defmodule Valentine.Composer do
   alias Valentine.Composer.Control
   alias Valentine.Composer.User
   alias Valentine.Composer.ApiKey
+  alias Valentine.Composer.BrainstormItem
 
   alias Valentine.Composer.AssumptionThreat
   alias Valentine.Composer.AssumptionMitigation
