@@ -1,9 +1,10 @@
 defmodule Valentine.Composer.BrainstormItemTest do
-  use ValentineWeb.ConnCase
+  use Valentine.DataCase
 
   alias Valentine.Composer.BrainstormItem
-  alias Valentine.Composer.BrainstormItems
   alias Valentine.Composer
+
+  import Valentine.ComposerFixtures
 
   describe "changeset/2" do
     test "valid changeset with required fields" do
@@ -151,7 +152,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
   describe "status transitions" do
     test "allows valid transitions" do
       workspace = workspace_fixture()
-      {:ok, item} = BrainstormItems.create_brainstorm_item(%{
+      {:ok, item} = Composer.create_brainstorm_item(%{
         workspace_id: workspace.id,
         type: :threat,
         raw_text: "Some threat",
@@ -163,24 +164,24 @@ defmodule Valentine.Composer.BrainstormItemTest do
       assert changeset.valid?
 
       # clustered -> candidate
-      {:ok, item} = BrainstormItems.update_brainstorm_item(item, %{status: :clustered})
+      {:ok, item} = Composer.update_brainstorm_item(item, %{status: :clustered})
       changeset = BrainstormItem.changeset(item, %{status: :candidate})
       assert changeset.valid?
 
       # candidate -> used
-      {:ok, item} = BrainstormItems.update_brainstorm_item(item, %{status: :candidate})
+      {:ok, item} = Composer.update_brainstorm_item(item, %{status: :candidate})
       changeset = BrainstormItem.changeset(item, %{status: :used})
       assert changeset.valid?
 
       # used -> archived
-      {:ok, item} = BrainstormItems.update_brainstorm_item(item, %{status: :used})
+      {:ok, item} = Composer.update_brainstorm_item(item, %{status: :used})
       changeset = BrainstormItem.changeset(item, %{status: :archived})
       assert changeset.valid?
     end
 
     test "prevents invalid transitions" do
       workspace = workspace_fixture()
-      {:ok, item} = BrainstormItems.create_brainstorm_item(%{
+      {:ok, item} = Composer.create_brainstorm_item(%{
         workspace_id: workspace.id,
         type: :threat,
         raw_text: "Some threat",
@@ -193,7 +194,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
       assert %{status: ["invalid transition from draft to used"]} = errors_on(changeset)
 
       # Test other invalid transitions
-      {:ok, item} = BrainstormItems.update_brainstorm_item(item, %{status: :clustered})
+      {:ok, item} = Composer.update_brainstorm_item(item, %{status: :clustered})
       
       # clustered -> draft (invalid)
       changeset = BrainstormItem.changeset(item, %{status: :draft})
@@ -203,7 +204,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
 
     test "allows staying in same status" do
       workspace = workspace_fixture()
-      {:ok, item} = BrainstormItems.create_brainstorm_item(%{
+      {:ok, item} = Composer.create_brainstorm_item(%{
         workspace_id: workspace.id,
         type: :threat,
         raw_text: "Some threat",
@@ -220,7 +221,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
       workspace = workspace_fixture()
       
       # Create first item
-      {:ok, _item1} = BrainstormItems.create_brainstorm_item(%{
+      {:ok, _item1} = Composer.create_brainstorm_item(%{
         workspace_id: workspace.id,
         type: :threat,
         raw_text: "SQL injection vulnerability"
@@ -240,7 +241,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
       workspace = workspace_fixture()
       
       # Create first item as threat
-      {:ok, _item1} = BrainstormItems.create_brainstorm_item(%{
+      {:ok, _item1} = Composer.create_brainstorm_item(%{
         workspace_id: workspace.id,
         type: :threat,
         raw_text: "SQL injection vulnerability"
@@ -261,7 +262,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
       workspace2 = workspace_fixture()
       
       # Create first item in workspace1
-      {:ok, _item1} = BrainstormItems.create_brainstorm_item(%{
+      {:ok, _item1} = Composer.create_brainstorm_item(%{
         workspace_id: workspace1.id,
         type: :threat,
         raw_text: "SQL injection vulnerability"
@@ -281,7 +282,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
   describe "mark_used_in_threat/2" do
     test "adds threat ID to used_in_threat_ids and updates status" do
       workspace = workspace_fixture()
-      {:ok, item} = BrainstormItems.create_brainstorm_item(%{
+      {:ok, item} = Composer.create_brainstorm_item(%{
         workspace_id: workspace.id,
         type: :threat,
         raw_text: "Some threat",
@@ -295,7 +296,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
 
     test "does not duplicate threat IDs" do
       workspace = workspace_fixture()
-      {:ok, item} = BrainstormItems.create_brainstorm_item(%{
+      {:ok, item} = Composer.create_brainstorm_item(%{
         workspace_id: workspace.id,
         type: :threat,
         raw_text: "Some threat",
@@ -308,7 +309,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
 
     test "maintains sorted order of threat IDs" do
       workspace = workspace_fixture()
-      {:ok, item} = BrainstormItems.create_brainstorm_item(%{
+      {:ok, item} = Composer.create_brainstorm_item(%{
         workspace_id: workspace.id,
         type: :threat,
         raw_text: "Some threat",
@@ -323,7 +324,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
   describe "unmark_used_in_threat/2" do
     test "removes threat ID and updates status when no more threats" do
       workspace = workspace_fixture()
-      {:ok, item} = BrainstormItems.create_brainstorm_item(%{
+      {:ok, item} = Composer.create_brainstorm_item(%{
         workspace_id: workspace.id,
         type: :threat,
         raw_text: "Some threat",
@@ -338,7 +339,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
 
     test "keeps status as used when other threats remain" do
       workspace = workspace_fixture()
-      {:ok, item} = BrainstormItems.create_brainstorm_item(%{
+      {:ok, item} = Composer.create_brainstorm_item(%{
         workspace_id: workspace.id,
         type: :threat,
         raw_text: "Some threat",
