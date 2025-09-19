@@ -9,6 +9,7 @@
   data-edges={Jason.encode!(Map.values(@dfd.edges))}
   data-selectedtheme={@theme}
   user={"user-#{System.unique_integer([:positive])}"}
+  phx-window-keydown="handle_keydown"
 >
   <div class="d-flex mb-2">
     <div class="d-flex flex-column mr-4">
@@ -24,6 +25,29 @@
           <span>{gettext("Save")}</span>
         </.button>
       <% end %>
+    </div>
+    <div class="d-flex flex-column mr-2">
+      <span class="text-small text-bold mb-1">{gettext("History")}</span>
+      <.button_group class="mr-2">
+        <.button
+          is_icon_button
+          aria-label={gettext("Undo")}
+          title={gettext("Undo (Ctrl+Z)")}
+          phx-click="undo"
+          is_disabled={!Valentine.Composer.DataFlowDiagram.can_undo?(@workspace_id)}
+        >
+          <.octicon name="arrow-left-24" />
+        </.button>
+        <.button
+          is_icon_button
+          aria-label={gettext("Redo")}
+          title={gettext("Redo (Ctrl+Y)")}
+          phx-click="redo"
+          is_disabled={!Valentine.Composer.DataFlowDiagram.can_redo?(@workspace_id)}
+        >
+          <.octicon name="arrow-right-24" />
+        </.button>
+      </.button_group>
     </div>
     <div class="d-flex flex-column mr-2">
       <span class="text-small text-bold mb-1">{gettext("Entities")}</span>

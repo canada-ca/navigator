@@ -116,6 +116,90 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
      |> assign(:show_threat_statement_linker, !socket.assigns.show_threat_statement_linker)}
   end
 
+  # Handle keyboard shortcuts
+  @impl true
+  def handle_event("handle_keydown", %{"key" => "z", "ctrlKey" => true}, socket) do
+    handle_event("undo", %{}, socket)
+  end
+
+  def handle_event("handle_keydown", %{"key" => "y", "ctrlKey" => true}, socket) do
+    handle_event("redo", %{}, socket)
+  end
+
+  def handle_event(
+        "handle_keydown",
+        %{"key" => "Z", "ctrlKey" => true, "shiftKey" => true},
+        socket
+      ) do
+    handle_event("redo", %{}, socket)
+  end
+
+  def handle_event("handle_keydown", _params, socket) do
+    {:noreply, socket}
+  end
+
+  # Handle undo event
+  @impl true
+  def handle_event("undo", params, socket) do
+    Logger.info("Undo event: #{inspect(params)}")
+
+    case DataFlowDiagram.undo(socket.assigns.workspace_id, params) do
+      {:error, reason} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, reason)}
+
+      _payload ->
+        # Get the updated DFD state after undo
+        updated_dfd = DataFlowDiagram.get(socket.assigns.workspace_id)
+
+        broadcast("workspace_dataflow:#{socket.assigns.workspace_id}", %{
+          event: "undo",
+          payload: updated_dfd
+        })
+
+        {:noreply,
+         socket
+         |> assign(:dfd, updated_dfd)
+         |> push_event("updateGraph", %{
+           event: "refresh_graph",
+           payload: %{nodes: Map.values(updated_dfd.nodes), edges: Map.values(updated_dfd.edges)}
+         })
+         |> assign(:saved, false)}
+    end
+  end
+
+  # Handle redo event
+  @impl true
+  def handle_event("redo", params, socket) do
+    Logger.info("Redo event: #{inspect(params)}")
+
+    case DataFlowDiagram.redo(socket.assigns.workspace_id, params) do
+      {:error, reason} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, reason)}
+
+      _payload ->
+        # Get the updated DFD state after redo
+        updated_dfd = DataFlowDiagram.get(socket.assigns.workspace_id)
+
+        broadcast("workspace_dataflow:#{socket.assigns.workspace_id}", %{
+          event: "redo",
+          payload: updated_dfd
+        })
+
+        {:noreply,
+         socket
+         |> assign(:dfd, updated_dfd)
+         |> push_event("updateGraph", %{
+           event: "refresh_graph",
+           payload: %{nodes: Map.values(updated_dfd.nodes), edges: Map.values(updated_dfd.edges)}
+         })
+         |> assign(:saved, false)}
+    end
+  end
+
   # Local event from HTML or JS
   @impl true
   def handle_event(event, params, socket) do
@@ -158,9 +242,31 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
   def handle_info(%{event: event, payload: payload}, socket) do
     Logger.info("Remote event: #{inspect(event)}, payload: #{inspect(payload)}")
 
+    # For undo/redo events, we need to update the DFD state so button states re-render
+    # and format the payload correctly for the canvas
+    {updated_socket, canvas_payload} =
+      case event do
+        "undo" ->
+          {socket |> assign(:dfd, payload),
+           %{
+             event: "refresh_graph",
+             payload: %{nodes: Map.values(payload.nodes), edges: Map.values(payload.edges)}
+           }}
+
+        "redo" ->
+          {socket |> assign(:dfd, payload),
+           %{
+             event: "refresh_graph",
+             payload: %{nodes: Map.values(payload.nodes), edges: Map.values(payload.edges)}
+           }}
+
+        _ ->
+          {socket, %{event: event, payload: payload}}
+      end
+
     {:noreply,
-     socket
-     |> push_event("updateGraph", %{event: event, payload: payload})
+     updated_socket
+     |> push_event("updateGraph", canvas_payload)
      |> assign(:saved, if(event == :saved, do: true, else: false))}
   end
 

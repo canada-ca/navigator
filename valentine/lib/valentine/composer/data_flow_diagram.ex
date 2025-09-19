@@ -5,6 +5,8 @@ defmodule Valentine.Composer.DataFlowDiagram do
   alias Valentine.Cache
   alias Valentine.Composer
 
+  @history_limit 50
+
   @primary_key {:id, Ecto.UUID, autogenerate: true}
   @foreign_key_type :binary_id
 
@@ -95,7 +97,7 @@ defmodule Valentine.Composer.DataFlowDiagram do
 
     dfd
     |> Map.update!(:nodes, &Map.put(&1, id, node))
-    |> put()
+    |> put_with_history()
 
     node
   end
@@ -104,7 +106,7 @@ defmodule Valentine.Composer.DataFlowDiagram do
     get(workspace_id)
     |> Map.put(:nodes, %{})
     |> Map.put(:edges, %{})
-    |> put()
+    |> put_with_history()
 
     nil
   end
@@ -131,7 +133,7 @@ defmodule Valentine.Composer.DataFlowDiagram do
 
     dfd
     |> Map.update!(:edges, &Map.put(&1, edge["id"], new_edge))
-    |> put()
+    |> put_with_history()
 
     new_edge
   end
@@ -176,7 +178,7 @@ defmodule Valentine.Composer.DataFlowDiagram do
 
     dfd
     |> Map.update!(:nodes, &Map.put(&1, node["id"], new_node))
-    |> put()
+    |> put_with_history()
 
     new_node
   end
@@ -208,7 +210,7 @@ defmodule Valentine.Composer.DataFlowDiagram do
       end)
     end)
     |> Map.update!(:nodes, &Map.put(&1, parent_node["data"]["id"], parent_node))
-    |> put()
+    |> put_with_history()
 
     %{node: parent_node, children: Map.keys(selected_elements["nodes"])}
   end
@@ -263,7 +265,7 @@ defmodule Valentine.Composer.DataFlowDiagram do
         acc
         |> Map.update!(:nodes, &Map.delete(&1, id))
       end)
-      |> put()
+      |> put_with_history()
 
       %{
         node: trust_boundary["data"]["id"],
@@ -299,13 +301,20 @@ defmodule Valentine.Composer.DataFlowDiagram do
     dfd
   end
 
+  def put_with_history(dfd) do
+    # Save current state to history before making changes
+    current_dfd = get(dfd.workspace_id)
+    push_to_history_with_dfd(current_dfd)
+    put(dfd)
+  end
+
   def remove_elements(workspace_id, %{"selected_elements" => selected_elements}) do
     dfd = get(workspace_id)
 
     dfd =
       selected_elements["nodes"]
       |> Enum.reduce(dfd, &remove_node_and_associated_edges/2)
-      |> put()
+      |> put_with_history()
 
     selected_elements["edges"]
     |> Enum.reduce(dfd, fn {id, _}, acc ->
@@ -345,7 +354,7 @@ defmodule Valentine.Composer.DataFlowDiagram do
         )
       end)
       |> Map.update!(:nodes, &Map.delete(&1, node["data"]["id"]))
-      |> put()
+      |> put_with_history()
 
       node
     else
@@ -427,7 +436,7 @@ defmodule Valentine.Composer.DataFlowDiagram do
         |> Map.update!(:nodes, fn nodes ->
           Map.update!(nodes, id, &update_data(&1, field, value))
         end)
-        |> put()
+        |> put_with_history()
 
         %{"id" => id, "field" => field, "value" => value}
 
@@ -436,7 +445,7 @@ defmodule Valentine.Composer.DataFlowDiagram do
         |> Map.update!(:edges, fn edges ->
           Map.update!(edges, id, &update_data(&1, field, value))
         end)
-        |> put()
+        |> put_with_history()
 
         %{"id" => id, "field" => field, "value" => value}
 
@@ -452,6 +461,110 @@ defmodule Valentine.Composer.DataFlowDiagram do
 
   def zoom_in(_workspace_id, _params), do: nil
   def zoom_out(_workspace_id, _params), do: nil
+
+  # History management functions
+  def undo(workspace_id, _params) do
+    {history_stack, future_stack} = get_history_stacks(workspace_id)
+
+    case history_stack do
+      [] ->
+        {:error, "No states to undo"}
+
+      [current_state | remaining_history] ->
+        # Get current state and push to future stack
+        current_dfd = get(workspace_id)
+        updated_future_stack = [current_dfd | future_stack]
+
+        # Apply the previous state
+        current_state
+        |> Map.put(:workspace_id, workspace_id)
+        |> put()
+
+        # Update history stacks
+        put_history_stacks(workspace_id, remaining_history, updated_future_stack)
+
+        # Return the restored state for UI updates
+        current_state
+    end
+  end
+
+  def redo(workspace_id, _params) do
+    {history_stack, future_stack} = get_history_stacks(workspace_id)
+
+    case future_stack do
+      [] ->
+        {:error, "No states to redo"}
+
+      [next_state | remaining_future] ->
+        # Get current state and push to history stack
+        current_dfd = get(workspace_id)
+        updated_history_stack = [current_dfd | history_stack]
+
+        # Apply the next state
+        next_state
+        |> Map.put(:workspace_id, workspace_id)
+        |> put()
+
+        # Update history stacks
+        put_history_stacks(workspace_id, updated_history_stack, remaining_future)
+
+        # Return the restored state for UI updates
+        next_state
+    end
+  end
+
+  def get_history_stacks(workspace_id) do
+    history_key = {__MODULE__, :history, workspace_id}
+    future_key = {__MODULE__, :future, workspace_id}
+
+    history_stack = Cache.get(history_key) || []
+    future_stack = Cache.get(future_key) || []
+
+    {history_stack, future_stack}
+  end
+
+  def put_history_stacks(workspace_id, history_stack, future_stack) do
+    history_key = {__MODULE__, :history, workspace_id}
+    future_key = {__MODULE__, :future, workspace_id}
+
+    Cache.put(history_key, history_stack)
+    Cache.put(future_key, future_stack)
+  end
+
+  def push_to_history(workspace_id) do
+    current_dfd = get(workspace_id)
+    push_to_history_with_dfd(current_dfd)
+  end
+
+  defp push_to_history_with_dfd(current_dfd) do
+    workspace_id = current_dfd.workspace_id
+    {history_stack, _future_stack} = get_history_stacks(workspace_id)
+
+    # Create a clean state for history (remove workspace_id to avoid conflicts)
+    history_state = %{
+      nodes: current_dfd.nodes,
+      edges: current_dfd.edges,
+      id: current_dfd.id
+    }
+
+    # Add current state to history and limit the stack size
+    updated_history_stack =
+      [history_state | history_stack]
+      |> Enum.take(@history_limit)
+
+    # Clear future stack since we're making a new change
+    put_history_stacks(workspace_id, updated_history_stack, [])
+  end
+
+  def can_undo?(workspace_id) do
+    {history_stack, _} = get_history_stacks(workspace_id)
+    length(history_stack) > 0
+  end
+
+  def can_redo?(workspace_id) do
+    {_, future_stack} = get_history_stacks(workspace_id)
+    length(future_stack) > 0
+  end
 
   defp find_children(nodes, parent_id) do
     nodes
