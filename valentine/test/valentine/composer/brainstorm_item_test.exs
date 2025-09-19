@@ -353,19 +353,4 @@ defmodule Valentine.Composer.BrainstormItemTest do
     end
   end
 
-  # Helper function to create test workspace
-  defp workspace_fixture(attrs \\ %{}) do
-    default_attrs = %{
-      name: "Test Workspace",
-      owner: "test@example.com",
-      permissions: %{}
-    }
-
-    {:ok, workspace} = 
-      default_attrs
-      |> Map.merge(attrs)
-      |> Composer.create_workspace()
-
-    workspace
-  end
 end
