@@ -22,7 +22,7 @@ defmodule Valentine.Composer.BrainstormItemPropertyTest do
         "Special !@#$% chars"
       ]
 
-      for raw_text <- test_cases do
+      Enum.each(test_cases, fn raw_text ->
         # First normalization
         changeset1 = BrainstormItem.changeset(%BrainstormItem{}, %{
           workspace_id: Ecto.UUID.generate(),
@@ -44,7 +44,7 @@ defmodule Valentine.Composer.BrainstormItemPropertyTest do
         # Should be the same (idempotent)
         assert normalized1 == normalized2, 
                "Normalization not idempotent for: #{inspect(raw_text)} -> #{inspect(normalized1)} -> #{inspect(normalized2)}"
-      end
+      end)
     end
 
     test "normalization handles all whitespace types" do
@@ -75,7 +75,7 @@ defmodule Valentine.Composer.BrainstormItemPropertyTest do
         refute String.contains?(normalized, "\t")
         refute String.contains?(normalized, "\n")
         refute String.contains?(normalized, "\r")
-      end
+      end)
     end
 
     test "normalization preserves word boundaries" do
@@ -100,7 +100,7 @@ defmodule Valentine.Composer.BrainstormItemPropertyTest do
         
         assert words == expected_word_list,
                "Word boundaries not preserved: #{inspect(input)} -> #{inspect(normalized)}"
-      end
+      end)
     end
 
     test "first character lowercasing works with unicode" do
@@ -124,7 +124,7 @@ defmodule Valentine.Composer.BrainstormItemPropertyTest do
         
         assert String.starts_with?(normalized, String.slice(expected, 0, 1)),
                "Unicode first char lowercasing failed: #{inspect(input)} -> #{inspect(normalized)}, expected to start with #{inspect(String.slice(expected, 0, 1))}"
-      end
+      end)
     end
 
     test "terminal punctuation stripping is precise" do
@@ -153,7 +153,7 @@ defmodule Valentine.Composer.BrainstormItemPropertyTest do
         
         assert normalized == expected,
                "Terminal punctuation stripping failed: #{inspect(input)} -> #{inspect(normalized)}, expected #{inspect(expected)}"
-      end
+      end)
     end
 
     test "normalization never increases text length unreasonably" do
@@ -178,7 +178,7 @@ defmodule Valentine.Composer.BrainstormItemPropertyTest do
         trimmed_input = String.trim(input)
         assert String.length(normalized) <= String.length(trimmed_input),
                "Normalization increased length: #{String.length(input)} -> #{String.length(normalized)}"
-      end
+      end)
     end
   end
 end

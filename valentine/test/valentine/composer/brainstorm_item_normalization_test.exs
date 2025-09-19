@@ -12,7 +12,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
         {"", ""}
       ]
 
-      for {input, expected} in cases do
+      Enum.each(cases, fn {input, expected} ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
           workspace_id: Ecto.UUID.generate(),
           type: :threat,
@@ -20,7 +20,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
         })
         
         assert changeset.changes.normalized_text == expected
-      end
+      end)
     end
 
     test "stripping terminal punctuation" do
@@ -36,7 +36,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
         {"Hello? world!", "hello? world"}   # Only strips terminal
       ]
 
-      for {input, expected} in cases do
+      Enum.each(cases, fn {input, expected} ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
           workspace_id: Ecto.UUID.generate(),
           type: :threat,
@@ -44,7 +44,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
         })
         
         assert changeset.changes.normalized_text == expected
-      end
+      end)
     end
 
     test "lowercase first character only" do
@@ -58,7 +58,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
         {"", ""}
       ]
 
-      for {input, expected} in cases do
+      Enum.each(cases, fn {input, expected} ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
           workspace_id: Ecto.UUID.generate(),
           type: :threat,
@@ -66,7 +66,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
         })
         
         assert changeset.changes.normalized_text == expected
-      end
+      end)
     end
 
     test "collapsing multiple internal spaces" do
@@ -80,7 +80,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
         {"hello world", "hello world"}  # No change needed
       ]
 
-      for {input, expected} in cases do
+      Enum.each(cases, fn {input, expected} ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
           workspace_id: Ecto.UUID.generate(),
           type: :threat,
@@ -88,7 +88,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
         })
         
         assert changeset.changes.normalized_text == expected
-      end
+      end)
     end
 
     test "comprehensive normalization" do
@@ -112,7 +112,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
         }
       ]
 
-      for {input, expected} in cases do
+      Enum.each(cases, fn {input, expected} ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
           workspace_id: Ecto.UUID.generate(),
           type: :threat,
@@ -120,7 +120,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
         })
         
         assert changeset.changes.normalized_text == expected
-      end
+      end)
     end
 
     test "idempotency - normalizing already normalized text" do
@@ -159,7 +159,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
         {"文字", "文字"}                        # Non-latin scripts
       ]
 
-      for {input, expected} in cases do
+      Enum.each(cases, fn {input, expected} ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
           workspace_id: Ecto.UUID.generate(),
           type: :threat,
@@ -167,7 +167,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
         })
         
         assert changeset.changes.normalized_text == expected
-      end
+      end)
     end
   end
 end
