@@ -299,7 +299,7 @@ defmodule Valentine.Composer.DataFlowDiagram do
   def put(dfd) do
     # Change DFD into struct if it is not a struct
     dfd =
-      if is_map(dfd) and not Map.has_key?(dfd, :__struct__) do
+      if not is_struct(dfd) do
         struct(__MODULE__, dfd)
       else
         dfd
