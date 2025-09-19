@@ -63,7 +63,8 @@ defmodule Valentine.MixProject do
       {:logger_formatter_json, "~> 0.8"},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
       {:guardian, "~> 2.3"},
-      {:usage_rules, "~> 0.1"}
+      {:usage_rules, "~> 0.1"},
+      {:rustler, ">= 0.0.0", optional: true}
     ]
   end
 
