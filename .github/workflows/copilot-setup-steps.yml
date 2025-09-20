@@ -22,7 +22,7 @@ jobs:
       # If you want to clone the repository as part of your setup steps, for example to install dependencies, you'll need the `contents: read` permission. If you don't clone the repository in your setup steps, Copilot will do this for you automatically after the steps complete.
       contents: read
 
-    # PostgreSQL service for database operations  
+    # PostgreSQL service for database operations
     services:
       postgres:
         image: postgres
@@ -78,12 +78,18 @@ jobs:
           DATABASE_URL: "ecto://postgres:postgres@localhost"
           MIX_ENV: dev
 
-      - name: Compile Elixir dependencies
+      - name: Compile Elixir dependencies in dev environment
         working-directory: ./valentine
-        run: mix deps.compile
+        run: mix compile
         env:
           DATABASE_URL: "ecto://postgres:postgres@localhost"
           MIX_ENV: dev
+
+      - name: Compile Elixir dependencies in test environment
+        working-directory: ./valentine
+        run: mix compile
+        env:
+          MIX_ENV: test
 
       - name: Install JavaScript dependencies
         working-directory: ./valentine/assets
