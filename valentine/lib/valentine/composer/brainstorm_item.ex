@@ -152,19 +152,26 @@ defmodule Valentine.Composer.BrainstormItem do
   Validates status transitions according to the lifecycle rules.
   """
   def validate_status_transition(changeset) do
-    old_status = get_field(changeset, :status)
-    new_status = get_change(changeset, :status)
+    # Only validate transitions for existing records (updates)
+    if changeset.data.__meta__.state == :loaded do
+      # This is an update - validate transition
+      old_status = changeset.data.status || :draft
+      new_status = get_change(changeset, :status)
 
-    case {old_status, new_status} do
-      {_, nil} -> changeset
-      {same, same} -> changeset
-      {old, new} when not is_nil(old) and not is_nil(new) ->
-        if valid_transition?(old, new) do
-          changeset
-        else
-          add_error(changeset, :status, "invalid transition from #{old} to #{new}")
-        end
-      _ -> changeset
+      case {old_status, new_status} do
+        {_, nil} -> changeset
+        {same, same} -> changeset
+        {old, new} when not is_nil(old) and not is_nil(new) ->
+          if valid_transition?(old, new) do
+            changeset
+          else
+            add_error(changeset, :status, "invalid transition from #{old} to #{new}")
+          end
+        _ -> changeset
+      end
+    else
+      # This is a new record - allow any initial status
+      changeset
     end
   end
 
@@ -176,6 +183,7 @@ defmodule Valentine.Composer.BrainstormItem do
       {:clustered, :archived} -> true
       {:candidate, :used} -> true
       {:candidate, :archived} -> true
+      {:used, :candidate} -> true  # Allow reverting when unmarking from threats
       {:used, :archived} -> true
       _ -> false
     end
@@ -201,10 +209,10 @@ defmodule Valentine.Composer.BrainstormItem do
 
         query = if current_id, do: where(query, [bi], bi.id != ^current_id), else: query
 
-        case Valentine.Repo.one(query) do
-          nil ->
+        case Valentine.Repo.all(query) do
+          [] ->
             changeset
-          _existing ->
+          _existing_items ->
             metadata = get_field(changeset, :metadata) || %{}
             updated_metadata = Map.put(metadata, :duplicate_warning, true)
             put_change(changeset, :metadata, updated_metadata)
