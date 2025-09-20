@@ -164,7 +164,7 @@ defmodule Valentine.Composer.BrainstormItem do
     |> String.replace("\u2003", " ")
     # en quad
     |> String.replace("\u2000", " ")
-    # em quad  
+    # em quad
     |> String.replace("\u2001", " ")
     # en space
     |> String.replace("\u2002", " ")
