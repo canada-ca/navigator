@@ -266,4 +266,22 @@ defmodule Valentine.ComposerFixtures do
 
     evidence
   end
+
+  @doc """
+  Generate a brainstorm item.
+  """
+  def brainstorm_item_fixture(attrs \\ %{}) do
+    workspace = workspace_fixture()
+
+    {:ok, brainstorm_item} =
+      attrs
+      |> Enum.into(%{
+        workspace_id: workspace.id,
+        type: :threat,
+        raw_text: "some brainstorm item text"
+      })
+      |> Valentine.Composer.create_brainstorm_item()
+
+    brainstorm_item
+  end
 end

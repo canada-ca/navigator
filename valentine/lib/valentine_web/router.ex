@@ -116,6 +116,8 @@ defmodule ValentineWeb.Router do
 
       live "/workspaces/:workspace_id/data_flow", WorkspaceLive.DataFlow.Index, :index
 
+      live "/workspaces/:workspace_id/brainstorm", WorkspaceLive.Brainstorm.Index, :index
+
       live "/workspaces/:workspace_id/mitigations", WorkspaceLive.Mitigation.Index, :index
       live "/workspaces/:workspace_id/mitigations/new", WorkspaceLive.Mitigation.Index, :new
       live "/workspaces/:workspace_id/mitigations/:id/edit", WorkspaceLive.Mitigation.Index, :edit
