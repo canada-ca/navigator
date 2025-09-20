@@ -1,50 +1,54 @@
 <div class="d-flex flex-column height-full">
   <!-- Header with filters and controls -->
-  <div class="border-bottom p-3 d-flex flex-wrap flex-items-center gap-2">
-    <h1 class="h3 mr-3">{gettext("Brainstorm Board")}</h1>
-    
+  <div class="border-bottom p-3">
+    <div class="d-flex flex-wrap flex-items-center gap-3 mb-3">
+      <h1 class="h3 mr-3">{gettext("Brainstorm Board")}</h1>
+      
 <!-- Central Add Item Button -->
-    <%= if @creating_item do %>
-      <!-- Item creation form -->
-      <.form
-        for={%{}}
-        as={:create}
-        phx-submit="create_item"
-        class="d-flex flex-items-center gap-2"
-      >
-        <.select
-          name="type"
-          class="form-select-sm"
-          options={[
-            {"Select category...", ""}
-            | Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})
-          ]}
-        />
-        <.text_input
-          name="text"
-          placeholder={gettext("Enter your brainstorm idea...")}
-          class="form-control-sm"
-          style="min-width: 300px;"
-          required
-        />
-        <.button type="submit" is_primary>
+      <%= if @creating_item do %>
+        <!-- Item creation form -->
+        <.form
+          for={%{}}
+          as={:create}
+          phx-submit="create_item"
+          class="d-flex flex-items-center gap-2"
+        >
+          <.select
+            name="type"
+            class="form-select-sm"
+            options={[
+              {"Select category...", ""}
+              | Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})
+            ]}
+          />
+          <.text_input
+            name="text"
+            placeholder={gettext("Enter your brainstorm idea...")}
+            class="form-control-sm"
+            style="min-width: 300px;"
+            required
+          />
+          <.button type="submit" is_primary>
+            <.octicon name="plus-16" />
+            {gettext("Add")}
+          </.button>
+          <.button type="button" phx-click="cancel_creating">
+            {gettext("Cancel")}
+          </.button>
+        </.form>
+      <% else %>
+        <.button phx-click="start_creating" is_primary>
           <.octicon name="plus-16" />
-          {gettext("Add")}
+          {gettext("Add Brainstorm Item")}
         </.button>
-        <.button type="button" phx-click="cancel_creating">
-          {gettext("Cancel")}
-        </.button>
-      </.form>
-    <% else %>
-      <.button phx-click="start_creating" is_primary>
-        <.octicon name="plus-16" />
-        {gettext("Add Brainstorm Item")}
-      </.button>
-    <% end %>
-
-    <div class="border-left ml-3 pl-3">
+      <% end %>
+    </div>
+    
+<!-- Filters section -->
+    <div class="d-flex flex-wrap flex-items-center gap-3">
       <!-- Search filter -->
-      <div class="mr-2 d-inline-block">
+      <div class="d-flex flex-items-center gap-2">
+        <span class="text-bold">{gettext("Search:")}</span>
         <.text_input
           class="form-control-sm"
           placeholder={gettext("Search items...")}
@@ -55,7 +59,8 @@
       </div>
       
 <!-- Status filter -->
-      <div class="mr-2 d-inline-block">
+      <div class="d-flex flex-items-center gap-2">
+        <span class="text-bold">{gettext("Status:")}</span>
         <.select
           class="form-select-sm"
           name="status"
@@ -73,7 +78,8 @@
       </div>
       
 <!-- Type filter -->
-      <div class="mr-2 d-inline-block">
+      <div class="d-flex flex-items-center gap-2">
+        <span class="text-bold">{gettext("Category:")}</span>
         <.select
           class="form-select-sm"
           name="type"
@@ -89,10 +95,10 @@
 <!-- Clear filters button -->
       <.button
         :if={@filters != %{status: nil, type: nil, cluster: nil, search: ""}}
-       
         phx-click="clear_filters"
       >
-        {gettext("Clear")}
+        <.octicon name="x-16" />
+        {gettext("Clear Filters")}
       </.button>
     </div>
   </div>
@@ -167,6 +173,22 @@
                         <!-- Edit form -->
                         <.form for={%{}} as={:update} phx-submit="update_item" class="mb-2">
                           <input type="hidden" name="item_id" value={item.id} />
+                          
+<!-- Category selection in edit mode -->
+                          <div class="mb-2">
+                            <label class="form-label text-small">{gettext("Category")}</label>
+                            <.select
+                              name="type"
+                              class="form-select-sm"
+                              options={
+                                Enum.map(
+                                  get_available_types(),
+                                  &{type_display_name(&1), Atom.to_string(&1)}
+                                )
+                              }
+                            />
+                          </div>
+
                           <.textarea
                             name="text"
                             value={item.raw_text}
@@ -307,10 +329,12 @@
                             
 <!-- Clustering -->
                             <%= if is_nil(item.cluster_key) do %>
-                              <.action_list_item>
+                              <.action_list_item
+                                phx-click="start_cluster_assign"
+                                phx-value-id={item.id}
+                              >
                                 <.octicon name="package-16" />
                                 {gettext("Assign to Cluster")}
-                                <!-- TODO: Add cluster assignment dialog -->
                               </.action_list_item>
                             <% else %>
                               <.action_list_item
@@ -345,4 +369,58 @@
       </div>
     <% end %>
   </div>
+  
+<!-- Cluster Assignment Dialog -->
+  <%= if @assigning_cluster_item do %>
+    <div
+      class="position-fixed top-0 left-0 width-full height-full d-flex flex-items-center flex-justify-center"
+      style="background-color: rgba(0,0,0,0.5); z-index: 100;"
+    >
+      <div class="Box Box--overlay p-4" style="max-width: 400px; width: 90%;">
+        <div class="Box-header">
+          <h3 class="Box-title">{gettext("Assign to Cluster")}</h3>
+          <button
+            class="Box-btn-octicon btn-octicon"
+            phx-click="cancel_cluster_assign"
+            type="button"
+          >
+            <.octicon name="x-16" />
+          </button>
+        </div>
+        <div class="Box-body">
+          <.form
+            for={%{}}
+            as={:cluster}
+            phx-submit="assign_cluster"
+            phx-value-id={@assigning_cluster_item}
+          >
+            <div class="form-group">
+              <label class="form-label">{gettext("Cluster Name")}</label>
+              <.text_input
+                name="cluster"
+                placeholder={gettext("Enter cluster name...")}
+                class="form-control"
+                required
+                autofocus
+              />
+              <div class="form-help-text">
+                {gettext(
+                  "Enter a name to group related items together. Items with the same cluster name will be visually grouped."
+                )}
+              </div>
+            </div>
+            <div class="form-actions">
+              <.button type="submit" is_primary>
+                <.octicon name="package-16" />
+                {gettext("Assign to Cluster")}
+              </.button>
+              <.button type="button" phx-click="cancel_cluster_assign">
+                {gettext("Cancel")}
+              </.button>
+            </div>
+          </.form>
+        </div>
+      </div>
+    </div>
+  <% end %>
 </div>

@@ -44,7 +44,8 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
      |> assign(:undo_queue, [])
      |> assign(:editing_item, nil)
      |> assign(:creating_item, false)
-     |> assign(:creating_type, nil)}
+     |> assign(:creating_type, nil)
+     |> assign(:assigning_cluster_item, nil)}
   end
 
   @impl true
@@ -92,6 +93,35 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
 
   # Update existing brainstorm item
   @impl true
+  def handle_event("update_item", %{"item_id" => id, "text" => text, "type" => type}, socket) do
+    item = Composer.get_brainstorm_item!(id)
+
+    update_attrs = %{raw_text: text}
+
+    update_attrs =
+      if type && type != Atom.to_string(item.type) do
+        Map.put(update_attrs, :type, String.to_existing_atom(type))
+      else
+        update_attrs
+      end
+
+    case Composer.update_brainstorm_item(item, update_attrs) do
+      {:ok, updated_item} ->
+        broadcast_update(socket.assigns.workspace_id, :item_updated, updated_item)
+
+        {:noreply,
+         socket
+         |> refresh_items()
+         |> assign(:editing_item, nil)
+         |> put_flash(:info, gettext("Item updated successfully"))}
+
+      {:error, changeset} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to update item: #{format_errors(changeset)}")}
+    end
+  end
+
   def handle_event("update_item", %{"item_id" => id, "text" => text}, socket) do
     item = Composer.get_brainstorm_item!(id)
 
@@ -200,6 +230,16 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
 
   # Assign item to cluster
   @impl true
+  def handle_event("start_cluster_assign", %{"id" => id}, socket) do
+    {:noreply, assign(socket, :assigning_cluster_item, id)}
+  end
+
+  @impl true
+  def handle_event("cancel_cluster_assign", _params, socket) do
+    {:noreply, assign(socket, :assigning_cluster_item, nil)}
+  end
+
+  @impl true
   def handle_event("assign_cluster", %{"id" => id, "cluster" => cluster_key}, socket) do
     item = Composer.get_brainstorm_item!(id)
 
@@ -209,6 +249,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
 
         {:noreply,
          socket
+         |> assign(:assigning_cluster_item, nil)
          |> refresh_items()
          |> put_flash(:info, gettext("Item assigned to cluster"))}
 
@@ -284,22 +325,22 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
      |> assign(:filters, filters)
      |> refresh_items()}
   end
-  
+
   # Fallback for any other filter events
   def handle_event("filter", params, socket) do
     cond do
       Map.has_key?(params, "search") ->
         filters = %{socket.assigns.filters | search: params["search"]}
         {:noreply, socket |> assign(:filters, filters) |> refresh_items()}
-      
+
       Map.has_key?(params, "status") ->
         filters = %{socket.assigns.filters | status: normalize_filter_value(params["status"])}
         {:noreply, socket |> assign(:filters, filters) |> refresh_items()}
-      
+
       Map.has_key?(params, "type") ->
         filters = %{socket.assigns.filters | type: normalize_filter_value(params["type"])}
         {:noreply, socket |> assign(:filters, filters) |> refresh_items()}
-      
+
       true ->
         {:noreply, socket}
     end
@@ -407,8 +448,6 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
     end)
   end
 
-
-
   # Get available types for column display
   defp get_available_types do
     Ecto.Enum.values(BrainstormItem, :type)
@@ -485,6 +524,4 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   defp has_duplicate_warning?(item) do
     get_in(item.metadata, [:duplicate_warning]) == true
   end
-
-
 end

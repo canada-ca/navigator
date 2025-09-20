@@ -9,8 +9,6 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
     text: "Sample threat for testing"
   }
 
-
-
   defp create_brainstorm_item(workspace) do
     brainstorm_item_fixture(%{workspace_id: workspace.id, type: :threat, raw_text: "Test threat"})
   end
@@ -51,12 +49,17 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
       {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace.id}/brainstorm")
 
       # Start editing by clicking on the item text div (not the menu item)
-      assert index_live |> element("div[phx-click=\"start_editing\"][phx-value-id=\"#{brainstorm_item.id}\"]") |> render_click() =~
+      assert index_live
+             |> element(
+               "div[phx-click=\"start_editing\"][phx-value-id=\"#{brainstorm_item.id}\"]"
+             )
+             |> render_click() =~
                "Save"
 
       # Submit the edit form
       assert index_live
-             |> form("form[phx-submit=\"update_item\"]",
+             |> form(
+               "form[phx-submit=\"update_item\"]",
                %{item_id: brainstorm_item.id, text: "Updated threat text"}
              )
              |> render_submit()
