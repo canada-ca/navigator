@@ -255,7 +255,8 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
 
   # Filter events
   @impl true
-  def handle_event("filter", %{"type" => "status", "value" => value}, socket) do
+  def handle_event("filter", %{"_target" => ["status"]} = params, socket) do
+    value = params["status"]
     filters = %{socket.assigns.filters | status: normalize_filter_value(value)}
 
     {:noreply,
@@ -264,7 +265,8 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
      |> refresh_items()}
   end
 
-  def handle_event("filter", %{"type" => "type", "value" => value}, socket) do
+  def handle_event("filter", %{"_target" => ["type"]} = params, socket) do
+    value = params["type"]
     filters = %{socket.assigns.filters | type: normalize_filter_value(value)}
 
     {:noreply,
@@ -273,13 +275,34 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
      |> refresh_items()}
   end
 
-  def handle_event("filter", %{"type" => "search", "value" => value}, socket) do
+  def handle_event("filter", %{"_target" => ["search"]} = params, socket) do
+    value = params["search"]
     filters = %{socket.assigns.filters | search: value}
 
     {:noreply,
      socket
      |> assign(:filters, filters)
      |> refresh_items()}
+  end
+  
+  # Fallback for any other filter events
+  def handle_event("filter", params, socket) do
+    cond do
+      Map.has_key?(params, "search") ->
+        filters = %{socket.assigns.filters | search: params["search"]}
+        {:noreply, socket |> assign(:filters, filters) |> refresh_items()}
+      
+      Map.has_key?(params, "status") ->
+        filters = %{socket.assigns.filters | status: normalize_filter_value(params["status"])}
+        {:noreply, socket |> assign(:filters, filters) |> refresh_items()}
+      
+      Map.has_key?(params, "type") ->
+        filters = %{socket.assigns.filters | type: normalize_filter_value(params["type"])}
+        {:noreply, socket |> assign(:filters, filters) |> refresh_items()}
+      
+      true ->
+        {:noreply, socket}
+    end
   end
 
   @impl true
@@ -384,9 +407,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
     end)
   end
 
-  defp undo_link(id) do
-    "Undo available in flash message"
-  end
+
 
   # Get available types for column display
   defp get_available_types do
@@ -465,10 +486,5 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
     get_in(item.metadata, [:duplicate_warning]) == true
   end
 
-  # Get status color for labels
-  defp status_color(:draft), do: "default"
-  defp status_color(:clustered), do: "attention"
-  defp status_color(:candidate), do: "success"
-  defp status_color(:used), do: "done"
-  defp status_color(:archived), do: "secondary"
+
 end

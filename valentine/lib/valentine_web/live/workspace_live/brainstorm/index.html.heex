@@ -50,7 +50,6 @@
           placeholder={gettext("Search items...")}
           value={@filters.search}
           phx-change="filter"
-          phx-value-type="search"
           name="search"
         />
       </div>
@@ -60,9 +59,8 @@
         <.select
           class="form-select-sm"
           name="status"
-          value={@filters.status || ""}
+          id="status-filter"
           phx-change="filter"
-          phx-value-type="status"
           options={[
             {"All Statuses", ""},
             {"Draft", "draft"},
@@ -79,9 +77,8 @@
         <.select
           class="form-select-sm"
           name="type"
-          value={@filters.type || ""}
+          id="type-filter"
           phx-change="filter"
-          phx-value-type="type"
           options={[
             {"All Categories", ""}
             | Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})

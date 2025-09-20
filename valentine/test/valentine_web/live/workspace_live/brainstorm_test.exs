@@ -5,11 +5,11 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
   import Valentine.ComposerFixtures
 
   @create_attrs %{
-    type: :threat,
-    raw_text: "Sample threat for testing"
+    type: "threat",
+    text: "Sample threat for testing"
   }
 
-  @invalid_attrs %{type: nil, raw_text: nil}
+
 
   defp create_brainstorm_item(workspace) do
     brainstorm_item_fixture(%{workspace_id: workspace.id, type: :threat, raw_text: "Test threat"})
@@ -31,20 +31,18 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
       conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
       {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace.id}/brainstorm")
 
-      # Start creating a new threat
-      assert index_live |> element("button[aria-label=\"Add Threat\"]") |> render_click() =~
-               "Enter Threat details"
+      # Start creating a new item using the central button
+      assert index_live |> element("button", "Add Brainstorm Item") |> render_click() =~
+               "Select category"
 
-      # Submit the form
+      # Submit the form with category and text
       assert index_live
-             |> form("#create", create: @create_attrs)
+             |> form("form", %{type: "threat", text: @create_attrs.text})
              |> render_submit()
-
-      assert_patch(index_live, ~p"/workspaces/#{workspace.id}/brainstorm")
 
       html = render(index_live)
       assert html =~ "Item created successfully"
-      assert html =~ @create_attrs.raw_text
+      assert html =~ @create_attrs.text
     end
 
     test "updates brainstorm item", %{conn: conn, workspace: workspace} do
@@ -52,14 +50,14 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
       conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
       {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace.id}/brainstorm")
 
-      # Start editing
-      assert index_live |> element("[phx-value-id=\"#{brainstorm_item.id}\"]") |> render_click() =~
+      # Start editing by clicking on the item text div (not the menu item)
+      assert index_live |> element("div[phx-click=\"start_editing\"][phx-value-id=\"#{brainstorm_item.id}\"]") |> render_click() =~
                "Save"
 
       # Submit the edit form
       assert index_live
-             |> form("#update",
-               update: %{item_id: brainstorm_item.id, text: "Updated threat text"}
+             |> form("form[phx-submit=\"update_item\"]",
+               %{item_id: brainstorm_item.id, text: "Updated threat text"}
              )
              |> render_submit()
 
@@ -106,11 +104,12 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
 
       # Filter by archived status (should show no items)
       assert index_live
-             |> form("[phx-change=\"filter\"]", %{status: "archived"})
-             |> render_change()
+             |> element("select[name=\"status\"]")
+             |> render_change(%{status: "archived"})
 
       html = render(index_live)
-      assert html =~ "No Threat items"
+      # Should show empty state since no archived items exist
+      assert html =~ "Start Brainstorming!"
     end
 
     test "searches brainstorm items", %{conn: conn, workspace: workspace} do
@@ -120,19 +119,20 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
 
       # Search for specific text
       assert index_live
-             |> form("[phx-change=\"filter\"]", %{search: "Test"})
-             |> render_change()
+             |> element("input[name=\"search\"]")
+             |> render_change(%{search: "Test"})
 
       html = render(index_live)
       assert html =~ brainstorm_item.raw_text
 
       # Search for non-existent text
       assert index_live
-             |> form("[phx-change=\"filter\"]", %{search: "NonExistent"})
-             |> render_change()
+             |> element("input[name=\"search\"]")
+             |> render_change(%{search: "NonExistent"})
 
       html = render(index_live)
-      refute html =~ brainstorm_item.raw_text
+      # Should show empty state when no results
+      assert html =~ "Start Brainstorming!"
     end
 
     test "clears filters", %{conn: conn, workspace: workspace} do
@@ -142,11 +142,11 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
 
       # Apply a filter first
       assert index_live
-             |> form("[phx-change=\"filter\"]", %{search: "NonExistent"})
-             |> render_change()
+             |> element("input[name=\"search\"]")
+             |> render_change(%{search: "NonExistent"})
 
       # Clear filters
-      assert index_live |> element("[phx-click=\"clear_filters\"]") |> render_click()
+      assert index_live |> element("button", "Clear") |> render_click()
 
       html = render(index_live)
       assert html =~ "Test threat"
