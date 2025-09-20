@@ -131,14 +131,42 @@ defmodule Valentine.Composer.BrainstormItem do
     normalized =
       raw_text
       |> String.trim()
-      |> String.replace(~r/[.?!]+$/, "")
+      |> String.replace(~r/[.?!]+$/, "")        # Strip terminal punctuation
       |> lowercase_first_char()
-      |> String.replace(~r/\s+/, " ")
+      |> replace_unicode_whitespace()
+      |> String.replace(~r/\s+/, " ")           # Collapse spaces
+      |> String.trim()                          # Trim again after processing
+      |> strip_only_punctuation_and_whitespace() # Handle edge case
 
     put_change(changeset, :normalized_text, normalized)
   end
 
   defp normalize_text_with_value(changeset, _), do: changeset
+
+  # If the result is only punctuation and whitespace, return empty string
+  defp strip_only_punctuation_and_whitespace(text) do
+    if String.match?(text, ~r/^[.?!\s]*$/), do: "", else: text
+  end
+
+  # Replace common Unicode whitespace characters with regular spaces
+  defp replace_unicode_whitespace(text) do
+    text
+    |> String.replace("\u00A0", " ")  # non-breaking space
+    |> String.replace("\u2003", " ")  # em space
+    |> String.replace("\u2000", " ")  # en quad
+    |> String.replace("\u2001", " ")  # em quad  
+    |> String.replace("\u2002", " ")  # en space
+    |> String.replace("\u2004", " ")  # three-per-em space
+    |> String.replace("\u2005", " ")  # four-per-em space
+    |> String.replace("\u2006", " ")  # six-per-em space
+    |> String.replace("\u2007", " ")  # figure space
+    |> String.replace("\u2008", " ")  # punctuation space
+    |> String.replace("\u2009", " ")  # thin space
+    |> String.replace("\u200A", " ")  # hair space
+    |> String.replace("\u202F", " ")  # narrow no-break space
+    |> String.replace("\u205F", " ")  # medium mathematical space
+    |> String.replace("\u3000", " ")  # ideographic space
+  end
 
   defp lowercase_first_char(text) when is_binary(text) do
     case String.length(text) do

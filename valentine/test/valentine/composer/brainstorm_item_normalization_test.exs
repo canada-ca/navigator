@@ -1,10 +1,13 @@
 defmodule Valentine.Composer.BrainstormItemNormalizationTest do
-  use ExUnit.Case, async: false
+  use Valentine.DataCase, async: false
 
+  import Valentine.ComposerFixtures
   alias Valentine.Composer.BrainstormItem
 
   describe "text normalization" do
     test "trimming whitespace" do
+      workspace = workspace_fixture()
+      
       cases = [
         {"  hello world  ", "hello world"},
         {"\n\thello world\t\n", "hello world"},
@@ -14,16 +17,18 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
 
       Enum.each(cases, fn {input, expected} ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
-          workspace_id: Ecto.UUID.generate(),
+          workspace_id: workspace.id,
           type: :threat,
           raw_text: input
         })
-        
+
         assert changeset.changes.normalized_text == expected
       end)
     end
 
     test "stripping terminal punctuation" do
+      workspace = workspace_fixture()
+      
       cases = [
         {"Hello world.", "hello world"},
         {"Hello world?", "hello world"},
@@ -38,7 +43,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
 
       Enum.each(cases, fn {input, expected} ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
-          workspace_id: Ecto.UUID.generate(),
+          workspace_id: workspace.id,
           type: :threat,
           raw_text: input
         })
@@ -48,6 +53,8 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
     end
 
     test "lowercase first character only" do
+      workspace = workspace_fixture()
+      
       cases = [
         {"Hello World", "hello World"},
         {"HELLO WORLD", "hELLO WORLD"},
@@ -60,7 +67,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
 
       Enum.each(cases, fn {input, expected} ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
-          workspace_id: Ecto.UUID.generate(),
+          workspace_id: workspace.id,
           type: :threat,
           raw_text: input
         })
@@ -70,6 +77,8 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
     end
 
     test "collapsing multiple internal spaces" do
+      workspace = workspace_fixture()
+      
       cases = [
         {"hello  world", "hello world"},
         {"hello   world   test", "hello world test"},
@@ -82,7 +91,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
 
       Enum.each(cases, fn {input, expected} ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
-          workspace_id: Ecto.UUID.generate(),
+          workspace_id: workspace.id,
           type: :threat,
           raw_text: input
         })
@@ -92,6 +101,8 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
     end
 
     test "comprehensive normalization" do
+      workspace = workspace_fixture()
+      
       # Test all rules together
       cases = [
         {
@@ -114,7 +125,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
 
       Enum.each(cases, fn {input, expected} ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
-          workspace_id: Ecto.UUID.generate(),
+          workspace_id: workspace.id,
           type: :threat,
           raw_text: input
         })
@@ -124,10 +135,11 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
     end
 
     test "idempotency - normalizing already normalized text" do
+      workspace = workspace_fixture()
       input = "a properly formatted threat statement"
       
       changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
-        workspace_id: Ecto.UUID.generate(),
+        workspace_id: workspace.id,
         type: :threat,
         raw_text: input
       })
@@ -137,7 +149,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
       
       # Normalize again
       changeset2 = BrainstormItem.changeset(%BrainstormItem{}, %{
-        workspace_id: Ecto.UUID.generate(),
+        workspace_id: workspace.id,
         type: :threat,
         raw_text: normalized
       })
@@ -146,6 +158,8 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
     end
 
     test "edge cases" do
+      workspace = workspace_fixture()
+      
       cases = [
         {"", ""},                              # Empty string
         {" ", ""},                             # Only whitespace
@@ -161,7 +175,7 @@ defmodule Valentine.Composer.BrainstormItemNormalizationTest do
 
       Enum.each(cases, fn {input, expected} ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
-          workspace_id: Ecto.UUID.generate(),
+          workspace_id: workspace.id,
           type: :threat,
           raw_text: input
         })
