@@ -2128,7 +2128,7 @@ defmodule Valentine.Composer do
 
   """
   def list_assembly_candidates(workspace_id, cluster_key \\ nil) do
-    query = 
+    query =
       workspace_id
       |> brainstorm_items_base_query()
       |> where([bi], bi.status in [:clustered, :candidate])
@@ -2214,6 +2214,7 @@ defmodule Valentine.Composer do
       {:ok, item} ->
         emit_brainstorm_telemetry(:created, item)
         {:ok, item}
+
       error ->
         error
     end
@@ -2240,12 +2241,16 @@ defmodule Valentine.Composer do
     |> case do
       {:ok, updated_item} ->
         emit_brainstorm_telemetry(:updated, updated_item)
-        
+
         if old_status != updated_item.status do
-          emit_brainstorm_telemetry(:status_changed, updated_item, %{old_status: old_status, new_status: updated_item.status})
+          emit_brainstorm_telemetry(:status_changed, updated_item, %{
+            old_status: old_status,
+            new_status: updated_item.status
+          })
         end
-        
+
         {:ok, updated_item}
+
       error ->
         error
     end
@@ -2268,6 +2273,7 @@ defmodule Valentine.Composer do
       {:ok, updated_item} ->
         emit_brainstorm_telemetry(:cluster_assigned, updated_item)
         {:ok, updated_item}
+
       error ->
         error
     end
@@ -2301,6 +2307,7 @@ defmodule Valentine.Composer do
     case BrainstormItem.mark_used_in_threat(brainstorm_item, threat_id) do
       %Ecto.Changeset{} = changeset ->
         Repo.update(changeset)
+
       {:ok, item} ->
         {:ok, item}
     end
@@ -2411,7 +2418,7 @@ defmodule Valentine.Composer do
   defp apply_brainstorm_filter(_, query), do: query
 
   defp order_brainstorm_by_position(query) do
-    order_by(query, [bi], [asc: bi.position, asc: bi.inserted_at])
+    order_by(query, [bi], asc: bi.position, asc: bi.inserted_at)
   end
 
   # Telemetry events for brainstorm items

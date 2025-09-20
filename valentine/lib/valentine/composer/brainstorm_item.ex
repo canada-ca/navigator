@@ -25,34 +25,34 @@ defmodule Valentine.Composer.BrainstormItem do
     belongs_to :workspace, Valentine.Composer.Workspace
 
     field :type, Ecto.Enum,
-          values: [
-            :threat,
-            :assumption,
-            :mitigation,
-            :evidence,
-            :requirement,
-            :asset,
-            :component,
-            :attack_vector,
-            :vulnerability,
-            :impact,
-            :control,
-            :risk,
-            :stakeholder,
-            :boundary,
-            :trust_zone,
-            :data_flow,
-            :process,
-            :data_store,
-            :external_entity
-          ]
+      values: [
+        :threat,
+        :assumption,
+        :mitigation,
+        :evidence,
+        :requirement,
+        :asset,
+        :component,
+        :attack_vector,
+        :vulnerability,
+        :impact,
+        :control,
+        :risk,
+        :stakeholder,
+        :boundary,
+        :trust_zone,
+        :data_flow,
+        :process,
+        :data_store,
+        :external_entity
+      ]
 
     field :raw_text, :string
     field :normalized_text, :string
-    
+
     field :status, Ecto.Enum,
-          values: [:draft, :clustered, :candidate, :used, :archived],
-          default: :draft
+      values: [:draft, :clustered, :candidate, :used, :archived],
+      default: :draft
 
     field :cluster_key, :string
     field :position, :integer
@@ -66,8 +66,8 @@ defmodule Valentine.Composer.BrainstormItem do
   def changeset(brainstorm_item, attrs) do
     # Store original raw_text for normalization since Ecto might not cast whitespace-only strings
     original_raw_text = Map.get(attrs, :raw_text) || Map.get(attrs, "raw_text")
-    
-    changeset = 
+
+    changeset =
       brainstorm_item
       |> cast(attrs, [
         :workspace_id,
@@ -85,15 +85,18 @@ defmodule Valentine.Composer.BrainstormItem do
       |> validate_length(:cluster_key, max: 255)
       |> validate_number(:position, greater_than_or_equal_to: 0)
       |> validate_status_transition()
-    
+
     # Handle normalization with original raw_text if it wasn't cast
-    changeset = 
+    changeset =
       if get_change(changeset, :raw_text) || original_raw_text do
-        normalize_text_with_value(changeset, get_change(changeset, :raw_text) || original_raw_text)
+        normalize_text_with_value(
+          changeset,
+          get_change(changeset, :raw_text) || original_raw_text
+        )
       else
         changeset
       end
-    
+
     changeset
     |> check_duplicate_warning()
     |> unique_constraint(:id)
@@ -131,12 +134,16 @@ defmodule Valentine.Composer.BrainstormItem do
     normalized =
       raw_text
       |> String.trim()
-      |> String.replace(~r/[.?!]+$/, "")        # Strip terminal punctuation
+      # Strip terminal punctuation
+      |> String.replace(~r/[.?!]+$/, "")
       |> lowercase_first_char()
       |> replace_unicode_whitespace()
-      |> String.replace(~r/\s+/, " ")           # Collapse spaces
-      |> String.trim()                          # Trim again after processing
-      |> strip_only_punctuation_and_whitespace() # Handle edge case
+      # Collapse spaces
+      |> String.replace(~r/\s+/, " ")
+      # Trim again after processing
+      |> String.trim()
+      # Handle edge case
+      |> strip_only_punctuation_and_whitespace()
 
     put_change(changeset, :normalized_text, normalized)
   end
@@ -151,21 +158,36 @@ defmodule Valentine.Composer.BrainstormItem do
   # Replace common Unicode whitespace characters with regular spaces
   defp replace_unicode_whitespace(text) do
     text
-    |> String.replace("\u00A0", " ")  # non-breaking space
-    |> String.replace("\u2003", " ")  # em space
-    |> String.replace("\u2000", " ")  # en quad
-    |> String.replace("\u2001", " ")  # em quad  
-    |> String.replace("\u2002", " ")  # en space
-    |> String.replace("\u2004", " ")  # three-per-em space
-    |> String.replace("\u2005", " ")  # four-per-em space
-    |> String.replace("\u2006", " ")  # six-per-em space
-    |> String.replace("\u2007", " ")  # figure space
-    |> String.replace("\u2008", " ")  # punctuation space
-    |> String.replace("\u2009", " ")  # thin space
-    |> String.replace("\u200A", " ")  # hair space
-    |> String.replace("\u202F", " ")  # narrow no-break space
-    |> String.replace("\u205F", " ")  # medium mathematical space
-    |> String.replace("\u3000", " ")  # ideographic space
+    # non-breaking space
+    |> String.replace("\u00A0", " ")
+    # em space
+    |> String.replace("\u2003", " ")
+    # en quad
+    |> String.replace("\u2000", " ")
+    # em quad  
+    |> String.replace("\u2001", " ")
+    # en space
+    |> String.replace("\u2002", " ")
+    # three-per-em space
+    |> String.replace("\u2004", " ")
+    # four-per-em space
+    |> String.replace("\u2005", " ")
+    # six-per-em space
+    |> String.replace("\u2006", " ")
+    # figure space
+    |> String.replace("\u2007", " ")
+    # punctuation space
+    |> String.replace("\u2008", " ")
+    # thin space
+    |> String.replace("\u2009", " ")
+    # hair space
+    |> String.replace("\u200A", " ")
+    # narrow no-break space
+    |> String.replace("\u202F", " ")
+    # medium mathematical space
+    |> String.replace("\u205F", " ")
+    # ideographic space
+    |> String.replace("\u3000", " ")
   end
 
   defp lowercase_first_char(text) when is_binary(text) do
@@ -187,15 +209,21 @@ defmodule Valentine.Composer.BrainstormItem do
       new_status = get_change(changeset, :status)
 
       case {old_status, new_status} do
-        {_, nil} -> changeset
-        {same, same} -> changeset
+        {_, nil} ->
+          changeset
+
+        {same, same} ->
+          changeset
+
         {old, new} when not is_nil(old) and not is_nil(new) ->
           if valid_transition?(old, new) do
             changeset
           else
             add_error(changeset, :status, "invalid transition from #{old} to #{new}")
           end
-        _ -> changeset
+
+        _ ->
+          changeset
       end
     else
       # This is a new record - allow any initial status
@@ -211,7 +239,8 @@ defmodule Valentine.Composer.BrainstormItem do
       {:clustered, :archived} -> true
       {:candidate, :used} -> true
       {:candidate, :archived} -> true
-      {:used, :candidate} -> true  # Allow reverting when unmarking from threats
+      # Allow reverting when unmarking from threats
+      {:used, :candidate} -> true
       {:used, :archived} -> true
       _ -> false
     end
@@ -228,18 +257,22 @@ defmodule Valentine.Composer.BrainstormItem do
     current_id = get_field(changeset, :id)
 
     case {workspace_id, type, normalized_text} do
-      {ws_id, item_type, norm_text} when not is_nil(ws_id) and not is_nil(item_type) and not is_nil(norm_text) ->
-        query = from(bi in __MODULE__,
-          where: bi.workspace_id == ^ws_id and
-                 bi.type == ^item_type and
-                 bi.normalized_text == ^norm_text
-        )
+      {ws_id, item_type, norm_text}
+      when not is_nil(ws_id) and not is_nil(item_type) and not is_nil(norm_text) ->
+        query =
+          from(bi in __MODULE__,
+            where:
+              bi.workspace_id == ^ws_id and
+                bi.type == ^item_type and
+                bi.normalized_text == ^norm_text
+          )
 
         query = if current_id, do: where(query, [bi], bi.id != ^current_id), else: query
 
         case Valentine.Repo.all(query) do
           [] ->
             changeset
+
           _existing_items ->
             metadata = get_field(changeset, :metadata) || %{}
             updated_metadata = Map.put(metadata, :duplicate_warning, true)
@@ -270,11 +303,12 @@ defmodule Valentine.Composer.BrainstormItem do
   """
   def mark_used_in_threat(brainstorm_item, threat_id) when is_integer(threat_id) do
     current_ids = brainstorm_item.used_in_threat_ids || []
-    
+
     if threat_id in current_ids do
       {:ok, brainstorm_item}
     else
       updated_ids = [threat_id | current_ids] |> Enum.sort()
+
       changeset(brainstorm_item, %{
         used_in_threat_ids: updated_ids,
         status: :used
@@ -288,10 +322,10 @@ defmodule Valentine.Composer.BrainstormItem do
   def unmark_used_in_threat(brainstorm_item, threat_id) when is_integer(threat_id) do
     current_ids = brainstorm_item.used_in_threat_ids || []
     updated_ids = List.delete(current_ids, threat_id)
-    
+
     # If no more threats are using this item, potentially change status back
     new_status = if Enum.empty?(updated_ids), do: :candidate, else: :used
-    
+
     changeset(brainstorm_item, %{
       used_in_threat_ids: updated_ids,
       status: new_status
