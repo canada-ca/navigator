@@ -77,7 +77,7 @@ defmodule Valentine.Composer.BrainstormItem do
       :metadata
     ])
     |> validate_required([:workspace_id, :type, :raw_text])
-    |> validate_length(:raw_text, min: 1, max: 10_000)
+    |> validate_length(:raw_text, max: 10_000)
     |> validate_length(:cluster_key, max: 255)
     |> validate_number(:position, greater_than_or_equal_to: 0)
     |> validate_status_transition()
