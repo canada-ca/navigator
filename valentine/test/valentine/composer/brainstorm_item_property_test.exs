@@ -58,7 +58,7 @@ defmodule Valentine.Composer.BrainstormItemPropertyTest do
         "hello world"        # regular space
       ]
 
-      for text <- whitespace_variants do
+      Enum.each(whitespace_variants, fn text ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
           workspace_id: Ecto.UUID.generate(),
           type: :threat,
@@ -87,7 +87,7 @@ defmodule Valentine.Composer.BrainstormItemPropertyTest do
         {"hello\n\nworld", "hello world"}
       ]
 
-      for {input, expected_words} <- test_cases do
+      Enum.each(test_cases, fn {input, expected_words} ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
           workspace_id: Ecto.UUID.generate(),
           type: :threat,
@@ -113,7 +113,7 @@ defmodule Valentine.Composer.BrainstormItemPropertyTest do
         {"Ñoño", "ñoño"}
       ]
 
-      for {input, expected} <- test_cases do
+      Enum.each(test_cases, fn {input, expected} ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
           workspace_id: Ecto.UUID.generate(),
           type: :threat,
@@ -142,7 +142,7 @@ defmodule Valentine.Composer.BrainstormItemPropertyTest do
         {"!?.", ""}
       ]
 
-      for {input, expected} <- test_cases do
+      Enum.each(test_cases, fn {input, expected} ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
           workspace_id: Ecto.UUID.generate(),
           type: :threat,
@@ -165,7 +165,7 @@ defmodule Valentine.Composer.BrainstormItemPropertyTest do
         "Short text."
       ]
 
-      for input <- test_inputs do
+      Enum.each(test_inputs, fn input ->
         changeset = BrainstormItem.changeset(%BrainstormItem{}, %{
           workspace_id: Ecto.UUID.generate(),
           type: :threat,
