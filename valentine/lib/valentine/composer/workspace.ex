@@ -35,6 +35,7 @@ defmodule Valentine.Composer.Workspace do
     has_many :threats, Valentine.Composer.Threat, on_delete: :delete_all
     has_many :evidence, Valentine.Composer.Evidence, on_delete: :delete_all
     has_many :api_keys, Valentine.Composer.ApiKey, on_delete: :delete_all
+    has_many :brainstorm_items, Valentine.Composer.BrainstormItem, on_delete: :delete_all
 
     field :owner, :string
     field :permissions, :map, default: %{}

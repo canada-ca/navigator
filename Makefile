@@ -19,7 +19,7 @@ setup:
 	cd valentine && mix deps.get && mix ecto.create && mix ecto.migrate && mix run priv/repo/seeds.exs && cd assets && npm install
 
 test:
-	cd valentine && mix test
+	cd valentine && MIX_ENV=test mix test
 
 usage_rules:
 	cd valentine && mix usage_rules.sync AGENTS.md --all --inline usage_rules:all --link-to-folder deps
