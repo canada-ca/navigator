@@ -1,0 +1,394 @@
+defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
+  use ValentineWeb, :live_view
+  use PrimerLive
+  require Logger
+
+  alias Valentine.Composer
+  alias Valentine.Composer.BrainstormItem
+  alias Phoenix.PubSub
+
+  @impl true
+  def mount(%{"workspace_id" => workspace_id} = _params, _session, socket) do
+    workspace = Composer.get_workspace!(workspace_id)
+
+    # Subscribe to workspace-specific brainstorm updates
+    if connected?(socket) do
+      PubSub.subscribe(Valentine.PubSub, "brainstorm:workspace:#{workspace.id}")
+    end
+
+    # Load brainstorm items grouped by type
+    items_by_type = Composer.list_brainstorm_items_by_type(workspace_id)
+
+    # Initialize filters
+    filters = %{
+      status: nil,
+      type: nil,
+      cluster: nil,
+      search: ""
+    }
+
+    {:ok,
+     socket
+     |> assign(:workspace_id, workspace_id)
+     |> assign(:workspace, workspace)
+     |> assign(:items_by_type, items_by_type)
+     |> assign(:filters, filters)
+     |> assign(:undo_queue, [])
+     |> assign(:editing_item, nil)
+     |> assign(:creating_type, nil)}
+  end
+
+  @impl true
+  def handle_params(params, _url, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  defp apply_action(socket, :index, _params) do
+    socket
+    |> assign(:page_title, gettext("Brainstorm Board"))
+  end
+
+  # Create new brainstorm item
+  @impl true
+  def handle_event("create_item", %{"type" => type, "text" => text}, socket) do
+    attrs = %{
+      workspace_id: socket.assigns.workspace_id,
+      type: String.to_existing_atom(type),
+      raw_text: text
+    }
+
+    case Composer.create_brainstorm_item(attrs) do
+      {:ok, item} ->
+        broadcast_update(socket.assigns.workspace_id, :item_created, item)
+
+        {:noreply,
+         socket
+         |> refresh_items()
+         |> assign(:creating_type, nil)
+         |> put_flash(:info, gettext("Item created successfully"))}
+
+      {:error, changeset} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to create item: #{format_errors(changeset)}")}
+    end
+  end
+
+  # Update existing brainstorm item
+  @impl true
+  def handle_event("update_item", %{"item_id" => id, "text" => text}, socket) do
+    item = Composer.get_brainstorm_item!(id)
+
+    case Composer.update_brainstorm_item(item, %{raw_text: text}) do
+      {:ok, updated_item} ->
+        broadcast_update(socket.assigns.workspace_id, :item_updated, updated_item)
+
+        {:noreply,
+         socket
+         |> refresh_items()
+         |> assign(:editing_item, nil)
+         |> put_flash(:info, gettext("Item updated successfully"))}
+
+      {:error, changeset} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to update item: #{format_errors(changeset)}")}
+    end
+  end
+
+  # Delete brainstorm item with undo capability
+  @impl true
+  def handle_event("delete_item", %{"id" => id}, socket) do
+    item = Composer.get_brainstorm_item!(id)
+
+    case Composer.delete_brainstorm_item(item) do
+      {:ok, deleted_item} ->
+        # Add to undo queue with timestamp
+        undo_entry = %{
+          item: deleted_item,
+          timestamp: System.monotonic_time(:second)
+        }
+
+        undo_queue = [undo_entry | socket.assigns.undo_queue]
+
+        # Schedule cleanup of old undo entries
+        Process.send_after(self(), :cleanup_undo_queue, 10_000)
+
+        broadcast_update(socket.assigns.workspace_id, :item_deleted, deleted_item)
+
+        {:noreply,
+         socket
+         |> refresh_items()
+         |> assign(:undo_queue, undo_queue)
+         |> put_flash(:info, "Item deleted. #{undo_link(id)}")}
+
+      {:error, _changeset} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, gettext("Failed to delete item"))}
+    end
+  end
+
+  # Undo delete
+  @impl true
+  def handle_event("undo_delete", %{"id" => id}, socket) do
+    case find_undo_entry(socket.assigns.undo_queue, id) do
+      {entry, remaining_queue} ->
+        case Composer.create_brainstorm_item(
+               entry.item
+               |> Map.from_struct()
+               |> Map.drop([:__meta__, :workspace, :id, :inserted_at, :updated_at])
+             ) do
+          {:ok, restored_item} ->
+            broadcast_update(socket.assigns.workspace_id, :item_created, restored_item)
+
+            {:noreply,
+             socket
+             |> refresh_items()
+             |> assign(:undo_queue, remaining_queue)
+             |> put_flash(:info, gettext("Item restored successfully"))}
+
+          {:error, _changeset} ->
+            {:noreply,
+             socket
+             |> put_flash(:error, gettext("Failed to restore item"))}
+        end
+
+      nil ->
+        {:noreply,
+         socket
+         |> put_flash(:error, gettext("Item no longer available for undo"))}
+    end
+  end
+
+  # Update item status
+  @impl true
+  def handle_event("update_status", %{"id" => id, "status" => status}, socket) do
+    item = Composer.get_brainstorm_item!(id)
+
+    case Composer.update_brainstorm_item(item, %{status: String.to_existing_atom(status)}) do
+      {:ok, updated_item} ->
+        broadcast_update(socket.assigns.workspace_id, :item_updated, updated_item)
+
+        {:noreply,
+         socket
+         |> refresh_items()
+         |> put_flash(:info, gettext("Status updated successfully"))}
+
+      {:error, changeset} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to update status: #{format_errors(changeset)}")}
+    end
+  end
+
+  # Assign item to cluster
+  @impl true
+  def handle_event("assign_cluster", %{"id" => id, "cluster" => cluster_key}, socket) do
+    item = Composer.get_brainstorm_item!(id)
+
+    case Composer.assign_to_cluster(item, cluster_key) do
+      {:ok, updated_item} ->
+        broadcast_update(socket.assigns.workspace_id, :item_updated, updated_item)
+
+        {:noreply,
+         socket
+         |> refresh_items()
+         |> put_flash(:info, gettext("Item assigned to cluster"))}
+
+      {:error, _changeset} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, gettext("Failed to assign cluster"))}
+    end
+  end
+
+  # Toggle UI states
+  @impl true
+  def handle_event("start_creating", %{"type" => type}, socket) do
+    {:noreply, assign(socket, :creating_type, type)}
+  end
+
+  @impl true
+  def handle_event("cancel_creating", _params, socket) do
+    {:noreply, assign(socket, :creating_type, nil)}
+  end
+
+  @impl true
+  def handle_event("start_editing", %{"id" => id}, socket) do
+    {:noreply, assign(socket, :editing_item, id)}
+  end
+
+  @impl true
+  def handle_event("cancel_editing", _params, socket) do
+    {:noreply, assign(socket, :editing_item, nil)}
+  end
+
+  # Filter events
+  @impl true
+  def handle_event("filter", %{"type" => "status", "value" => value}, socket) do
+    filters = %{socket.assigns.filters | status: normalize_filter_value(value)}
+
+    {:noreply,
+     socket
+     |> assign(:filters, filters)
+     |> refresh_items()}
+  end
+
+  def handle_event("filter", %{"type" => "type", "value" => value}, socket) do
+    filters = %{socket.assigns.filters | type: normalize_filter_value(value)}
+
+    {:noreply,
+     socket
+     |> assign(:filters, filters)
+     |> refresh_items()}
+  end
+
+  def handle_event("filter", %{"type" => "search", "value" => value}, socket) do
+    filters = %{socket.assigns.filters | search: value}
+
+    {:noreply,
+     socket
+     |> assign(:filters, filters)
+     |> refresh_items()}
+  end
+
+  @impl true
+  def handle_event("clear_filters", _params, socket) do
+    filters = %{status: nil, type: nil, cluster: nil, search: ""}
+
+    {:noreply,
+     socket
+     |> assign(:filters, filters)
+     |> refresh_items()}
+  end
+
+  # Handle real-time updates from other users
+  @impl true
+  def handle_info({:item_created, _item}, socket) do
+    {:noreply, refresh_items(socket)}
+  end
+
+  def handle_info({:item_updated, _item}, socket) do
+    {:noreply, refresh_items(socket)}
+  end
+
+  def handle_info({:item_deleted, _item}, socket) do
+    {:noreply, refresh_items(socket)}
+  end
+
+  # Clean up old undo entries
+  @impl true
+  def handle_info(:cleanup_undo_queue, socket) do
+    current_time = System.monotonic_time(:second)
+
+    undo_queue =
+      Enum.filter(socket.assigns.undo_queue, fn entry ->
+        current_time - entry.timestamp < 10
+      end)
+
+    {:noreply, assign(socket, :undo_queue, undo_queue)}
+  end
+
+  # Private helper functions
+
+  defp refresh_items(socket) do
+    # Apply filters and refresh items
+    filters = socket.assigns.filters
+    workspace_id = socket.assigns.workspace_id
+
+    base_filters =
+      %{}
+      |> maybe_add_filter(:status, filters.status)
+      |> maybe_add_filter(:type, filters.type)
+
+    items = Composer.list_brainstorm_items(workspace_id, base_filters)
+
+    # Apply search filter client-side for now
+    items =
+      if filters.search != "" do
+        search_term = String.downcase(filters.search)
+
+        Enum.filter(items, fn item ->
+          String.contains?(String.downcase(item.raw_text), search_term) or
+            (item.cluster_key && String.contains?(String.downcase(item.cluster_key), search_term))
+        end)
+      else
+        items
+      end
+
+    # Group by type
+    items_by_type = Enum.group_by(items, & &1.type)
+
+    assign(socket, :items_by_type, items_by_type)
+  end
+
+  defp maybe_add_filter(filters, _key, nil), do: filters
+  defp maybe_add_filter(filters, _key, ""), do: filters
+  defp maybe_add_filter(filters, key, value), do: Map.put(filters, key, value)
+
+  defp normalize_filter_value(""), do: nil
+  defp normalize_filter_value(value), do: String.to_existing_atom(value)
+
+  defp broadcast_update(workspace_id, event, item) do
+    PubSub.broadcast(Valentine.PubSub, "brainstorm:workspace:#{workspace_id}", {event, item})
+  end
+
+  defp format_errors(changeset) do
+    changeset
+    |> Ecto.Changeset.traverse_errors(fn {msg, _opts} -> msg end)
+    |> Enum.map(fn {field, errors} -> "#{field}: #{Enum.join(errors, ", ")}" end)
+    |> Enum.join("; ")
+  end
+
+  defp find_undo_entry(undo_queue, id) do
+    Enum.find_value(undo_queue, fn entry ->
+      if entry.item.id == id do
+        remaining = Enum.reject(undo_queue, &(&1.item.id == id))
+        {entry, remaining}
+      end
+    end)
+  end
+
+  defp undo_link(id) do
+    Phoenix.HTML.raw("""
+    <a href="#" phx-click="undo_delete" phx-value-id="#{id}" class="color-fg-accent text-underline">
+      #{gettext("Undo")}
+    </a>
+    """)
+  end
+
+  # Get available types for column display
+  defp get_available_types do
+    Ecto.Enum.values(BrainstormItem, :type)
+  end
+
+  # Get type display name
+  defp type_display_name(type) do
+    type
+    |> Atom.to_string()
+    |> String.replace("_", " ")
+    |> String.split()
+    |> Enum.map(&String.capitalize/1)
+    |> Enum.join(" ")
+  end
+
+  # Get status display class
+  defp status_class(:draft), do: "color-bg-accent-subtle"
+  defp status_class(:clustered), do: "color-bg-attention-subtle"
+  defp status_class(:candidate), do: "color-bg-success-subtle"
+  defp status_class(:used), do: "color-bg-done-subtle"
+  defp status_class(:archived), do: "color-bg-neutral-subtle"
+
+  # Check if item has duplicate warning
+  defp has_duplicate_warning?(item) do
+    get_in(item.metadata, [:duplicate_warning]) == true
+  end
+
+  # Get status color for labels
+  defp status_color(:draft), do: "default"
+  defp status_color(:clustered), do: "attention"
+  defp status_color(:candidate), do: "success"
+  defp status_color(:used), do: "done"
+  defp status_color(:archived), do: "secondary"
+end
