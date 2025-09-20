@@ -27,14 +27,23 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
       search: ""
     }
 
+    # Calculate total items for empty state
+    total_items =
+      items_by_type
+      |> Map.values()
+      |> List.flatten()
+      |> length()
+
     {:ok,
      socket
      |> assign(:workspace_id, workspace_id)
      |> assign(:workspace, workspace)
      |> assign(:items_by_type, items_by_type)
+     |> assign(:total_items, total_items)
      |> assign(:filters, filters)
      |> assign(:undo_queue, [])
      |> assign(:editing_item, nil)
+     |> assign(:creating_item, false)
      |> assign(:creating_type, nil)}
   end
 
@@ -50,7 +59,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
 
   # Create new brainstorm item
   @impl true
-  def handle_event("create_item", %{"type" => type, "text" => text}, socket) do
+  def handle_event("create_item", %{"type" => type, "text" => text}, socket) when type != "" do
     attrs = %{
       workspace_id: socket.assigns.workspace_id,
       type: String.to_existing_atom(type),
@@ -64,6 +73,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
         {:noreply,
          socket
          |> refresh_items()
+         |> assign(:creating_item, false)
          |> assign(:creating_type, nil)
          |> put_flash(:info, gettext("Item created successfully"))}
 
@@ -72,6 +82,12 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
          socket
          |> put_flash(:error, "Failed to create item: #{format_errors(changeset)}")}
     end
+  end
+
+  def handle_event("create_item", _params, socket) do
+    {:noreply,
+     socket
+     |> put_flash(:error, gettext("Please select a category for your item"))}
   end
 
   # Update existing brainstorm item
@@ -120,7 +136,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
          socket
          |> refresh_items()
          |> assign(:undo_queue, undo_queue)
-         |> put_flash(:info, "Item deleted. #{undo_link(id)}")}
+         |> put_flash(:info, gettext("Item deleted. Undo available."))}
 
       {:error, _changeset} ->
         {:noreply,
@@ -206,12 +222,25 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   # Toggle UI states
   @impl true
   def handle_event("start_creating", %{"type" => type}, socket) do
-    {:noreply, assign(socket, :creating_type, type)}
+    {:noreply,
+     socket
+     |> assign(:creating_item, true)
+     |> assign(:creating_type, type)}
+  end
+
+  def handle_event("start_creating", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:creating_item, true)
+     |> assign(:creating_type, nil)}
   end
 
   @impl true
   def handle_event("cancel_creating", _params, socket) do
-    {:noreply, assign(socket, :creating_type, nil)}
+    {:noreply,
+     socket
+     |> assign(:creating_item, false)
+     |> assign(:creating_type, nil)}
   end
 
   @impl true
@@ -320,7 +349,12 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
     # Group by type
     items_by_type = Enum.group_by(items, & &1.type)
 
-    assign(socket, :items_by_type, items_by_type)
+    # Calculate total items
+    total_items = length(items)
+
+    socket
+    |> assign(:items_by_type, items_by_type)
+    |> assign(:total_items, total_items)
   end
 
   defp maybe_add_filter(filters, _key, nil), do: filters
@@ -351,16 +385,40 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   end
 
   defp undo_link(id) do
-    Phoenix.HTML.raw("""
-    <a href="#" phx-click="undo_delete" phx-value-id="#{id}" class="color-fg-accent text-underline">
-      #{gettext("Undo")}
-    </a>
-    """)
+    "Undo available in flash message"
   end
 
   # Get available types for column display
   defp get_available_types do
     Ecto.Enum.values(BrainstormItem, :type)
+  end
+
+  # Get only types that have items (for masonry layout)
+  defp get_populated_types(items_by_type) do
+    items_by_type
+    |> Map.keys()
+    |> Enum.sort()
+  end
+
+  # Get visible items after applying filters
+  defp get_visible_items(items, filters) do
+    items
+    |> Enum.reject(&(&1.status == :archived and filters.status != :archived))
+  end
+
+  # Group items by cluster for display
+  defp group_by_cluster(items) do
+    {clustered, unclustered} = Enum.split_with(items, &(&1.cluster_key != nil))
+
+    clustered_groups =
+      clustered
+      |> Enum.group_by(& &1.cluster_key)
+      |> Enum.sort_by(fn {cluster_key, _} -> cluster_key end)
+      |> Enum.flat_map(fn {cluster_key, cluster_items} ->
+        [cluster_key | cluster_items]
+      end)
+
+    clustered_groups ++ unclustered
   end
 
   # Get type display name
@@ -372,6 +430,28 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
     |> Enum.map(&String.capitalize/1)
     |> Enum.join(" ")
   end
+
+  # Get appropriate icon for each type
+  defp type_icon(:threat), do: "alert-16"
+  defp type_icon(:assumption), do: "info-16"
+  defp type_icon(:mitigation), do: "shield-16"
+  defp type_icon(:evidence), do: "file-16"
+  defp type_icon(:requirement), do: "checklist-16"
+  defp type_icon(:asset), do: "package-16"
+  defp type_icon(:component), do: "cube-16"
+  defp type_icon(:attack_vector), do: "zap-16"
+  defp type_icon(:vulnerability), do: "bug-16"
+  defp type_icon(:impact), do: "flame-16"
+  defp type_icon(:control), do: "lock-16"
+  defp type_icon(:risk), do: "issue-opened-16"
+  defp type_icon(:stakeholder), do: "person-16"
+  defp type_icon(:boundary), do: "square-16"
+  defp type_icon(:trust_zone), do: "shield-check-16"
+  defp type_icon(:data_flow), do: "arrow-right-16"
+  defp type_icon(:process), do: "gear-16"
+  defp type_icon(:data_store), do: "database-16"
+  defp type_icon(:external_entity), do: "globe-16"
+  defp type_icon(_), do: "circle-16"
 
   # Get status display class
   defp status_class(:draft), do: "color-bg-accent-subtle"

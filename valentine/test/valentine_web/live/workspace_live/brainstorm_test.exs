@@ -58,7 +58,9 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
 
       # Submit the edit form
       assert index_live
-             |> form("#update", update: %{item_id: brainstorm_item.id, text: "Updated threat text"})
+             |> form("#update",
+               update: %{item_id: brainstorm_item.id, text: "Updated threat text"}
+             )
              |> render_submit()
 
       html = render(index_live)
@@ -71,8 +73,10 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
       conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
       {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace.id}/brainstorm")
 
-      assert index_live |> element("[phx-click=\"delete_item\"][phx-value-id=\"#{brainstorm_item.id}\"]") |> render_click()
-      
+      assert index_live
+             |> element("[phx-click=\"delete_item\"][phx-value-id=\"#{brainstorm_item.id}\"]")
+             |> render_click()
+
       html = render(index_live)
       assert html =~ "Item deleted"
       refute html =~ brainstorm_item.raw_text
@@ -84,8 +88,10 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
       {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace.id}/brainstorm")
 
       # Update status to clustered
-      assert index_live 
-             |> element("[phx-click=\"update_status\"][phx-value-id=\"#{brainstorm_item.id}\"][phx-value-status=\"clustered\"]") 
+      assert index_live
+             |> element(
+               "[phx-click=\"update_status\"][phx-value-id=\"#{brainstorm_item.id}\"][phx-value-status=\"clustered\"]"
+             )
              |> render_click()
 
       html = render(index_live)
