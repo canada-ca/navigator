@@ -1,5 +1,5 @@
 defmodule Valentine.Composer.BrainstormItemPropertyTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   
   alias Valentine.Composer.BrainstormItem
 

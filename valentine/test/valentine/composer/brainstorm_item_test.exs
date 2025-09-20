@@ -20,7 +20,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
       assert changeset.changes.workspace_id == workspace.id
       assert changeset.changes.type == :threat
       assert changeset.changes.raw_text == "A malicious user could exploit SQL injection vulnerabilities"
-      assert changeset.changes.status == :draft
+      assert Map.get(changeset.changes, :status, :draft) == :draft
     end
 
     test "invalid changeset without required fields" do

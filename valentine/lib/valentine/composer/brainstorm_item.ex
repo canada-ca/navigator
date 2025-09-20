@@ -64,24 +64,37 @@ defmodule Valentine.Composer.BrainstormItem do
 
   @doc false
   def changeset(brainstorm_item, attrs) do
-    brainstorm_item
-    |> cast(attrs, [
-      :workspace_id,
-      :type,
-      :raw_text,
-      :normalized_text,
-      :status,
-      :cluster_key,
-      :position,
-      :used_in_threat_ids,
-      :metadata
-    ])
-    |> validate_required([:workspace_id, :type, :raw_text])
-    |> validate_length(:raw_text, max: 10_000)
-    |> validate_length(:cluster_key, max: 255)
-    |> validate_number(:position, greater_than_or_equal_to: 0)
-    |> validate_status_transition()
-    |> normalize_text()
+    # Store original raw_text for normalization since Ecto might not cast whitespace-only strings
+    original_raw_text = Map.get(attrs, :raw_text) || Map.get(attrs, "raw_text")
+    
+    changeset = 
+      brainstorm_item
+      |> cast(attrs, [
+        :workspace_id,
+        :type,
+        :raw_text,
+        :normalized_text,
+        :status,
+        :cluster_key,
+        :position,
+        :used_in_threat_ids,
+        :metadata
+      ])
+      |> validate_required([:workspace_id, :type, :raw_text])
+      |> validate_length(:raw_text, max: 10_000)
+      |> validate_length(:cluster_key, max: 255)
+      |> validate_number(:position, greater_than_or_equal_to: 0)
+      |> validate_status_transition()
+    
+    # Handle normalization with original raw_text if it wasn't cast
+    changeset = 
+      if get_change(changeset, :raw_text) || original_raw_text do
+        normalize_text_with_value(changeset, get_change(changeset, :raw_text) || original_raw_text)
+      else
+        changeset
+      end
+    
+    changeset
     |> check_duplicate_warning()
     |> unique_constraint(:id)
     |> foreign_key_constraint(:workspace_id)
@@ -114,11 +127,24 @@ defmodule Valentine.Composer.BrainstormItem do
     end
   end
 
+  defp normalize_text_with_value(changeset, raw_text) when is_binary(raw_text) do
+    normalized =
+      raw_text
+      |> String.trim()
+      |> String.replace(~r/[.?!]+$/, "")
+      |> lowercase_first_char()
+      |> String.replace(~r/\s+/, " ")
+
+    put_change(changeset, :normalized_text, normalized)
+  end
+
+  defp normalize_text_with_value(changeset, _), do: changeset
+
   defp lowercase_first_char(text) when is_binary(text) do
     case String.length(text) do
       0 -> text
       1 -> String.downcase(text)
-      _ -> String.downcase(String.at(text, 0)) <> String.slice(text, 1..-1)
+      _ -> String.downcase(String.at(text, 0)) <> String.slice(text, 1..-1//1)
     end
   end
 
