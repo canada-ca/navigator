@@ -64,7 +64,7 @@ defmodule Valentine.Composer.BrainstormItem do
 
   @doc false
   def changeset(brainstorm_item, attrs) do
-    # Store original raw_text for normalization since Ecto might not cast whitespace-only strings
+    # Store the original raw_text value from attrs to ensure normalization occurs when raw_text is updated
     original_raw_text = Map.get(attrs, :raw_text) || Map.get(attrs, "raw_text")
 
     changeset =
