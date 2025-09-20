@@ -89,6 +89,7 @@ jobs:
         working-directory: ./valentine
         run: mix compile
         env:
+          DATABASE_URL: "ecto://postgres:postgres@localhost"
           MIX_ENV: test
 
       - name: Install JavaScript dependencies
