@@ -1,12 +1,7 @@
 <div class="d-flex flex-column height-full">
-  <!-- Header with Two-Row Design -->
   <div class="border-bottom">
     <h1 class="h3 m-0">{gettext("Brainstorm Board")}</h1>
-    
-<!-- Row 1: Title and Always-Visible Creation Form -->
     <div class="d-flex flex-items-center gap-4 pb-2">
-      
-<!-- Always visible creation form -->
       <.form
         for={%{}}
         as={:create}
@@ -40,8 +35,7 @@
         </.button>
       </.form>
     </div>
-    
-<!-- Row 2: Filters -->
+
     <div class="d-flex flex-items-center gap-4 pb-3">
       <.form
         for={%{}}
