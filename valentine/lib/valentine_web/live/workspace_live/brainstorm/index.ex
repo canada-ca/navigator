@@ -267,8 +267,23 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
     {:noreply, assign(socket, :editing_item, nil)}
   end
 
-  # Filter events - simplified handlers for individual form submissions
+  # Filter events - handle form-based filtering
   @impl true
+  def handle_event("filter", %{"filters" => filters_params}, socket) do
+    updated_filters = %{
+      search: Map.get(filters_params, "search", ""),
+      status: normalize_filter_value(Map.get(filters_params, "status", "")),
+      type: normalize_filter_value(Map.get(filters_params, "type", "")),
+      cluster: nil
+    }
+
+    {:noreply,
+     socket
+     |> assign(:filters, updated_filters)
+     |> refresh_items()}
+  end
+
+  # Fallback for direct parameter events
   def handle_event("filter", params, socket) do
     current_filters = socket.assigns.filters
 
@@ -373,7 +388,17 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   defp maybe_add_filter(filters, key, value), do: Map.put(filters, key, value)
 
   defp normalize_filter_value(""), do: nil
-  defp normalize_filter_value(value), do: String.to_existing_atom(value)
+  defp normalize_filter_value(nil), do: nil
+
+  defp normalize_filter_value(value) when is_binary(value) do
+    try do
+      String.to_existing_atom(value)
+    rescue
+      ArgumentError -> nil
+    end
+  end
+
+  defp normalize_filter_value(value), do: value
 
   defp broadcast_update(workspace_id, event, item) do
     PubSub.broadcast(Valentine.PubSub, "brainstorm:workspace:#{workspace_id}", {event, item})

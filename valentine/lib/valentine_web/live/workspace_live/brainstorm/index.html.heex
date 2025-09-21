@@ -42,39 +42,43 @@
     
 <!-- Row 2: Filters -->
     <div class="d-flex flex-items-center gap-4 pb-3">
-      <.text_input
-        name="search"
-        placeholder={gettext("Search items...")}
-        value={@filters.search || ""}
-        class="form-control"
-        style="min-width: 200px;"
+      <.form
+        for={%{}}
+        as={:filters}
         phx-change="filter"
-        id="search-filter"
-      />
+        class="d-flex flex-items-center gap-3 flex-auto"
+      >
+        <.text_input
+          name="search"
+          placeholder={gettext("Search items...")}
+          value={@filters.search || ""}
+          class="form-control"
+          style="min-width: 200px;"
+          id="search-filter"
+        />
 
-      <.select
-        name="status"
-        options={[
-          {"All Statuses", ""},
-          {"Draft", "draft"},
-          {"Clustered", "clustered"},
-          {"Candidate", "candidate"},
-          {"Used", "used"},
-          {"Archived", "archived"}
-        ]}
-        phx-change="filter"
-        id="status-filter"
-      />
+        <.select
+          name="status"
+          options={[
+            {"All Statuses", ""},
+            {"Draft", "draft"},
+            {"Clustered", "clustered"},
+            {"Candidate", "candidate"},
+            {"Used", "used"},
+            {"Archived", "archived"}
+          ]}
+          id="status-filter"
+        />
 
-      <.select
-        name="type"
-        options={[
-          {"All Categories", ""}
-          | Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})
-        ]}
-        phx-change="filter"
-        id="type-filter"
-      />
+        <.select
+          name="type"
+          options={[
+            {"All Categories", ""}
+            | Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})
+          ]}
+          id="type-filter"
+        />
+      </.form>
 
       <.button
         :if={@filters.status || @filters.type || (@filters.search && @filters.search != "")}
