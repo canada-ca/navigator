@@ -59,6 +59,7 @@
 
         <.select
           name="status"
+          selected={if @filters.status, do: Atom.to_string(@filters.status), else: ""}
           options={[
             {"All Statuses", ""},
             {"Draft", "draft"},
@@ -72,6 +73,7 @@
 
         <.select
           name="type"
+          selected={if @filters.type, do: Atom.to_string(@filters.type), else: ""}
           options={[
             {"All Categories", ""}
             | Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})
