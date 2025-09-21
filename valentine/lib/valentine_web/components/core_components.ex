@@ -299,4 +299,92 @@ defmodule ValentineWeb.CoreComponents do
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
+
+  ## Enhanced Select (searchable, keyboard accessible)
+  @doc """
+  Renders an enhanced select input with client-side fuzzy filtering similar to select2.
+
+  Accepts the same options list as a regular Phoenix select: a list of {label, value} tuples.
+  Required assigns:
+    * id - base id
+    * name - form field name
+    * options - list of {label, value}
+
+  Optional assigns:
+    * placeholder
+    * selected
+    * disabled
+    * class
+    * min_chars (default 0 before filtering kicks in)
+  """
+  attr :id, :string, required: true
+  attr :name, :string, required: true
+  attr :options, :list, required: true
+  attr :selected, :string, default: nil
+  attr :placeholder, :string, default: nil
+  attr :class, :string, default: nil
+  attr :min_chars, :integer, default: 0
+  attr :rest, :global
+
+  def enhanced_select(assigns) do
+    ~H"""
+    <div
+      id={@id}
+      class={["enh-select relative", @class]}
+      phx-hook="EnhancedSelect"
+      data-min-chars={@min_chars}
+      {@rest}
+    >
+      <input
+        type="text"
+        class="enh-select-input form-control"
+        placeholder={@placeholder}
+        value={display_label(@options, @selected) || ""}
+        aria-haspopup="listbox"
+        aria-expanded="false"
+        data-role="input"
+        autocomplete="off"
+      />
+      <input
+        type="text"
+        name={@name}
+        value={@selected}
+        data-role="value"
+        class="sr-only"
+        style="display: none;"
+        aria-hidden="true"
+        tabindex="-1"
+      />
+      <ul
+        class="enh-select-list Box position-absolute mt-1 list-style-none p-0"
+        data-role="list"
+        tabindex="-1"
+        role="listbox"
+        hidden
+      >
+        <%= for {label, value} <- @options do %>
+          <li
+            class={"enh-select-item px-2 py-1 #{ if value == @selected, do: "is-selected", else: ""}"}
+            data-value={value}
+            data-label={label}
+            role="option"
+            aria-selected={value == @selected}
+            tabindex="-1"
+          >
+            {label}
+          </li>
+        <% end %>
+        <li class="enh-select-empty px-2 py-1 color-fg-muted" data-role="empty" hidden>
+          {gettext("No results")}
+        </li>
+      </ul>
+    </div>
+    """
+  end
+
+  defp display_label(options, selected) do
+    Enum.find_value(options, fn {label, value} ->
+      if to_string(value) == to_string(selected), do: label
+    end)
+  end
 end

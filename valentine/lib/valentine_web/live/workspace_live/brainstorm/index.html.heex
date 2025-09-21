@@ -17,14 +17,14 @@
           id="create-text"
         />
 
-        <.select
-          name="type"
-          options={[
-            {"Select category...", ""}
-            | Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})
-              |> Enum.sort_by(&elem(&1, 0))
-          ]}
+        <.enhanced_select
           id="create-type"
+          name="type"
+          placeholder={gettext("Select category...")}
+          options={
+            Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})
+            |> Enum.sort_by(&elem(&1, 0))
+          }
           class="mr-2"
           style="min-width: 180px;"
         />

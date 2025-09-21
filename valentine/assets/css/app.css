@@ -56,7 +56,8 @@ html[data-theme="dark"] {
     width: 100%;
     height: 60vh;
     min-height: 500px;
-    max-height: 100vh;     /* prevents over-expansion */
+    max-height: 100vh;
+    /* prevents over-expansion */
     overflow: hidden;
 }
 
@@ -543,4 +544,62 @@ ul {
 .step-text {
     font-weight: 500;
     line-height: 1.4;
+}
+
+/* Enhanced Select component */
+.enh-select {
+    max-width: 280px;
+}
+
+.enh-select-input {
+    padding-right: 2rem;
+}
+
+.enh-select-toggle {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.enh-select-list {
+    z-index: 40;
+    max-height: 220px;
+    overflow-y: auto;
+    width: 100%;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--color-border-default, #d0d7de);
+    background: var(--color-canvas-overlay, #fff);
+    border-radius: 6px;
+}
+
+.enh-select-item {
+    cursor: pointer;
+}
+
+.enh-select-item.is-active {
+    background: var(--color-neutral-subtle, #f6f8fa);
+}
+
+.enh-select-item.is-selected {
+    font-weight: 600;
+    background: var(--color-accent-subtle, #ddf4ff);
+}
+
+.enh-select-empty {
+    font-style: italic;
+}
+
+[data-color-mode="dark"] .enh-select-list {
+    background: var(--color-canvas-overlay, #161b22);
+}
+
+[data-color-mode="dark"] .enh-select-item.is-active {
+    background: #262b31;
+}
+
+[data-color-mode="dark"] .enh-select-item.is-selected {
+    background: #033d8b;
 }
