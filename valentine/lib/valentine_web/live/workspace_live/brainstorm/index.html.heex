@@ -46,8 +46,8 @@
       <.form
         for={%{}}
         as={:filters}
-        phx-change="filter"
         class="d-flex flex-items-center gap-3 flex-auto"
+        id="filters-form"
       >
         <.text_input
           name="search"
@@ -56,6 +56,7 @@
           class="form-control mr-2"
           style="min-width: 200px;"
           id="search-filter"
+          phx-change="filter"
         />
 
         <.select
@@ -123,7 +124,7 @@
           <%= if length(visible_items) > 0 do %>
             <div class="flex-shrink-0 p-3" style="width: 350px; margin: 12px;">
               <!-- Category header with better styling -->
-              <div class="card-header p-3 mb-3 border rounded-2 color-bg-subtle">
+              <div class="card-header p-3 border color-bg-subtle">
                 <div class="d-flex flex-items-center flex-justify-between">
                   <div>
                     <h4 class="h5 text-bold d-flex flex-items-center m-0">
@@ -145,7 +146,7 @@
                 <%= for item <- group_by_cluster(visible_items) do %>
                   <%= if is_binary(item) do %>
                     <!-- Cluster header -->
-                    <div class="p-3 color-bg-accent-subtle rounded-2 border text-center">
+                    <div class="p-3 color-bg-accent-subtle  border text-center">
                       <div class="text-small text-bold color-fg-accent">
                         <.octicon name="package-16" class="mr-1" />
                         {item}
@@ -225,9 +226,9 @@
                         
 <!-- Item metadata and actions with better layout -->
                         <div class="d-flex flex-items-center flex-justify-between pt-2 border-top">
-                          <div class="d-flex flex-items-center gap-2">
+                          <div class="d-flex flex-items-center">
                             <!-- Status badge -->
-                            <.label class={"Label #{status_color_class(item.status)}"}>
+                            <.label class={"Label #{status_color_class(item.status)} mr-2"}>
                               {Phoenix.Naming.humanize(item.status)}
                             </.label>
                             
@@ -399,23 +400,40 @@
         <div class="Box-body">
           <.form
             for={%{}}
-            as={:cluster}
+            as={:cluster_assign}
             phx-submit="assign_cluster"
             phx-value-id={@assigning_cluster_item}
           >
-            <div class="form-group">
-              <label class="form-label">{gettext("Cluster Name")}</label>
-              <.text_input
-                name="cluster"
-                placeholder={gettext("Enter cluster name...")}
-                class="form-control"
-                required
-                autofocus
-              />
-              <div class="form-help-text">
-                {gettext(
-                  "Enter a name to group related items together. Items with the same cluster name will be visually grouped."
-                )}
+            <div class="mb-3">
+              <div class="form-group mb-2">
+                <label class="form-label d-block">{gettext("Choose Existing Cluster")}</label>
+                <%= if @available_clusters && @available_clusters != [] do %>
+                  <select name="existing_cluster" class="form-select width-full">
+                    <option value="">-- {gettext("Select a cluster")} --</option>
+                    <%= for cluster <- @available_clusters do %>
+                      <option value={cluster}>{cluster}</option>
+                    <% end %>
+                  </select>
+                  <div class="form-help-text">
+                    {gettext("Pick one of the existing clusters for this category (type).")}
+                  </div>
+                <% else %>
+                  <div class="flash flash-warn mb-2">
+                    {gettext("No clusters exist yet for this category. Create one below.")}
+                  </div>
+                <% end %>
+              </div>
+
+              <div class="form-group mt-3">
+                <label class="form-label">{gettext("Or Create New Cluster")}</label>
+                <.text_input
+                  name="new_cluster"
+                  placeholder={gettext("Enter new cluster name...")}
+                  class="form-control"
+                />
+                <div class="form-help-text">
+                  {gettext("If you enter a new cluster name it will be created and used.")}
+                </div>
               </div>
             </div>
             <div class="form-actions">

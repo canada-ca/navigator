@@ -106,8 +106,8 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
 
       # Filter by archived status (should show no items)
       assert index_live
-             |> form("form[phx-change='filter']")
-             |> render_change(%{filters: %{filter_status: "archived"}})
+             |> element("select[id=\"status-filter\"]")
+             |> render_change(%{filter_status: "archived"})
 
       html = render(index_live)
       # Should show empty state since no archived items exist
@@ -121,16 +121,16 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
 
       # Search for specific text
       assert index_live
-             |> form("form[phx-change='filter']")
-             |> render_change(%{filters: %{search: "Test"}})
+             |> element("input[id=\"search-filter\"]")
+             |> render_change(%{search: "Test"})
 
       html = render(index_live)
       assert html =~ brainstorm_item.raw_text
 
       # Search for non-existent text
       assert index_live
-             |> form("form[phx-change='filter']")
-             |> render_change(%{filters: %{search: "NonExistent"}})
+             |> element("input[id=\"search-filter\"]")
+             |> render_change(%{search: "NonExistent"})
 
       html = render(index_live)
       # Should show empty state when no results
@@ -144,8 +144,8 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
 
       # Apply a filter first
       assert index_live
-             |> form("form[phx-change='filter']")
-             |> render_change(%{filters: %{search: "NonExistent"}})
+             |> element("input[id=\"search-filter\"]")
+             |> render_change(%{search: "NonExistent"})
 
       # Clear filters
       assert index_live |> element("button", "Clear") |> render_click()

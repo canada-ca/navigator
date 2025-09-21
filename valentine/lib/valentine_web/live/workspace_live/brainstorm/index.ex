@@ -227,17 +227,46 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   # Assign item to cluster
   @impl true
   def handle_event("start_cluster_assign", %{"id" => id}, socket) do
-    {:noreply, assign(socket, :assigning_cluster_item, id)}
+    item = Composer.get_brainstorm_item!(id)
+    clusters = Composer.list_clusters_by_type(socket.assigns.workspace_id, item.type)
+
+    {:noreply,
+     socket
+     |> assign(:assigning_cluster_item, id)
+     |> assign(:cluster_assignment_type, item.type)
+     |> assign(:available_clusters, clusters)
+     |> assign(:cluster_mode, if(Enum.empty?(clusters), do: :new, else: :existing))}
   end
 
   @impl true
   def handle_event("cancel_cluster_assign", _params, socket) do
-    {:noreply, assign(socket, :assigning_cluster_item, nil)}
+    {:noreply,
+     socket
+     |> assign(:assigning_cluster_item, nil)
+     |> assign(:available_clusters, [])
+     |> assign(:cluster_mode, nil)
+     |> assign(:cluster_assignment_type, nil)}
   end
 
   @impl true
-  def handle_event("assign_cluster", %{"id" => id, "cluster" => cluster_key}, socket) do
+  def handle_event("assign_cluster", params = %{"id" => id}, socket) do
     item = Composer.get_brainstorm_item!(id)
+
+    cluster_key =
+      cond do
+        Map.get(params, "existing_cluster") && params["existing_cluster"] != "" ->
+          params["existing_cluster"]
+
+        Map.get(params, "new_cluster") && String.trim(params["new_cluster"]) != "" ->
+          String.trim(params["new_cluster"])
+
+        Map.get(params, "cluster") && params["cluster"] != "" ->
+          # backwards compatibility with old form field name
+          params["cluster"]
+
+        true ->
+          nil
+      end
 
     case Composer.assign_to_cluster(item, cluster_key) do
       {:ok, updated_item} ->
@@ -246,6 +275,9 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
         {:noreply,
          socket
          |> assign(:assigning_cluster_item, nil)
+         |> assign(:available_clusters, [])
+         |> assign(:cluster_mode, nil)
+         |> assign(:cluster_assignment_type, nil)
          |> refresh_items()
          |> put_flash(:info, gettext("Item assigned to cluster"))}
 
@@ -267,23 +299,6 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
     {:noreply, assign(socket, :editing_item, nil)}
   end
 
-  # Filter events - handle form-based filtering
-  @impl true
-  def handle_event("filter", %{"filters" => filters_params}, socket) do
-    updated_filters =
-      %{
-        search: Map.get(filters_params, "search", ""),
-        status: normalize_filter_value(Map.get(filters_params, "filter_status", "")),
-        type: normalize_filter_value(Map.get(filters_params, "filter_type", "")),
-        cluster: nil
-      }
-
-    {:noreply,
-     socket
-     |> assign(:filters, updated_filters)
-     |> refresh_items()}
-  end
-
   # Fallback for direct parameter events
   def handle_event("filter", params, socket) do
     current_filters = socket.assigns.filters
@@ -302,8 +317,6 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
         true ->
           current_filters
       end
-
-    IO.inspect(updated_filters, label: "Updated Filters")
 
     {:noreply,
      socket

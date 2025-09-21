@@ -1868,14 +1868,14 @@ defmodule Valentine.Composer do
   @doc """
   Creates evidence with automatic linking based on provided parameters.
 
-  This function handles the creation of evidence and its automatic linking to 
+  This function handles the creation of evidence and its automatic linking to
   assumptions, threats, and mitigations based on the provided linking strategy.
 
   ## Parameters
     - evidence_attrs: Evidence attributes for creation
     - linking_opts: Map containing linking options:
       - assumption_id: Direct link to assumption
-      - threat_id: Direct link to threat  
+      - threat_id: Direct link to threat
       - mitigation_id: Direct link to mitigation
       - use_ai: Boolean flag for AI-based linking (stubbed)
 
@@ -2005,7 +2005,7 @@ defmodule Valentine.Composer do
       end
     end)
 
-    # Find threats with overlapping NIST controls in tags  
+    # Find threats with overlapping NIST controls in tags
     threats = find_threats_by_nist_tags(workspace_id, nist_controls)
 
     Enum.each(threats, fn threat ->
@@ -2099,6 +2099,25 @@ defmodule Valentine.Composer do
   def list_brainstorm_items_by_type(workspace_id, filters \\ %{}) do
     items = list_brainstorm_items(workspace_id, filters)
     Enum.group_by(items, & &1.type)
+  end
+
+  @doc """
+  Returns distinct non-nil cluster keys for a given workspace and brainstorm item type.
+
+  ## Examples
+
+      iex> list_clusters_by_type(workspace_id, :threat)
+      ["Authentication", "Secrets", ...]
+
+  """
+  def list_clusters_by_type(workspace_id, type) when is_binary(workspace_id) do
+    workspace_id
+    |> brainstorm_items_base_query()
+    |> where([bi], not is_nil(bi.cluster_key) and bi.type == ^type)
+    |> distinct([bi], bi.cluster_key)
+    |> select([bi], bi.cluster_key)
+    |> order_by([bi], asc: bi.cluster_key)
+    |> Repo.all()
   end
 
   @doc """
