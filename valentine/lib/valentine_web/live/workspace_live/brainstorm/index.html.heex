@@ -1,9 +1,10 @@
 <div class="d-flex flex-column height-full">
   <!-- Header with Two-Row Design -->
   <div class="border-bottom">
-    <!-- Row 1: Title and Always-Visible Creation Form -->
-    <div class="d-flex flex-items-center gap-4 p-3 border-bottom">
-      <h1 class="h3 m-0">{gettext("Brainstorm Board")}</h1>
+    <h1 class="h3 m-0">{gettext("Brainstorm Board")}</h1>
+    
+<!-- Row 1: Title and Always-Visible Creation Form -->
+    <div class="d-flex flex-items-center gap-4 pb-2">
       
 <!-- Always visible creation form -->
       <.form
@@ -23,10 +24,10 @@
 
         <.select
           name="type"
-          class="form-select"
           options={[
             {"Select category...", ""}
             | Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})
+              |> Enum.sort_by(&elem(&1, 0))
           ]}
           id="create-type"
           style="min-width: 180px;"
@@ -40,7 +41,7 @@
     </div>
     
 <!-- Row 2: Filters -->
-    <div class="d-flex flex-items-center gap-4 p-3">
+    <div class="d-flex flex-items-center gap-4 pb-3">
       <.text_input
         name="search"
         placeholder={gettext("Search items...")}
@@ -53,7 +54,6 @@
 
       <.select
         name="status"
-        class="form-select"
         options={[
           {"All Statuses", ""},
           {"Draft", "draft"},
@@ -68,7 +68,6 @@
 
       <.select
         name="type"
-        class="form-select"
         options={[
           {"All Categories", ""}
           | Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})
