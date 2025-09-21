@@ -29,11 +29,7 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
       conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
       {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace.id}/brainstorm")
 
-      # Start creating a new item using the central button
-      assert index_live |> element("button", "Add Brainstorm Item") |> render_click() =~
-               "Select category"
-
-      # Submit the form with category and text
+      # Submit the form directly since it's always visible
       assert index_live
              |> form("form[phx-submit=\"create_item\"]", %{
                type: "threat",

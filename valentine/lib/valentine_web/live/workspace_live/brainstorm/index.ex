@@ -43,8 +43,6 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
      |> assign(:filters, filters)
      |> assign(:undo_queue, [])
      |> assign(:editing_item, nil)
-     |> assign(:creating_item, false)
-     |> assign(:creating_type, nil)
      |> assign(:assigning_cluster_item, nil)}
   end
 
@@ -74,8 +72,6 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
         {:noreply,
          socket
          |> refresh_items()
-         |> assign(:creating_item, false)
-         |> assign(:creating_type, nil)
          |> put_flash(:info, gettext("Item created successfully"))}
 
       {:error, changeset} ->
@@ -261,29 +257,6 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   end
 
   # Toggle UI states
-  @impl true
-  def handle_event("start_creating", %{"type" => type}, socket) do
-    {:noreply,
-     socket
-     |> assign(:creating_item, true)
-     |> assign(:creating_type, type)}
-  end
-
-  def handle_event("start_creating", _params, socket) do
-    {:noreply,
-     socket
-     |> assign(:creating_item, true)
-     |> assign(:creating_type, nil)}
-  end
-
-  @impl true
-  def handle_event("cancel_creating", _params, socket) do
-    {:noreply,
-     socket
-     |> assign(:creating_item, false)
-     |> assign(:creating_type, nil)}
-  end
-
   @impl true
   def handle_event("start_editing", %{"id" => id}, socket) do
     {:noreply, assign(socket, :editing_item, id)}

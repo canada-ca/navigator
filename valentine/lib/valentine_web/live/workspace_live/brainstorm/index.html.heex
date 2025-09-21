@@ -1,131 +1,90 @@
 <div class="d-flex flex-column height-full">
-  <!-- Header with better organization -->
+  <!-- Header with Two-Row Design -->
   <div class="border-bottom">
-    <!-- Title and Add Button Row -->
-    <div class="d-flex flex-items-center flex-justify-between p-3 border-bottom">
+    <!-- Row 1: Title and Always-Visible Creation Form -->
+    <div class="d-flex flex-items-center gap-4 p-3 border-bottom">
       <h1 class="h3 m-0">{gettext("Brainstorm Board")}</h1>
+      
+<!-- Always visible creation form -->
+      <.form
+        for={%{}}
+        as={:create}
+        phx-submit="create_item"
+        class="d-flex flex-items-center gap-3 flex-auto"
+      >
+        <.text_input
+          name="text"
+          placeholder={gettext("Enter your idea...")}
+          class="form-control flex-auto"
+          style="min-width: 300px;"
+          required
+          id="create-text"
+        />
 
-      <%= if @creating_item do %>
-        <!-- Item creation form - well organized -->
-        <.form
-          for={%{}}
-          as={:create}
-          phx-submit="create_item"
-          class="d-flex flex-items-center gap-3 p-3 border rounded-2 color-bg-subtle"
-        >
-          <div class="d-flex flex-column">
-            <label class="form-label text-small text-bold mb-1">{gettext("Category")}</label>
-            <.select
-              name="type"
-              class="form-select"
-              options={[
-                {"Select category...", ""}
-                | Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})
-              ]}
-              id="create-type"
-            />
-          </div>
+        <.select
+          name="type"
+          class="form-select"
+          options={[
+            {"Select category...", ""}
+            | Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})
+          ]}
+          id="create-type"
+          style="min-width: 180px;"
+        />
 
-          <div class="d-flex flex-column flex-auto">
-            <label class="form-label text-small text-bold mb-1">{gettext("Idea")}</label>
-            <.text_input
-              name="text"
-              placeholder={gettext("Enter your brainstorm idea...")}
-              class="form-control"
-              style="min-width: 350px;"
-              required
-            />
-          </div>
-
-          <div class="d-flex flex-column">
-            <label class="form-label text-small text-bold mb-1 opacity-0">
-              {gettext("Actions")}
-            </label>
-            <div class="d-flex gap-2">
-              <.button type="submit" is_primary>
-                <.octicon name="plus-16" />
-                {gettext("Add")}
-              </.button>
-              <.button type="button" phx-click="cancel_creating">
-                {gettext("Cancel")}
-              </.button>
-            </div>
-          </div>
-        </.form>
-      <% else %>
-        <.button phx-click="start_creating" is_primary class="btn-lg">
+        <.button type="submit" is_primary>
           <.octicon name="plus-16" />
-          {gettext("Add Brainstorm Item")}
+          {gettext("Add")}
         </.button>
-      <% end %>
+      </.form>
     </div>
     
-<!-- Filters Row - Better Organized -->
-    <div class="p-3">
-      <div class="d-flex flex-wrap flex-items-end gap-4">
-        <!-- Search -->
-        <div class="d-flex flex-column">
-          <label class="form-label text-small text-bold mb-1">{gettext("Search")}</label>
-          <.text_input
-            name="search"
-            placeholder={gettext("Search items...")}
-            value={@filters.search || ""}
-            class="form-control"
-            style="min-width: 250px;"
-            phx-change="filter"
-            id="search-filter"
-          />
-        </div>
-        
-<!-- Status Filter -->
-        <div class="d-flex flex-column">
-          <label class="form-label text-small text-bold mb-1">{gettext("Status")}</label>
-          <.select
-            name="status"
-            class="form-select"
-            options={[
-              {"All Statuses", ""},
-              {"Draft", "draft"},
-              {"Clustered", "clustered"},
-              {"Candidate", "candidate"},
-              {"Used", "used"},
-              {"Archived", "archived"}
-            ]}
-            phx-change="filter"
-            id="status-filter"
-          />
-        </div>
-        
-<!-- Category Filter -->
-        <div class="d-flex flex-column">
-          <label class="form-label text-small text-bold mb-1">{gettext("Category")}</label>
-          <.select
-            name="type"
-            class="form-select"
-            options={[
-              {"All Categories", ""}
-              | Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})
-            ]}
-            phx-change="filter"
-            id="type-filter"
-          />
-        </div>
-        
-<!-- Clear Filters -->
-        <div class="d-flex flex-column">
-          <label class="form-label text-small text-bold mb-1 opacity-0">
-            {gettext("Actions")}
-          </label>
-          <.button
-            :if={@filters.status || @filters.type || (@filters.search && @filters.search != "")}
-            phx-click="clear_filters"
-            class="btn-outline"
-          >
-            <.octicon name="x-16" />
-            {gettext("Clear")}
-          </.button>
-        </div>
-      </div>
+<!-- Row 2: Filters -->
+    <div class="d-flex flex-items-center gap-4 p-3">
+      <.text_input
+        name="search"
+        placeholder={gettext("Search items...")}
+        value={@filters.search || ""}
+        class="form-control"
+        style="min-width: 200px;"
+        phx-change="filter"
+        id="search-filter"
+      />
+
+      <.select
+        name="status"
+        class="form-select"
+        options={[
+          {"All Statuses", ""},
+          {"Draft", "draft"},
+          {"Clustered", "clustered"},
+          {"Candidate", "candidate"},
+          {"Used", "used"},
+          {"Archived", "archived"}
+        ]}
+        phx-change="filter"
+        id="status-filter"
+      />
+
+      <.select
+        name="type"
+        class="form-select"
+        options={[
+          {"All Categories", ""}
+          | Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})
+        ]}
+        phx-change="filter"
+        id="type-filter"
+      />
+
+      <.button
+        :if={@filters.status || @filters.type || (@filters.search && @filters.search != "")}
+        phx-click="clear_filters"
+        class="btn-outline"
+      >
+        <.octicon name="x-16" />
+        {gettext("Clear")}
+      </.button>
     </div>
   </div>
   
@@ -141,10 +100,9 @@
             "Capture your threat modeling ideas here. Add items and they'll be organized by category automatically."
           )}
         </p>
-        <.button phx-click="start_creating" is_primary>
-          <.octicon name="plus-16" />
-          {gettext("Add Your First Item")}
-        </.button>
+        <p class="blankslate-body">
+          {gettext("Use the form above to add your first brainstorm item.")}
+        </p>
       </div>
     <% else %>
       <!-- Masonry layout with categories -->
