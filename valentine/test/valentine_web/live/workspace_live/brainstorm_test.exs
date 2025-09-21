@@ -35,7 +35,10 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
 
       # Submit the form with category and text
       assert index_live
-             |> form("form", %{type: "threat", text: @create_attrs.text})
+             |> form("form[phx-submit=\"create_item\"]", %{
+               type: "threat",
+               text: @create_attrs.text
+             })
              |> render_submit()
 
       html = render(index_live)
@@ -107,7 +110,7 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
 
       # Filter by archived status (should show no items)
       assert index_live
-             |> element("select[name=\"status\"]")
+             |> element("#status-filter")
              |> render_change(%{status: "archived"})
 
       html = render(index_live)
@@ -122,7 +125,7 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
 
       # Search for specific text
       assert index_live
-             |> element("input[name=\"search\"]")
+             |> element("#search-filter")
              |> render_change(%{search: "Test"})
 
       html = render(index_live)
@@ -145,7 +148,7 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
 
       # Apply a filter first
       assert index_live
-             |> element("input[name=\"search\"]")
+             |> element("#search-filter")
              |> render_change(%{search: "NonExistent"})
 
       # Clear filters

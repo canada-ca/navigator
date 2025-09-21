@@ -294,56 +294,30 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
     {:noreply, assign(socket, :editing_item, nil)}
   end
 
-  # Filter events
+  # Filter events - simplified handlers for individual form submissions
   @impl true
-  def handle_event("filter", %{"_target" => ["status"]} = params, socket) do
-    value = params["status"]
-    filters = %{socket.assigns.filters | status: normalize_filter_value(value)}
-
-    {:noreply,
-     socket
-     |> assign(:filters, filters)
-     |> refresh_items()}
-  end
-
-  def handle_event("filter", %{"_target" => ["type"]} = params, socket) do
-    value = params["type"]
-    filters = %{socket.assigns.filters | type: normalize_filter_value(value)}
-
-    {:noreply,
-     socket
-     |> assign(:filters, filters)
-     |> refresh_items()}
-  end
-
-  def handle_event("filter", %{"_target" => ["search"]} = params, socket) do
-    value = params["search"]
-    filters = %{socket.assigns.filters | search: value}
-
-    {:noreply,
-     socket
-     |> assign(:filters, filters)
-     |> refresh_items()}
-  end
-
-  # Fallback for any other filter events
   def handle_event("filter", params, socket) do
-    cond do
-      Map.has_key?(params, "search") ->
-        filters = %{socket.assigns.filters | search: params["search"]}
-        {:noreply, socket |> assign(:filters, filters) |> refresh_items()}
+    current_filters = socket.assigns.filters
 
-      Map.has_key?(params, "status") ->
-        filters = %{socket.assigns.filters | status: normalize_filter_value(params["status"])}
-        {:noreply, socket |> assign(:filters, filters) |> refresh_items()}
+    updated_filters =
+      cond do
+        Map.has_key?(params, "search") ->
+          %{current_filters | search: params["search"] || ""}
 
-      Map.has_key?(params, "type") ->
-        filters = %{socket.assigns.filters | type: normalize_filter_value(params["type"])}
-        {:noreply, socket |> assign(:filters, filters) |> refresh_items()}
+        Map.has_key?(params, "status") ->
+          %{current_filters | status: normalize_filter_value(params["status"])}
 
-      true ->
-        {:noreply, socket}
-    end
+        Map.has_key?(params, "type") ->
+          %{current_filters | type: normalize_filter_value(params["type"])}
+
+        true ->
+          current_filters
+      end
+
+    {:noreply,
+     socket
+     |> assign(:filters, updated_filters)
+     |> refresh_items()}
   end
 
   @impl true
@@ -519,6 +493,13 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   defp status_class(:candidate), do: "color-bg-success-subtle"
   defp status_class(:used), do: "color-bg-done-subtle"
   defp status_class(:archived), do: "color-bg-neutral-subtle"
+
+  # Status color classes for labels
+  defp status_color_class(:draft), do: "Label--accent"
+  defp status_color_class(:clustered), do: "Label--attention"
+  defp status_color_class(:candidate), do: "Label--success"
+  defp status_color_class(:used), do: "Label--done"
+  defp status_color_class(:archived), do: "Label--secondary"
 
   # Check if item has duplicate warning
   defp has_duplicate_warning?(item) do
