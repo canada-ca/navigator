@@ -58,7 +58,7 @@
         />
 
         <.select
-          name="status"
+          name="filter_status"
           selected={if @filters.status, do: Atom.to_string(@filters.status), else: ""}
           options={[
             {"All Statuses", ""},
@@ -72,7 +72,7 @@
         />
 
         <.select
-          name="type"
+          name="filter_type"
           selected={if @filters.type, do: Atom.to_string(@filters.type), else: ""}
           options={[
             {"All Categories", ""}

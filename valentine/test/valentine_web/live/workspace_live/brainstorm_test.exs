@@ -107,7 +107,7 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
       # Filter by archived status (should show no items)
       assert index_live
              |> form("form[phx-change='filter']")
-             |> render_change(%{filters: %{status: "archived"}})
+             |> render_change(%{filters: %{filter_status: "archived"}})
 
       html = render(index_live)
       # Should show empty state since no archived items exist

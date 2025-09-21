@@ -272,8 +272,8 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   def handle_event("filter", %{"filters" => filters_params}, socket) do
     updated_filters = %{
       search: Map.get(filters_params, "search", ""),
-      status: normalize_filter_value(Map.get(filters_params, "status", "")),
-      type: normalize_filter_value(Map.get(filters_params, "type", "")),
+      status: normalize_filter_value(Map.get(filters_params, "filter_status", "")),
+      type: normalize_filter_value(Map.get(filters_params, "filter_type", "")),
       cluster: nil
     }
 
@@ -292,11 +292,11 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
         Map.has_key?(params, "search") ->
           %{current_filters | search: params["search"] || ""}
 
-        Map.has_key?(params, "status") ->
-          %{current_filters | status: normalize_filter_value(params["status"])}
+        Map.has_key?(params, "filter_status") ->
+          %{current_filters | status: normalize_filter_value(params["filter_status"])}
 
-        Map.has_key?(params, "type") ->
-          %{current_filters | type: normalize_filter_value(params["type"])}
+        Map.has_key?(params, "filter_type") ->
+          %{current_filters | type: normalize_filter_value(params["filter_type"])}
 
         true ->
           current_filters
