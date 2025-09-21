@@ -270,12 +270,13 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   # Filter events - handle form-based filtering
   @impl true
   def handle_event("filter", %{"filters" => filters_params}, socket) do
-    updated_filters = %{
-      search: Map.get(filters_params, "search", ""),
-      status: normalize_filter_value(Map.get(filters_params, "filter_status", "")),
-      type: normalize_filter_value(Map.get(filters_params, "filter_type", "")),
-      cluster: nil
-    }
+    updated_filters =
+      %{
+        search: Map.get(filters_params, "search", ""),
+        status: normalize_filter_value(Map.get(filters_params, "filter_status", "")),
+        type: normalize_filter_value(Map.get(filters_params, "filter_type", "")),
+        cluster: nil
+      }
 
     {:noreply,
      socket
@@ -301,6 +302,8 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
         true ->
           current_filters
       end
+
+    IO.inspect(updated_filters, label: "Updated Filters")
 
     {:noreply,
      socket

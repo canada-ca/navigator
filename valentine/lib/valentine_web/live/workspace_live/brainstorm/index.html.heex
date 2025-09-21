@@ -16,7 +16,7 @@
         <.text_input
           name="text"
           placeholder={gettext("Enter your idea...")}
-          class="form-control flex-auto"
+          class="form-control flex-auto mr-2"
           style="min-width: 300px;"
           required
           id="create-text"
@@ -30,6 +30,7 @@
               |> Enum.sort_by(&elem(&1, 0))
           ]}
           id="create-type"
+          class="mr-2"
           style="min-width: 180px;"
         />
 
@@ -52,7 +53,7 @@
           name="search"
           placeholder={gettext("Search items...")}
           value={@filters.search || ""}
-          class="form-control"
+          class="form-control mr-2"
           style="min-width: 200px;"
           id="search-filter"
         />
@@ -68,7 +69,9 @@
             {"Used", "used"},
             {"Archived", "archived"}
           ]}
+          phx-change="filter"
           id="status-filter"
+          class="mr-2"
         />
 
         <.select
@@ -77,19 +80,21 @@
           options={[
             {"All Categories", ""}
             | Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})
+              |> Enum.sort_by(&elem(&1, 0))
           ]}
+          phx-change="filter"
           id="type-filter"
+          class="mr-2"
         />
+        <.button
+          :if={@filters.status || @filters.type || (@filters.search && @filters.search != "")}
+          phx-click="clear_filters"
+          class="btn-outline"
+        >
+          <.octicon name="x-16" />
+          {gettext("Clear")}
+        </.button>
       </.form>
-
-      <.button
-        :if={@filters.status || @filters.type || (@filters.search && @filters.search != "")}
-        phx-click="clear_filters"
-        class="btn-outline"
-      >
-        <.octicon name="x-16" />
-        {gettext("Clear")}
-      </.button>
     </div>
   </div>
   
