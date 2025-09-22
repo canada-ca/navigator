@@ -120,22 +120,34 @@
             draggable="true"
           >
             <div class="card d-flex flex-column" data-item-id={"type-" <> Atom.to_string(type)}>
-              <div
-                class="d-flex flex-items-center flex-justify-between p-2 border-bottom cursor-grab type-drag-handle"
-                draggable="true"
-              >
-                <div class="text-bold d-flex flex-items-center gap-2">
-                  <.octicon name={type_icon(type)} />
-                  {type_display_name(type)}
-                </div>
-                <span class="text-small color-fg-muted">✥</span>
-              </div>
               <% all_items = Map.get(@items_by_type, type, []) %>
               <% active_count = Enum.count(all_items, &(&1.status != :archived)) %>
               <% archived_count = Enum.count(all_items, &(&1.status == :archived)) %>
-              <div class="px-2 pb-1 text-small color-fg-muted d-flex gap-2 flex-wrap">
-                <span title={gettext("Active items (not archived)")}>{active_count} active</span>
-                <span title={gettext("Archived items")}>{archived_count} archived</span>
+              <div class="brainstorm-type-header type-drag-handle" draggable="true">
+                <div class="brainstorm-type-header-main">
+                  <div class="brainstorm-type-title">
+                    <.octicon name={type_icon(type)} class="mr-1" />
+                    <span>{type_display_name(type)}</span>
+                  </div>
+                  <div class="brainstorm-type-counters" aria-label={gettext("Item counts")}>
+                    <span
+                      class="counter-pill counter-active"
+                      title={gettext("Active (not archived)")}
+                    >
+                      {active_count}
+                    </span>
+                    <span class="counter-separator">/</span>
+                    <span class="counter-pill counter-archived" title={gettext("Archived")}>
+                      {archived_count}
+                    </span>
+                  </div>
+                </div>
+                <div
+                  class="brainstorm-type-header-handle"
+                  title={gettext("Drag to reorder category")}
+                >
+                  <.octicon name="grabber-16" />
+                </div>
               </div>
               <div class="p-2" data-role="type-items">
                 <% items = all_items %>
