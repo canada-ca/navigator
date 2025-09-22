@@ -154,12 +154,22 @@
                 <% visible_items = get_visible_items(items, @filters) %>
                 <%= for item <- group_by_cluster(visible_items) do %>
                   <%= if is_binary(item) do %>
-                    <div class="p-2 color-bg-accent-subtle border text-center text-small text-uppercase tracking-tight">
-                      {item}
+                    <% cluster_items = Enum.filter(visible_items, &(&1.cluster_key == item)) %>
+                    <div class="brainstorm-cluster-header" data-cluster={item}>
+                      <span class="cluster-name" title={gettext("Cluster")}>{item}</span>
+                      <span class="cluster-count" title={gettext("Items in cluster")}>
+                        {length(cluster_items)}
+                      </span>
                     </div>
                   <% else %>
-                    <div class="Box Box--condensed mb-2" data-item-id={item.id} draggable="true">
-                      <div class="Box-body p-2">
+                    <div
+                      class={"Box Box--condensed mb-2 brainstorm-item status-#{item.status} #{if item.cluster_key, do: "is-clustered"}"}
+                      data-item-id={item.id}
+                      draggable="true"
+                      data-status={item.status}
+                      data-cluster={item.cluster_key || ""}
+                    >
+                      <div class="Box-body p-2 brainstorm-item-body">
                         <%= if @editing_item == item.id do %>
                           <.form for={%{}} as={:update} phx-submit="update_item" class="mb-2">
                             <input type="hidden" name="item_id" value={item.id} />
@@ -200,7 +210,7 @@
                           </.form>
                         <% else %>
                           <div
-                            class="mb-2"
+                            class="mb-2 brainstorm-item-text"
                             phx-click="start_editing"
                             phx-value-id={item.id}
                             style="cursor:pointer; line-height:1.3;"
@@ -208,15 +218,17 @@
                             {item.raw_text}
                           </div>
                         <% end %>
-                        <div class="d-flex flex-items-center flex-justify-between pt-2 border-top">
+                        <div class="d-flex flex-items-center flex-justify-between pt-2 border-top brainstorm-item-meta">
                           <div class="d-flex flex-items-center gap-2">
                             <.label class={"Label #{status_color_class(item.status)}"}>
                               {Phoenix.Naming.humanize(item.status)}
                             </.label>
                             <%= if not is_nil(item.cluster_key) do %>
-                              <span class="d-flex flex-items-center text-small color-fg-muted">
-                                <.octicon name="package-16" class="mr-1" />
-                                {item.cluster_key}
+                              <span
+                                class="d-flex flex-items-center text-small color-fg-muted brainstorm-cluster-indicator"
+                                title={gettext("Cluster key")}
+                              >
+                                <.octicon name="package-16" class="mr-1" /> {item.cluster_key}
                               </span>
                             <% end %>
                           </div>
