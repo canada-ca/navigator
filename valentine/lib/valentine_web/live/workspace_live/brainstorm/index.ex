@@ -73,8 +73,6 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
          socket
          |> refresh_items()}
 
-      # |> put_flash(:info, gettext("Item created successfully"))}
-
       {:error, changeset} ->
         {:noreply,
          socket

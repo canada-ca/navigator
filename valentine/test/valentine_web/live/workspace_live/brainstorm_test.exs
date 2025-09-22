@@ -38,7 +38,6 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
              |> render_submit()
 
       html = render(index_live)
-      assert html =~ "Item created successfully"
       assert html =~ @create_attrs.text
     end
 
