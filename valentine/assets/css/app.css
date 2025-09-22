@@ -37,6 +37,24 @@
     width: 100%;
 }
 
+/* Column drag states */
+.brainstorm-masonry-item.dragging-type {
+    opacity: 0.6;
+}
+
+.brainstorm-masonry-item.drag-over-type {
+    outline: 2px dashed var(--color-accent-emphasis, #0969da);
+    outline-offset: 4px;
+}
+
+.type-drag-handle {
+    cursor: grab;
+}
+
+.type-drag-handle:active {
+    cursor: grabbing;
+}
+
 @media (max-width: 900px) {
     .brainstorm-masonry {
         column-width: 300px;

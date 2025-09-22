@@ -111,67 +111,40 @@
       </div>
     <% else %>
       <!-- True masonry layout using CSS columns -->
-      <div class="brainstorm-masonry">
-        <%= for type <- get_populated_types(@items_by_type) do %>
-          <% items = Map.get(@items_by_type, type, []) %>
-          <% visible_items = get_visible_items(items, @filters) %>
-          <%= if length(visible_items) > 0 do %>
-            <div class="brainstorm-masonry-item p-3" data-type-column={Atom.to_string(type)}>
-              <!-- Category header with better styling -->
-              <div class="card-header p-3 border color-bg-subtle">
-                <div class="d-flex flex-items-center flex-justify-between">
-                  <div>
-                    <h4 class="h5 text-bold d-flex flex-items-center m-0">
-                      <.octicon name={type_icon(type)} class="mr-2 color-fg-accent" />
-                      {type_display_name(type)}
-                    </h4>
-                    <span class="text-small color-fg-muted mt-1">
-                      {length(visible_items)} items
-                      <%= if @filters.status == nil do %>
-                        · {Enum.count(visible_items, &(&1.status == :used))} used
-                      <% end %>
-                    </span>
-                  </div>
+      <div class="brainstorm-masonry" id="brainstorm-masonry" data-role="type-container">
+        <%= for type <- ordered_populated_types(@items_by_type, @type_order || []) do %>
+          <div
+            class="brainstorm-masonry-item"
+            data-type-column={Atom.to_string(type)}
+            data-type={Atom.to_string(type)}
+            draggable="true"
+          >
+            <div class="card d-flex flex-column" data-item-id={"type-" <> Atom.to_string(type)}>
+              <div
+                class="d-flex flex-items-center flex-justify-between p-2 border-bottom cursor-grab type-drag-handle"
+                draggable="true"
+              >
+                <div class="text-bold d-flex flex-items-center gap-2">
+                  <.octicon name={type_icon(type)} />
+                  {type_display_name(type)}
                 </div>
+                <span class="text-small color-fg-muted">⇅</span>
               </div>
-              
-<!-- Items in this category with proper spacing -->
-              <div class="d-flex flex-column gap-3">
+              <div class="p-2" data-role="type-items">
+                <% items = Map.get(@items_by_type, type, []) %>
+                <% visible_items = get_visible_items(items, @filters) %>
                 <%= for item <- group_by_cluster(visible_items) do %>
                   <%= if is_binary(item) do %>
-                    <!-- Cluster header -->
-                    <div class="p-3 color-bg-accent-subtle  border text-center">
-                      <div class="text-small text-bold color-fg-accent">
-                        <.octicon name="package-16" class="mr-1" />
-                        {item}
-                      </div>
+                    <div class="p-2 color-bg-accent-subtle border text-center text-small text-uppercase tracking-tight">
+                      {item}
                     </div>
                   <% else %>
-                    <!-- Individual item with improved padding and styling -->
-                    <div
-                      class={"card border shadow-sm #{status_class(item.status)} position-relative"}
-                      data-item-id={item.id}
-                      draggable="true"
-                    >
-                      <div class="p-4">
-                        <!-- Duplicate warning badge -->
-                        <%= if has_duplicate_warning?(item) do %>
-                          <.octicon
-                            name="alert-16"
-                            class="position-absolute color-fg-attention"
-                            style="top: 12px; right: 12px;"
-                            title={gettext("Potential duplicate item")}
-                          />
-                        <% end %>
-                        
-<!-- Item content -->
+                    <div class="Box Box--condensed mb-2" data-item-id={item.id} draggable="true">
+                      <div class="Box-body p-2">
                         <%= if @editing_item == item.id do %>
-                          <!-- Edit form with better styling -->
-                          <.form for={%{}} as={:update} phx-submit="update_item" class="mb-3">
+                          <.form for={%{}} as={:update} phx-submit="update_item" class="mb-2">
                             <input type="hidden" name="item_id" value={item.id} />
-                            
-<!-- Category selection in edit mode -->
-                            <div class="mb-3">
+                            <div class="mb-2">
                               <label class="form-label text-small text-bold">
                                 {gettext("Category")}
                               </label>
@@ -180,57 +153,47 @@
                                 class="form-select"
                                 options={
                                   Enum.map(
-                                    get_available_types(),
-                                    &{type_display_name(&1), Atom.to_string(&1)}
+                                    get_populated_types(@items_by_type),
+                                    &{type_display_name(&1), &1}
                                   )
                                 }
                                 id={"edit-type-#{item.id}"}
                               />
                             </div>
-
-                            <div class="mb-3">
+                            <div class="mb-2">
                               <label class="form-label text-small text-bold">
                                 {gettext("Content")}
                               </label>
                               <.textarea
                                 name="text"
                                 value={item.raw_text}
-                                rows="4"
+                                rows="3"
                                 class="form-control"
                                 required
                               />
                             </div>
-
                             <div class="d-flex gap-2">
-                              <.button type="submit" is_primary>
-                                {gettext("Save")}
-                              </.button>
+                              <.button type="submit" is_primary>{gettext("Save")}</.button>
                               <.button type="button" phx-click="cancel_editing">
                                 {gettext("Cancel")}
                               </.button>
                             </div>
                           </.form>
                         <% else %>
-                          <!-- Display mode with better typography -->
                           <div
-                            class="mb-3 lh-condensed"
+                            class="mb-2"
                             phx-click="start_editing"
                             phx-value-id={item.id}
-                            style="cursor: pointer; line-height: 1.4;"
+                            style="cursor:pointer; line-height:1.3;"
                           >
                             {item.raw_text}
                           </div>
                         <% end %>
-                        
-<!-- Item metadata and actions with better layout -->
                         <div class="d-flex flex-items-center flex-justify-between pt-2 border-top">
-                          <div class="d-flex flex-items-center">
-                            <!-- Status badge -->
-                            <.label class={"Label #{status_color_class(item.status)} mr-2"}>
+                          <div class="d-flex flex-items-center gap-2">
+                            <.label class={"Label #{status_color_class(item.status)}"}>
                               {Phoenix.Naming.humanize(item.status)}
                             </.label>
-                            
-<!-- Cluster indicator -->
                             <%= if not is_nil(item.cluster_key) do %>
                               <span class="d-flex flex-items-center text-small color-fg-muted">
                                 <.octicon name="package-16" class="mr-1" />
@@ -238,20 +201,14 @@
                               </span>
                             <% end %>
                           </div>
-                          
-<!-- Action menu -->
                           <.action_menu is_aligned_end>
                             <:toggle class="btn btn-invisible btn-sm">
                               <.octicon name="kebab-horizontal-16" />
                             </:toggle>
-
                             <.action_list>
                               <.action_list_item phx-click="start_editing" phx-value-id={item.id}>
-                                <.octicon name="pencil-16" />
-                                {gettext("Edit")}
+                                <.octicon name="pencil-16" /> {gettext("Edit")}
                               </.action_list_item>
-                              
-<!-- Status transitions -->
                               <%= case item.status do %>
                                 <% :draft -> %>
                                   <.action_list_item
@@ -259,16 +216,14 @@
                                     phx-value-id={item.id}
                                     phx-value-status="clustered"
                                   >
-                                    <.octicon name="package-16" />
-                                    {gettext("Mark as Clustered")}
+                                    <.octicon name="package-16" /> {gettext("Mark as Clustered")}
                                   </.action_list_item>
                                   <.action_list_item
                                     phx-click="update_status"
                                     phx-value-id={item.id}
                                     phx-value-status="archived"
                                   >
-                                    <.octicon name="archive-16" />
-                                    {gettext("Archive")}
+                                    <.octicon name="archive-16" /> {gettext("Archive")}
                                   </.action_list_item>
                                 <% :clustered -> %>
                                   <.action_list_item
@@ -276,16 +231,14 @@
                                     phx-value-id={item.id}
                                     phx-value-status="candidate"
                                   >
-                                    <.octicon name="check-16" />
-                                    {gettext("Mark as Candidate")}
+                                    <.octicon name="check-16" /> {gettext("Mark as Candidate")}
                                   </.action_list_item>
                                   <.action_list_item
                                     phx-click="update_status"
                                     phx-value-id={item.id}
                                     phx-value-status="archived"
                                   >
-                                    <.octicon name="archive-16" />
-                                    {gettext("Archive")}
+                                    <.octicon name="archive-16" /> {gettext("Archive")}
                                   </.action_list_item>
                                 <% :candidate -> %>
                                   <.action_list_item
@@ -293,16 +246,14 @@
                                     phx-value-id={item.id}
                                     phx-value-status="used"
                                   >
-                                    <.octicon name="check-circle-16" />
-                                    {gettext("Mark as Used")}
+                                    <.octicon name="check-circle-16" /> {gettext("Mark as Used")}
                                   </.action_list_item>
                                   <.action_list_item
                                     phx-click="update_status"
                                     phx-value-id={item.id}
                                     phx-value-status="archived"
                                   >
-                                    <.octicon name="archive-16" />
-                                    {gettext("Archive")}
+                                    <.octicon name="archive-16" /> {gettext("Archive")}
                                   </.action_list_item>
                                 <% :used -> %>
                                   <.action_list_item
@@ -310,16 +261,16 @@
                                     phx-value-id={item.id}
                                     phx-value-status="candidate"
                                   >
-                                    <.octicon name="arrow-left-16" />
-                                    {gettext("Mark as Candidate")}
+                                    <.octicon name="arrow-left-16" /> {gettext(
+                                      "Mark as Candidate"
+                                    )}
                                   </.action_list_item>
                                   <.action_list_item
                                     phx-click="update_status"
                                     phx-value-id={item.id}
                                     phx-value-status="archived"
                                   >
-                                    <.octicon name="archive-16" />
-                                    {gettext("Archive")}
+                                    <.octicon name="archive-16" /> {gettext("Archive")}
                                   </.action_list_item>
                                 <% :archived -> %>
                                   <.action_list_item
@@ -327,19 +278,15 @@
                                     phx-value-id={item.id}
                                     phx-value-status="draft"
                                   >
-                                    <.octicon name="arrow-left-16" />
                                     {gettext("Restore to Draft")}
                                   </.action_list_item>
                               <% end %>
-                              
-<!-- Clustering -->
                               <%= if is_nil(item.cluster_key) do %>
                                 <.action_list_item
                                   phx-click="start_cluster_assign"
                                   phx-value-id={item.id}
                                 >
-                                  <.octicon name="package-16" />
-                                  {gettext("Assign to Cluster")}
+                                  <.octicon name="package-16" /> {gettext("Assign to Cluster")}
                                 </.action_list_item>
                               <% else %>
                                 <.action_list_item
@@ -347,11 +294,9 @@
                                   phx-value-id={item.id}
                                   phx-value-cluster=""
                                 >
-                                  <.octicon name="package-16" />
-                                  {gettext("Remove from Cluster")}
+                                  <.octicon name="package-16" /> {gettext("Remove from Cluster")}
                                 </.action_list_item>
                               <% end %>
-
                               <.action_list_item
                                 phx-click="delete_item"
                                 phx-value-id={item.id}
@@ -360,8 +305,7 @@
                                 }
                                 is_danger
                               >
-                                <.octicon name="trash-16" />
-                                {gettext("Delete")}
+                                <.octicon name="trash-16" /> {gettext("Delete")}
                               </.action_list_item>
                             </.action_list>
                           </.action_menu>
@@ -372,7 +316,7 @@
                 <% end %>
               </div>
             </div>
-          <% end %>
+          </div>
         <% end %>
       </div>
     <% end %>

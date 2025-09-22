@@ -34,6 +34,12 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
       |> List.flatten()
       |> length()
 
+    # Initial type order (alphabetical by populated types)
+    type_order =
+      items_by_type
+      |> Map.keys()
+      |> Enum.sort()
+
     {:ok,
      socket
      |> assign(:workspace_id, workspace_id)
@@ -43,7 +49,8 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
      |> assign(:filters, filters)
      |> assign(:undo_queue, [])
      |> assign(:editing_item, nil)
-     |> assign(:assigning_cluster_item, nil)}
+     |> assign(:assigning_cluster_item, nil)
+     |> assign(:type_order, type_order)}
   end
 
   @impl true
@@ -245,6 +252,38 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
     end
   end
 
+  # Reorder the visible types (columns/cards)
+  @impl true
+  def handle_event("reorder_types", %{"order" => order_list}, socket) when is_list(order_list) do
+    # Sanitize: keep only existing populated types, convert to atoms
+    existing_types = Map.keys(socket.assigns.items_by_type) |> MapSet.new()
+
+    new_order =
+      order_list
+      |> Enum.map(fn t ->
+        try do
+          String.to_existing_atom(t)
+        rescue
+          ArgumentError -> nil
+        end
+      end)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.filter(&MapSet.member?(existing_types, &1))
+
+    # Append any remaining types that may have been added concurrently
+    remaining =
+      existing_types
+      |> Enum.reject(&(&1 in new_order))
+
+    final_order = new_order ++ remaining
+
+    broadcast_types_reordered(socket.assigns.workspace_id, final_order)
+
+    {:noreply, assign(socket, :type_order, final_order)}
+  end
+
+  def handle_event("reorder_types", _params, socket), do: {:noreply, socket}
+
   # Assign item to cluster
   @impl true
   def handle_event("start_cluster_assign", %{"id" => id}, socket) do
@@ -369,6 +408,10 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
     {:noreply, refresh_items(socket)}
   end
 
+  def handle_info({:types_reordered, order}, socket) do
+    {:noreply, assign(socket, :type_order, order)}
+  end
+
   # Clean up old undo entries
   @impl true
   def handle_info(:cleanup_undo_queue, socket) do
@@ -415,9 +458,18 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
     # Calculate total items
     total_items = length(items)
 
+    # Reconcile existing type order (remove missing, append new)
+    type_order = socket.assigns[:type_order] || []
+    current_types = Map.keys(items_by_type) |> Enum.sort()
+
+    preserved = Enum.filter(type_order, &(&1 in current_types))
+    new_types = current_types -- preserved
+    reconciled_order = preserved ++ new_types
+
     socket
     |> assign(:items_by_type, items_by_type)
     |> assign(:total_items, total_items)
+    |> assign(:type_order, reconciled_order)
   end
 
   defp maybe_add_filter(filters, _key, nil), do: filters
@@ -439,6 +491,14 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
 
   defp broadcast_update(workspace_id, event, item) do
     PubSub.broadcast(Valentine.PubSub, "brainstorm:workspace:#{workspace_id}", {event, item})
+  end
+
+  defp broadcast_types_reordered(workspace_id, order) do
+    PubSub.broadcast(
+      Valentine.PubSub,
+      "brainstorm:workspace:#{workspace_id}",
+      {:types_reordered, order}
+    )
   end
 
   defp format_errors(changeset) do
@@ -464,9 +524,15 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
 
   # Get only types that have items (for masonry layout)
   defp get_populated_types(items_by_type) do
-    items_by_type
-    |> Map.keys()
-    |> Enum.sort()
+    items_by_type |> Map.keys() |> Enum.sort()
+  end
+
+  # Order populated types according to provided order list
+  defp ordered_populated_types(items_by_type, order) do
+    populated = Map.keys(items_by_type) |> MapSet.new()
+    ordered = Enum.filter(order, &MapSet.member?(populated, &1))
+    remainder = Enum.reject(populated, &(&1 in ordered)) |> Enum.sort()
+    ordered ++ remainder
   end
 
   # Get visible items after applying filters
