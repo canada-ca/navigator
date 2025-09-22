@@ -232,114 +232,129 @@
                               </span>
                             <% end %>
                           </div>
-                          <.action_menu is_aligned_end>
-                            <:toggle class="btn btn-invisible btn-sm">
-                              <.octicon name="kebab-horizontal-16" />
-                            </:toggle>
-                            <.action_list>
-                              <.action_list_item phx-click="start_editing" phx-value-id={item.id}>
-                                <.octicon name="pencil-16" /> {gettext("Edit")}
-                              </.action_list_item>
-                              <%= case item.status do %>
-                                <% :draft -> %>
-                                  <.action_list_item
-                                    phx-click="update_status"
-                                    phx-value-id={item.id}
-                                    phx-value-status="clustered"
-                                  >
-                                    <.octicon name="package-16" /> {gettext("Mark as Clustered")}
-                                  </.action_list_item>
-                                  <.action_list_item
-                                    phx-click="update_status"
-                                    phx-value-id={item.id}
-                                    phx-value-status="archived"
-                                  >
-                                    <.octicon name="archive-16" /> {gettext("Archive")}
-                                  </.action_list_item>
-                                <% :clustered -> %>
-                                  <.action_list_item
-                                    phx-click="update_status"
-                                    phx-value-id={item.id}
-                                    phx-value-status="candidate"
-                                  >
-                                    <.octicon name="check-16" /> {gettext("Mark as Candidate")}
-                                  </.action_list_item>
-                                  <.action_list_item
-                                    phx-click="update_status"
-                                    phx-value-id={item.id}
-                                    phx-value-status="archived"
-                                  >
-                                    <.octicon name="archive-16" /> {gettext("Archive")}
-                                  </.action_list_item>
-                                <% :candidate -> %>
-                                  <.action_list_item
-                                    phx-click="update_status"
-                                    phx-value-id={item.id}
-                                    phx-value-status="used"
-                                  >
-                                    <.octicon name="check-circle-16" /> {gettext("Mark as Used")}
-                                  </.action_list_item>
-                                  <.action_list_item
-                                    phx-click="update_status"
-                                    phx-value-id={item.id}
-                                    phx-value-status="archived"
-                                  >
-                                    <.octicon name="archive-16" /> {gettext("Archive")}
-                                  </.action_list_item>
-                                <% :used -> %>
-                                  <.action_list_item
-                                    phx-click="update_status"
-                                    phx-value-id={item.id}
-                                    phx-value-status="candidate"
-                                  >
-                                    <.octicon name="arrow-left-16" /> {gettext(
-                                      "Mark as Candidate"
-                                    )}
-                                  </.action_list_item>
-                                  <.action_list_item
-                                    phx-click="update_status"
-                                    phx-value-id={item.id}
-                                    phx-value-status="archived"
-                                  >
-                                    <.octicon name="archive-16" /> {gettext("Archive")}
-                                  </.action_list_item>
-                                <% :archived -> %>
-                                  <.action_list_item
-                                    phx-click="update_status"
-                                    phx-value-id={item.id}
-                                    phx-value-status="draft"
-                                  >
-                                    {gettext("Restore to Draft")}
-                                  </.action_list_item>
-                              <% end %>
-                              <%= if is_nil(item.cluster_key) do %>
-                                <.action_list_item
-                                  phx-click="start_cluster_assign"
+                          <div class="brainstorm-item-actions">
+                            <%= case item.status do %>
+                              <% :draft -> %>
+                                <button
+                                  type="button"
+                                  class="btn-icon"
+                                  phx-click="update_status"
                                   phx-value-id={item.id}
+                                  phx-value-status="clustered"
+                                  title={gettext("Mark as Clustered")}
                                 >
-                                  <.octicon name="package-16" /> {gettext("Assign to Cluster")}
-                                </.action_list_item>
-                              <% else %>
-                                <.action_list_item
-                                  phx-click="assign_cluster"
+                                  <.octicon name="package-16" />
+                                </button>
+                              <% :clustered -> %>
+                                <button
+                                  type="button"
+                                  class="btn-icon"
+                                  phx-click="update_status"
                                   phx-value-id={item.id}
-                                  phx-value-cluster=""
+                                  phx-value-status="candidate"
+                                  title={gettext("Mark as Candidate")}
                                 >
-                                  <.octicon name="package-16" /> {gettext("Remove from Cluster")}
-                                </.action_list_item>
-                              <% end %>
-                              <.action_list_item
-                                phx-click="delete_item"
+                                  <.octicon name="check-16" />
+                                </button>
+                              <% :candidate -> %>
+                                <button
+                                  type="button"
+                                  class="btn-icon"
+                                  phx-click="update_status"
+                                  phx-value-id={item.id}
+                                  phx-value-status="used"
+                                  title={gettext("Mark as Used")}
+                                >
+                                  <.octicon name="check-circle-16" />
+                                </button>
+                              <% :used -> %>
+                                <button
+                                  type="button"
+                                  class="btn-icon"
+                                  phx-click="update_status"
+                                  phx-value-id={item.id}
+                                  phx-value-status="candidate"
+                                  title={gettext("Revert to Candidate")}
+                                >
+                                  <.octicon name="arrow-left-16" />
+                                </button>
+                              <% :archived -> %>
+                                <button
+                                  type="button"
+                                  class="btn-icon"
+                                  phx-click="update_status"
+                                  phx-value-id={item.id}
+                                  phx-value-status="draft"
+                                  title={gettext("Restore to Draft")}
+                                >
+                                  <.octicon name="history-16" />
+                                </button>
+                            <% end %>
+                            <button
+                              type="button"
+                              class="btn-icon"
+                              phx-click="start_editing"
+                              phx-value-id={item.id}
+                              title={gettext("Edit item")}
+                            >
+                              <.octicon name="pencil-16" />
+                            </button>
+                            <%= if is_nil(item.cluster_key) do %>
+                              <button
+                                type="button"
+                                class="btn-icon"
+                                phx-click="start_cluster_assign"
                                 phx-value-id={item.id}
-                                data-confirm={
-                                  gettext("Are you sure you want to delete this item?")
-                                }
-                                is_danger
+                                title={gettext("Assign to cluster")}
                               >
-                                <.octicon name="trash-16" /> {gettext("Delete")}
-                              </.action_list_item>
-                            </.action_list>
-                          </.action_menu>
+                                <.octicon name="package-16" />
+                              </button>
+                            <% else %>
+                              <button
+                                type="button"
+                                class="btn-icon"
+                                phx-click="assign_cluster"
+                                phx-value-id={item.id}
+                                phx-value-cluster=""
+                                title={gettext("Remove from cluster")}
+                              >
+                                <.octicon name="x-16" />
+                              </button>
+                            <% end %>
+                            <%= if item.status != :archived do %>
+                              <button
+                                type="button"
+                                class="btn-icon"
+                                phx-click="update_status"
+                                phx-value-id={item.id}
+                                phx-value-status="archived"
+                                title={gettext("Archive")}
+                              >
+                                <.octicon name="archive-16" />
+                              </button>
+                            <% else %>
+                              <button
+                                type="button"
+                                class="btn-icon"
+                                phx-click="update_status"
+                                phx-value-id={item.id}
+                                phx-value-status="draft"
+                                title={gettext("Restore to Draft")}
+                              >
+                                <.octicon name="history-16" />
+                              </button>
+                            <% end %>
+                            <button
+                              type="button"
+                              class="btn-icon danger"
+                              phx-click="delete_item"
+                              phx-value-id={item.id}
+                              data-confirm={gettext("Are you sure you want to delete this item?")}
+                              title={gettext("Delete item")}
+                            >
+                              <.octicon name="trash-16" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>

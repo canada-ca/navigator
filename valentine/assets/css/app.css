@@ -9,37 +9,24 @@
     orphans: 1;
 }
 
+/* Each type column card as a masonry item */
 .brainstorm-masonry-item {
     display: inline-block;
-    /* allow items to flow inside columns */
+    /* allow multi-column flow */
     width: 100%;
+    /* fill the column width */
     break-inside: avoid;
+    /* prevent splitting */
     -webkit-column-break-inside: avoid;
     -moz-column-break-inside: avoid;
     margin: 0 0 1rem;
+    vertical-align: top;
+    /* align columns at top */
 }
 
-/* Drag & drop states */
-.brainstorm-masonry-item.drag-over {
-    outline: 2px dashed var(--color-accent-emphasis, #0969da);
-    outline-offset: 4px;
-    background: var(--color-accent-subtle, #ddf4ff);
-}
-
-.card.dragging {
-    opacity: 0.5;
-}
-
-/* Ensure cards stretch full width inside masonry item */
-.brainstorm-masonry-item>.card,
-.brainstorm-masonry-item>div .card {
-    /* nested safety */
-    width: 100%;
-}
-
-/* Column drag states */
+/* Column drag states (restored) */
 .brainstorm-masonry-item.dragging-type {
-    opacity: 0.55;
+    opacity: .55;
     transform: scale(.985);
 }
 
@@ -48,6 +35,51 @@
     outline-offset: 2px;
     background: var(--color-accent-subtle, #ddf4ff);
 }
+
+/* Inline action row for brainstorm items (replacing dropdown ActionMenu) */
+.brainstorm-item-actions {
+    display: flex;
+    align-items: center;
+    gap: .25rem;
+}
+
+.brainstorm-item-actions button.btn-icon {
+    background: transparent;
+    border: 0;
+    padding: 2px 4px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-fg-subtle);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.brainstorm-item-actions button.btn-icon:hover {
+    background: var(--color-neutral-subtle);
+    color: var(--color-fg-default);
+}
+
+.brainstorm-item-actions button.btn-icon:focus-visible {
+    outline: 2px solid var(--color-accent-emphasis, #0969da);
+    outline-offset: 1px;
+}
+
+.brainstorm-item-actions button.btn-icon.danger:hover {
+    background: var(--color-danger-subtle, #ffebe9);
+    color: var(--color-danger-fg, #d1242f);
+}
+
+[data-color-mode="dark"] .brainstorm-item-actions button.btn-icon:hover {
+    background: #262b31;
+}
+
+[data-color-mode="dark"] .brainstorm-item-actions button.btn-icon.danger:hover {
+    background: rgba(248, 81, 73, 0.15);
+    color: #ff938a;
+}
+
 
 .type-drag-handle {
     cursor: grab;
@@ -186,13 +218,13 @@
 .brainstorm-item {
     background: var(--color-canvas-default);
     border: 1px solid var(--color-border-muted, var(--color-border-default));
-    transition: background .12s ease, box-shadow .12s ease, border-color .12s ease, transform .08s ease;
+    transition: background .12s ease, box-shadow .12s ease, border-color .12s ease;
     border-radius: 6px;
+    overflow: visible;
 }
 
 .brainstorm-item:hover {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-    transform: translateY(-1px);
 }
 
 .brainstorm-item.is-clustered {
@@ -345,27 +377,7 @@
     opacity: .7;
 }
 
-/* Scoped adjustment: prevent action menu from drifting full width when inside columns */
-.brainstorm-masonry-item .ActionMenu,
-.brainstorm-masonry-item .ActionListWrap,
-.brainstorm-masonry-item [data-component="ActionMenu"] {
-    max-width: 260px;
-}
-
-/* Ensure dropdown appears above overflowing masonry context */
-.brainstorm-masonry-item .ActionMenu-overlay,
-.brainstorm-masonry-item .ActionListWrap-overlay {
-    position: absolute !important;
-    top: 100%;
-    right: 0;
-    margin-top: 4px;
-    z-index: 60;
-}
-
-/* Dark mode alignment tweaks */
-[data-color-mode="dark"] .brainstorm-masonry-item .ActionMenu-overlay {
-    background: var(--color-canvas-overlay, #161b22);
-}
+/* (Removed legacy ActionMenu dropdown overrides in favor of inline action icons) */
 
 /* Dark mode tweaks */
 [data-color-mode="dark"] .brainstorm-masonry-item .card {
