@@ -71,8 +71,9 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
 
         {:noreply,
          socket
-         |> refresh_items()
-         |> put_flash(:info, gettext("Item created successfully"))}
+         |> refresh_items()}
+
+      # |> put_flash(:info, gettext("Item created successfully"))}
 
       {:error, changeset} ->
         {:noreply,
@@ -486,7 +487,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   defp type_icon(:evidence), do: "file-16"
   defp type_icon(:requirement), do: "checklist-16"
   defp type_icon(:asset), do: "package-16"
-  defp type_icon(:component), do: "cube-16"
+  defp type_icon(:component), do: "server-16"
   defp type_icon(:attack_vector), do: "zap-16"
   defp type_icon(:vulnerability), do: "bug-16"
   defp type_icon(:impact), do: "flame-16"

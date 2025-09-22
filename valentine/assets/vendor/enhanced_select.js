@@ -57,6 +57,21 @@ const EnhancedSelect = {
     if (visibleCount > 0) {
       this.activeIndex = this.items.findIndex(i => i.style.display !== 'none');
     }
+    // Auto-populate when a single option remains
+    if (visibleCount === 1) {
+      const onlyItem = this.items.find(i => i.style.display !== 'none');
+      if (onlyItem) {
+        // If nothing selected yet or selected differs, set both display and value
+        const currentVal = this.valueEl.value;
+        if (currentVal !== onlyItem.dataset.value) {
+          this.inputEl.value = onlyItem.dataset.label;
+          this.valueEl.value = onlyItem.dataset.value;
+          // Keep internal active index aligned
+          this.activeIndex = this.items.indexOf(onlyItem);
+          this.highlight();
+        }
+      }
+    }
   },
   onKey(e) {
     switch (e.key) {
