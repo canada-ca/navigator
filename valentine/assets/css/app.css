@@ -39,20 +39,129 @@
 
 /* Column drag states */
 .brainstorm-masonry-item.dragging-type {
-    opacity: 0.6;
+    opacity: 0.55;
+    transform: scale(.985);
 }
 
 .brainstorm-masonry-item.drag-over-type {
-    outline: 2px dashed var(--color-accent-emphasis, #0969da);
-    outline-offset: 4px;
+    outline: 2px solid var(--color-accent-emphasis, #0969da);
+    outline-offset: 2px;
+    background: var(--color-accent-subtle, #ddf4ff);
 }
 
 .type-drag-handle {
     cursor: grab;
+    user-select: none;
+    background: var(--color-canvas-subtle);
+    border-radius: 4px 4px 0 0;
 }
 
 .type-drag-handle:active {
     cursor: grabbing;
+}
+
+/* Category (type) column card refinement */
+.brainstorm-masonry-item .card {
+    border: 1px solid var(--color-border-default);
+    border-radius: 6px;
+    background: var(--color-canvas-default);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
+    transition: box-shadow .15s ease, transform .15s ease;
+    position: relative;
+    /* Anchor action menu overlays */
+}
+
+.brainstorm-masonry-item .card:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.brainstorm-masonry-item .card:focus-within {
+    box-shadow: 0 0 0 2px var(--color-accent-emphasis, #0969da);
+}
+
+.brainstorm-masonry-item .card .border-bottom {
+    background: linear-gradient(var(--color-canvas-subtle), var(--color-canvas-default));
+}
+
+.brainstorm-masonry-item .card .p-2[data-role="type-items"] {
+    max-height: 100%;
+    overflow: visible;
+}
+
+/* Individual brainstorm item cards inside columns */
+.brainstorm-masonry-item [data-role="type-items"] .Box {
+    border: 1px solid var(--color-border-muted, var(--color-border-default));
+    border-radius: 6px;
+    background: var(--color-canvas-subtle);
+    transition: background .12s ease, border-color .12s ease;
+    position: relative;
+    /* Anchor item-level action menu */
+}
+
+.brainstorm-masonry-item [data-role="type-items"] .Box:hover {
+    background: var(--color-canvas-default);
+}
+
+.brainstorm-masonry-item [data-role="type-items"] .Box.dragging {
+    opacity: .5;
+}
+
+/* Cluster header styling inside columns */
+.brainstorm-masonry-item [data-role="type-items"] .color-bg-accent-subtle.border {
+    border-radius: 4px;
+    font-weight: 600;
+    letter-spacing: .5px;
+}
+
+/* Drag handle icon area */
+.type-drag-handle span {
+    font-size: 0.75rem;
+    opacity: .7;
+}
+
+/* Scoped adjustment: prevent action menu from drifting full width when inside columns */
+.brainstorm-masonry-item .ActionMenu,
+.brainstorm-masonry-item .ActionListWrap,
+.brainstorm-masonry-item [data-component="ActionMenu"] {
+    max-width: 260px;
+}
+
+/* Ensure dropdown appears above overflowing masonry context */
+.brainstorm-masonry-item .ActionMenu-overlay,
+.brainstorm-masonry-item .ActionListWrap-overlay {
+    position: absolute !important;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    z-index: 60;
+}
+
+/* Dark mode alignment tweaks */
+[data-color-mode="dark"] .brainstorm-masonry-item .ActionMenu-overlay {
+    background: var(--color-canvas-overlay, #161b22);
+}
+
+/* Dark mode tweaks */
+[data-color-mode="dark"] .brainstorm-masonry-item .card {
+    background: var(--color-canvas-subtle, #161b22);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+[data-color-mode="dark"] .brainstorm-masonry-item .card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+}
+
+[data-color-mode="dark"] .brainstorm-masonry-item [data-role="type-items"] .Box {
+    background: #1d232a;
+    border-color: #30363d;
+}
+
+[data-color-mode="dark"] .brainstorm-masonry-item [data-role="type-items"] .Box:hover {
+    background: #222a32;
+}
+
+[data-color-mode="dark"] .brainstorm-masonry-item.drag-over-type {
+    background: rgba(56, 139, 253, 0.15);
 }
 
 @media (max-width: 900px) {

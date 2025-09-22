@@ -535,6 +535,25 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
     ordered ++ remainder
   end
 
+  # Visible types: hide types whose items are all archived unless filtering to archived
+  defp ordered_visible_types(items_by_type, order, filters) do
+    populated_visible =
+      items_by_type
+      |> Enum.filter(fn {_type, items} ->
+        if filters.status == :archived do
+          true
+        else
+          Enum.any?(items, &(&1.status != :archived))
+        end
+      end)
+      |> Enum.map(&elem(&1, 0))
+      |> MapSet.new()
+
+    ordered = Enum.filter(order, &MapSet.member?(populated_visible, &1))
+    remainder = Enum.reject(populated_visible, &(&1 in ordered)) |> Enum.sort()
+    ordered ++ remainder
+  end
+
   # Get visible items after applying filters
   defp get_visible_items(items, filters) do
     items

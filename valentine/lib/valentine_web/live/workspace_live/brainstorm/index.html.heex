@@ -112,7 +112,7 @@
     <% else %>
       <!-- True masonry layout using CSS columns -->
       <div class="brainstorm-masonry" id="brainstorm-masonry" data-role="type-container">
-        <%= for type <- ordered_populated_types(@items_by_type, @type_order || []) do %>
+        <%= for type <- ordered_visible_types(@items_by_type, @type_order || [], @filters) do %>
           <div
             class="brainstorm-masonry-item"
             data-type-column={Atom.to_string(type)}
@@ -128,10 +128,17 @@
                   <.octicon name={type_icon(type)} />
                   {type_display_name(type)}
                 </div>
-                <span class="text-small color-fg-muted">⇅</span>
+                <span class="text-small color-fg-muted">✥</span>
+              </div>
+              <% all_items = Map.get(@items_by_type, type, []) %>
+              <% active_count = Enum.count(all_items, &(&1.status != :archived)) %>
+              <% archived_count = Enum.count(all_items, &(&1.status == :archived)) %>
+              <div class="px-2 pb-1 text-small color-fg-muted d-flex gap-2 flex-wrap">
+                <span title={gettext("Active items (not archived)")}>{active_count} active</span>
+                <span title={gettext("Archived items")}>{archived_count} archived</span>
               </div>
               <div class="p-2" data-role="type-items">
-                <% items = Map.get(@items_by_type, type, []) %>
+                <% items = all_items %>
                 <% visible_items = get_visible_items(items, @filters) %>
                 <%= for item <- group_by_cluster(visible_items) do %>
                   <%= if is_binary(item) do %>
