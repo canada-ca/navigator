@@ -19,6 +19,17 @@
     margin: 0 0 1rem;
 }
 
+/* Drag & drop states */
+.brainstorm-masonry-item.drag-over {
+    outline: 2px dashed var(--color-accent-emphasis, #0969da);
+    outline-offset: 4px;
+    background: var(--color-accent-subtle, #ddf4ff);
+}
+
+.card.dragging {
+    opacity: 0.5;
+}
+
 /* Ensure cards stretch full width inside masonry item */
 .brainstorm-masonry-item>.card,
 .brainstorm-masonry-item>div .card {

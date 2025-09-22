@@ -223,6 +223,28 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
     end
   end
 
+  # Drag & drop move between categories (types)
+  @impl true
+  def handle_event("move_item", %{"id" => id, "type" => new_type}, socket) do
+    item = Composer.get_brainstorm_item!(id)
+
+    cond do
+      new_type == Atom.to_string(item.type) ->
+        # No change
+        {:noreply, socket}
+
+      true ->
+        case Composer.update_brainstorm_item(item, %{type: String.to_existing_atom(new_type)}) do
+          {:ok, updated_item} ->
+            broadcast_update(socket.assigns.workspace_id, :item_updated, updated_item)
+            {:noreply, refresh_items(socket)}
+
+          {:error, _changeset} ->
+            {:noreply, put_flash(socket, :error, gettext("Failed to move item"))}
+        end
+    end
+  end
+
   # Assign item to cluster
   @impl true
   def handle_event("start_cluster_assign", %{"id" => id}, socket) do

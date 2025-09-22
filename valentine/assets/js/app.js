@@ -30,6 +30,7 @@ import QuillHook from "../vendor/quill-hook"
 import ResizableDrawer from "../vendor/resizeable-drawer-hook"
 import Session from "../vendor/session-hook"
 import EnhancedSelect from "../vendor/enhanced_select"
+import BrainstormDrag from "../vendor/drag-and-drop"
 import "../css/app.css"
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
@@ -44,7 +45,8 @@ let liveSocket = new LiveSocket("/live", Socket, {
     Quill: QuillHook,
     ResizableDrawer,
     Session,
-    EnhancedSelect
+    EnhancedSelect,
+    BrainstormDrag
   },
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken }

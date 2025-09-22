@@ -94,7 +94,7 @@
   </div>
   
 <!-- Masonry board layout -->
-  <div class="flex-auto overflow-auto p-3">
+  <div id="brainstorm-board" class="flex-auto overflow-auto p-3" phx-hook="BrainstormDrag">
     <%= if @total_items == 0 do %>
       <!-- Empty state when no items exist -->
       <div class="blankslate blankslate-spacious">
@@ -116,7 +116,7 @@
           <% items = Map.get(@items_by_type, type, []) %>
           <% visible_items = get_visible_items(items, @filters) %>
           <%= if length(visible_items) > 0 do %>
-            <div class="brainstorm-masonry-item p-3">
+            <div class="brainstorm-masonry-item p-3" data-type-column={Atom.to_string(type)}>
               <!-- Category header with better styling -->
               <div class="card-header p-3 border color-bg-subtle">
                 <div class="d-flex flex-items-center flex-justify-between">
@@ -148,7 +148,11 @@
                     </div>
                   <% else %>
                     <!-- Individual item with improved padding and styling -->
-                    <div class={"card border shadow-sm #{status_class(item.status)} position-relative"}>
+                    <div
+                      class={"card border shadow-sm #{status_class(item.status)} position-relative"}
+                      data-item-id={item.id}
+                      draggable="true"
+                    >
                       <div class="p-4">
                         <!-- Duplicate warning badge -->
                         <%= if has_duplicate_warning?(item) do %>
