@@ -110,13 +110,13 @@
         </p>
       </div>
     <% else %>
-      <!-- Masonry layout with categories -->
-      <div class="d-flex flex-wrap gap-3" style="margin: -12px;">
+      <!-- True masonry layout using CSS columns -->
+      <div class="brainstorm-masonry">
         <%= for type <- get_populated_types(@items_by_type) do %>
           <% items = Map.get(@items_by_type, type, []) %>
           <% visible_items = get_visible_items(items, @filters) %>
           <%= if length(visible_items) > 0 do %>
-            <div class="flex-shrink-0 p-3" style="width: 350px; margin: 12px;">
+            <div class="brainstorm-masonry-item p-3">
               <!-- Category header with better styling -->
               <div class="card-header p-3 border color-bg-subtle">
                 <div class="d-flex flex-items-center flex-justify-between">
