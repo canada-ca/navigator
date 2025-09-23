@@ -90,6 +90,12 @@
           {gettext("Clear")}
         </.button>
       </.form>
+      
+<!-- Threat Builder Button -->
+      <.button :if={@total_items > 0} phx-click="open_threat_builder" class="btn-primary">
+        <.octicon name="shield-16" />
+        {gettext("Build Threat")}
+      </.button>
     </div>
   </div>
   
@@ -483,5 +489,15 @@
         </div>
       </div>
     </div>
+  <% end %>
+  
+<!-- Threat Builder Component -->
+  <%= if @show_threat_builder do %>
+    <.live_component
+      module={ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponent}
+      id="threat-builder"
+      workspace_id={@workspace_id}
+      cluster_key={@builder_cluster_key}
+    />
   <% end %>
 </div>

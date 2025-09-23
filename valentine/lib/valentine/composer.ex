@@ -2193,6 +2193,24 @@ defmodule Valentine.Composer do
   def get_brainstorm_item!(id), do: Repo.get!(BrainstormItem, id)
 
   @doc """
+  Gets a single brainstorm item by id.
+
+  Returns `nil` if the BrainstormItem does not exist.
+
+  ## Examples
+
+      iex> get_brainstorm_item(item_id)
+      %BrainstormItem{}
+
+      iex> get_brainstorm_item(invalid_id)
+      nil
+
+  """
+  def get_brainstorm_item(item_id) do
+    Repo.get(BrainstormItem, item_id)
+  end
+
+  @doc """
   Gets a single brainstorm item by id and workspace.
 
   Returns `nil` if the BrainstormItem does not exist or doesn't belong to the workspace.
