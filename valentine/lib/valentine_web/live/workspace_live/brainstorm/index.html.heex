@@ -150,8 +150,7 @@
                 </div>
               </div>
               <div class="p-2" data-role="type-items">
-                <% items = all_items %>
-                <% visible_items = get_visible_items(items, @filters) %>
+                <% visible_items = get_visible_items(all_items, @filters) %>
                 <%= for item <- group_by_cluster(visible_items) do %>
                   <%= if is_binary(item) do %>
                     <% cluster_items = Enum.filter(visible_items, &(&1.cluster_key == item)) %>
