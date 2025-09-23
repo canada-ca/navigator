@@ -246,7 +246,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
   @impl true
   def handle_event("save_threats", _params, socket) do
     socket = assign(socket, :saving, true)
-    
+
     case validate_and_save_threats(socket) do
       {:ok, threats} ->
         send(self(), {:threats_created, threats})
@@ -268,7 +268,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
 
   # Private helper functions
 
-  defp load_available_cards(workspace_id, cluster_key \\ nil) do
+  defp load_available_cards(workspace_id, cluster_key) do
     filters = if cluster_key, do: %{cluster_key: cluster_key}, else: %{}
 
     workspace_id
@@ -369,22 +369,30 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
     action_lower = String.downcase(action)
 
     cond do
-      String.contains?(action_lower, ["spoof", "impersonate", "fake"]) ->
+      String.contains?(action_lower, "spoof") or String.contains?(action_lower, "impersonate") or
+          String.contains?(action_lower, "fake") ->
         [:spoofing]
 
-      String.contains?(action_lower, ["modify", "alter", "tamper", "change"]) ->
+      String.contains?(action_lower, "modif") or String.contains?(action_lower, "alter") or
+        String.contains?(action_lower, "tamper") or String.contains?(action_lower, "change") ->
         [:tampering]
 
-      String.contains?(action_lower, ["deny", "repudiate", "claim"]) ->
+      String.contains?(action_lower, "repudiate") or String.contains?(action_lower, "claim") ->
         [:repudiation]
 
-      String.contains?(action_lower, ["access", "read", "disclose", "leak", "expose"]) ->
+      String.contains?(action_lower, "access") or String.contains?(action_lower, "read") or
+        String.contains?(action_lower, "disclose") or String.contains?(action_lower, "leak") or
+          String.contains?(action_lower, "expose") ->
         [:information_disclosure]
 
-      String.contains?(action_lower, ["deny", "block", "prevent", "overload", "crash"]) ->
+      String.contains?(action_lower, "deny") or String.contains?(action_lower, "block") or
+        String.contains?(action_lower, "prevent") or String.contains?(action_lower, "overload") or
+          String.contains?(action_lower, "crash") ->
         [:denial_of_service]
 
-      String.contains?(action_lower, ["elevate", "escalate", "privilege", "admin", "root"]) ->
+      String.contains?(action_lower, "elevate") or String.contains?(action_lower, "escalate") or
+        String.contains?(action_lower, "privilege") or String.contains?(action_lower, "admin") or
+          String.contains?(action_lower, "root") ->
         [:elevation_of_privilege]
 
       true ->

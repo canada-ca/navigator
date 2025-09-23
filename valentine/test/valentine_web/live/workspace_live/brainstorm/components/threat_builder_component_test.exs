@@ -99,10 +99,14 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
 
       # Should show component interface
       assert html =~ "Statement Builder"
-      assert html =~ "threat" # Should have threat selection
-      assert html =~ "attack_vector" # Should have attack vector selection
-      assert html =~ "impact" # Should have impact selection  
-      assert html =~ "asset" # Should have asset selection
+      # Should have threat selection
+      assert html =~ "threat"
+      # Should have attack vector selection
+      assert html =~ "attack_vector"
+      # Should have impact selection  
+      assert html =~ "impact"
+      # Should have asset selection
+      assert html =~ "asset"
     end
 
     test "supports split threats for multiple assets", %{
