@@ -292,11 +292,6 @@
     background: var(--color-neutral-subtle);
 }
 
-.brainstorm-item.editing [data-role="cancel-edit"]:hover {
-    /* fallback when not portaled */
-    width: 100%;
-}
-
 [data-color-mode="dark"] .brainstorm-item.editing {
     box-shadow: 0 0 0 2px rgba(56, 139, 253, 0.4);
     background: #1d232a;
@@ -483,6 +478,139 @@
 
 html[data-theme="dark"] {
     background-color: #0d1117;
+}
+
+/* Cluster Assignment Dialog */
+.cluster-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 17, 23, 0.55);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 4rem 1rem 2rem;
+    z-index: 100;
+    overflow-y: auto;
+}
+
+.cluster-dialog {
+    width: 100%;
+    max-width: 460px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    animation: clusterDialogFade .18s ease-out;
+}
+
+@keyframes clusterDialogFade {
+    from {
+        opacity: 0;
+        transform: translateY(-4px) scale(.985);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.cluster-dialog-header {
+    background: linear-gradient(var(--color-canvas-subtle), var(--color-canvas-default));
+    border-bottom: 1px solid var(--color-border-default);
+    padding: .85rem 1rem .75rem;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+}
+
+.cluster-dialog-header .Box-title {
+    margin: 0;
+    line-height: 1.2;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.cluster-dialog-header .btn-octicon {
+    margin-left: auto;
+}
+
+.cluster-dialog-body {
+    padding: 1rem 1.1rem 1.25rem;
+}
+
+.cluster-dialog-form .form-group+.form-group {
+    margin-top: 1.25rem;
+}
+
+.cluster-dialog-actions {
+    border-top: 1px solid var(--color-border-muted, var(--color-border-default));
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+}
+
+.cluster-dialog-actions .btn-sm {
+    line-height: 1.1;
+}
+
+.cluster-dialog-body fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    min-inline-size: 0;
+}
+
+.cluster-dialog-body .uppercase {
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    font-size: .65rem;
+    font-weight: 600;
+}
+
+.cluster-dialog-body .select-wrapper {
+    position: relative;
+}
+
+.cluster-dialog-body .select-wrapper:after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    right: .75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: .55rem;
+    height: .55rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    rotate: 45deg;
+    opacity: .65;
+}
+
+/* Dark mode for dialog */
+[data-color-mode="dark"] .cluster-dialog-header {
+    background: linear-gradient(var(--color-canvas-subtle, #161b22), var(--color-canvas-default, #0d1117));
+    border-color: #30363d;
+}
+
+[data-color-mode="dark"] .cluster-dialog {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px #30363d;
+}
+
+[data-color-mode="dark"] .cluster-dialog-actions {
+    border-top-color: #30363d;
+}
+
+[data-color-mode="dark"] .cluster-dialog-overlay {
+    background: rgba(1, 4, 9, 0.7);
+}
+
+/* Reduce motion respect */
+@media (prefers-reduced-motion: reduce) {
+    .cluster-dialog {
+        animation: none;
+    }
 }
 
 /* Layout structure */

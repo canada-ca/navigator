@@ -404,41 +404,52 @@
   
 <!-- Cluster Assignment Dialog -->
   <%= if @assigning_cluster_item do %>
-    <div
-      class="position-fixed top-0 left-0 width-full height-full d-flex flex-items-center flex-justify-center"
-      style="background-color: rgba(0,0,0,0.5); z-index: 100;"
-    >
-      <div class="Box Box--overlay p-4" style="max-width: 400px; width: 90%;">
-        <div class="Box-header">
-          <h3 class="Box-title">{gettext("Assign to Cluster")}</h3>
+    <div class="cluster-dialog-overlay" role="presentation">
+      <div
+        class="Box Box--overlay p-0 cluster-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cluster-dialog-title"
+      >
+        <div class="Box-header cluster-dialog-header">
+          <h3 class="Box-title" id="cluster-dialog-title">
+            <.octicon name="package-16" class="mr-2" /> {gettext("Assign to Cluster")}
+          </h3>
           <button
             class="Box-btn-octicon btn-octicon"
             phx-click="cancel_cluster_assign"
             type="button"
+            aria-label={gettext("Close dialog")}
           >
             <.octicon name="x-16" />
           </button>
         </div>
-        <div class="Box-body">
+        <div class="Box-body cluster-dialog-body">
           <.form
             for={%{}}
             as={:cluster_assign}
             phx-submit="assign_cluster"
             phx-value-id={@assigning_cluster_item}
+            class="cluster-dialog-form"
           >
-            <div class="mb-3">
-              <div class="form-group mb-2">
-                <label class="form-label d-block">{gettext("Choose Existing Cluster")}</label>
+            <fieldset class="fieldset-group">
+              <legend class="sr-only">{gettext("Cluster selection")}</legend>
+              <div class="form-group mb-3">
+                <label class="form-label d-block text-small color-fg-muted mb-1 uppercase">
+                  {gettext("Choose Existing Cluster")}
+                </label>
                 <%= if @available_clusters && @available_clusters != [] do %>
-                  <select name="existing_cluster" class="form-select width-full">
-                    <option value="">-- {gettext("Select a cluster")} --</option>
-                    <%= for cluster <- @available_clusters do %>
-                      <option value={cluster}>{cluster}</option>
-                    <% end %>
-                  </select>
-                  <div class="form-help-text">
-                    {gettext("Pick one of the existing clusters for this category (type).")}
+                  <div class="select-wrapper">
+                    <select name="existing_cluster" class="form-select width-full">
+                      <option value="">-- {gettext("Select a cluster")} --</option>
+                      <%= for cluster <- @available_clusters do %>
+                        <option value={cluster}>{cluster}</option>
+                      <% end %>
+                    </select>
                   </div>
+                  <p class="form-help-text mt-1 mb-0 text-small color-fg-subtle">
+                    {gettext("Pick one of the existing clusters for this category (type).")}
+                  </p>
                 <% else %>
                   <div class="flash flash-warn mb-2">
                     {gettext("No clusters exist yet for this category. Create one below.")}
@@ -446,25 +457,27 @@
                 <% end %>
               </div>
 
-              <div class="form-group mt-3">
-                <label class="form-label">{gettext("Or Create New Cluster")}</label>
+              <div class="form-group mb-1">
+                <label class="form-label d-block text-small color-fg-muted mb-1 uppercase">
+                  {gettext("Or Create New Cluster")}
+                </label>
                 <.text_input
                   name="new_cluster"
                   placeholder={gettext("Enter new cluster name...")}
                   class="form-control"
                 />
-                <div class="form-help-text">
+                <p class="form-help-text mt-1 mb-0 text-small color-fg-subtle">
                   {gettext("If you enter a new cluster name it will be created and used.")}
-                </div>
+                </p>
               </div>
-            </div>
-            <div class="form-actions">
-              <.button type="submit" is_primary>
-                <.octicon name="package-16" />
-                {gettext("Assign to Cluster")}
-              </.button>
-              <.button type="button" phx-click="cancel_cluster_assign">
+            </fieldset>
+            <div class="cluster-dialog-actions d-flex flex-justify-end gap-2 mt-4">
+              <.button type="button" phx-click="cancel_cluster_assign" class="btn-sm mr-2">
                 {gettext("Cancel")}
+              </.button>
+              <.button type="submit" is_primary class="btn-sm">
+                <.octicon name="package-16" class="mr-1" />
+                {gettext("Assign")}
               </.button>
             </div>
           </.form>
