@@ -189,6 +189,20 @@
         </:item>
         <:item
           :if={@workspace_id}
+          is_selected={@active_module == "Brainstorm"}
+          navigate={~p"/workspaces/#{@workspace_id}/brainstorm"}
+          class="d-flex flex-items-center flex-justify-between"
+        >
+          <span><.octicon name="light-bulb-16" /> {gettext("Brainstorm")}</span>
+          <ValentineWeb.WorkspaceLive.Components.PresenceIndicatorComponent.render
+            current_user={@current_user}
+            presence={@presence}
+            active_module="Brainstorm"
+            workspace_id={@workspace_id}
+          />
+        </:item>
+        <:item
+          :if={@workspace_id}
           is_selected={@active_module == "Assumption"}
           navigate={~p"/workspaces/#{@workspace_id}/assumptions"}
           class="d-flex flex-items-center flex-justify-between"

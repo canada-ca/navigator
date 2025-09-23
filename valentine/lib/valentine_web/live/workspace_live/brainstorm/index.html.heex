@@ -1,0 +1,487 @@
+<div class="d-flex flex-column height-full">
+  <div class="border-bottom">
+    <h1 class="h3 m-0">{gettext("Brainstorm Board")}</h1>
+    <div class="d-flex flex-items-center gap-4 pb-2">
+      <.form
+        for={%{}}
+        as={:create}
+        phx-submit="create_item"
+        class="d-flex flex-items-center gap-3 flex-auto"
+      >
+        <.text_input
+          name="text"
+          placeholder={gettext("Enter your idea...")}
+          class="form-control flex-auto mr-2"
+          style="min-width: 300px;"
+          required
+          id="create-text"
+        />
+
+        <.enhanced_select
+          id="create-type"
+          name="type"
+          placeholder={gettext("Select category...")}
+          options={
+            Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})
+            |> Enum.sort_by(&elem(&1, 0))
+          }
+          class="mr-2"
+          style="min-width: 180px;"
+        />
+
+        <.button type="submit" is_primary>
+          <.octicon name="plus-16" />
+          {gettext("Add")}
+        </.button>
+      </.form>
+    </div>
+
+    <div class="d-flex flex-items-center gap-4 pb-3">
+      <.form
+        for={%{}}
+        as={:filters}
+        class="d-flex flex-items-center gap-3 flex-auto"
+        id="filters-form"
+      >
+        <.text_input
+          name="search"
+          placeholder={gettext("Search items...")}
+          value={@filters.search || ""}
+          class="form-control mr-2"
+          style="min-width: 200px;"
+          id="search-filter"
+          phx-change="filter"
+        />
+
+        <.select
+          name="filter_status"
+          selected={if @filters.status, do: Atom.to_string(@filters.status), else: ""}
+          options={[
+            {"All Statuses", ""},
+            {"Draft", "draft"},
+            {"Clustered", "clustered"},
+            {"Candidate", "candidate"},
+            {"Used", "used"},
+            {"Archived", "archived"}
+          ]}
+          phx-change="filter"
+          id="status-filter"
+          class="mr-2"
+        />
+
+        <.select
+          name="filter_type"
+          selected={if @filters.type, do: Atom.to_string(@filters.type), else: ""}
+          options={[
+            {"All Categories", ""}
+            | Enum.map(get_available_types(), &{type_display_name(&1), Atom.to_string(&1)})
+              |> Enum.sort_by(&elem(&1, 0))
+          ]}
+          phx-change="filter"
+          id="type-filter"
+          class="mr-2"
+        />
+        <.button
+          :if={@filters.status || @filters.type || (@filters.search && @filters.search != "")}
+          phx-click="clear_filters"
+          class="btn-outline"
+        >
+          <.octicon name="x-16" />
+          {gettext("Clear")}
+        </.button>
+      </.form>
+    </div>
+  </div>
+  
+<!-- Masonry board layout -->
+  <div id="brainstorm-board" class="flex-auto overflow-auto p-3" phx-hook="BrainstormDrag">
+    <%= if @total_items == 0 do %>
+      <!-- Empty state when no items exist -->
+      <div class="blankslate blankslate-spacious">
+        <.octicon name="light-bulb-24" class="blankslate-icon" />
+        <h3 class="blankslate-heading">{gettext("Start Brainstorming!")}</h3>
+        <p class="blankslate-body">
+          {gettext(
+            "Capture your threat modeling ideas here. Add items and they'll be organized by category automatically."
+          )}
+        </p>
+        <p class="blankslate-body">
+          {gettext("Use the form above to add your first brainstorm item.")}
+        </p>
+      </div>
+    <% else %>
+      <!-- True masonry layout using CSS columns -->
+      <div class="brainstorm-masonry" id="brainstorm-masonry" data-role="type-container">
+        <%= for type <- ordered_visible_types(@items_by_type, @type_order || [], @filters) do %>
+          <div
+            class="brainstorm-masonry-item"
+            data-type-column={Atom.to_string(type)}
+            data-type={Atom.to_string(type)}
+            draggable="true"
+          >
+            <div class="card d-flex flex-column" data-item-id={"type-" <> Atom.to_string(type)}>
+              <% all_items = Map.get(@items_by_type, type, []) %>
+              <% active_count = Enum.count(all_items, &(&1.status != :archived)) %>
+              <% archived_count = Enum.count(all_items, &(&1.status == :archived)) %>
+              <div class="brainstorm-type-header type-drag-handle" draggable="true">
+                <div class="brainstorm-type-header-main">
+                  <div class="brainstorm-type-title">
+                    <.octicon name={type_icon(type)} class="mr-1" />
+                    <span>{type_display_name(type)}</span>
+                  </div>
+                  <div class="brainstorm-type-counters" aria-label={gettext("Item counts")}>
+                    <span
+                      class="counter-pill counter-active"
+                      title={gettext("Active (not archived)")}
+                    >
+                      {active_count}
+                    </span>
+                    <span class="counter-separator">/</span>
+                    <span class="counter-pill counter-archived" title={gettext("Archived")}>
+                      {archived_count}
+                    </span>
+                  </div>
+                </div>
+                <div
+                  class="brainstorm-type-header-handle"
+                  title={gettext("Drag to reorder category")}
+                >
+                  <.octicon name="grabber-16" />
+                </div>
+              </div>
+              <div class="p-2" data-role="type-items">
+                <% visible_items = get_visible_items(all_items, @filters) %>
+                <%= for item <- group_by_cluster(visible_items) do %>
+                  <%= if is_binary(item) do %>
+                    <% cluster_items = Enum.filter(visible_items, &(&1.cluster_key == item)) %>
+                    <div class="brainstorm-cluster-header" data-cluster={item}>
+                      <span class="cluster-name" title={gettext("Cluster")}>{item}</span>
+                      <span class="cluster-count" title={gettext("Items in cluster")}>
+                        {length(cluster_items)}
+                      </span>
+                    </div>
+                  <% else %>
+                    <div
+                      class={"Box Box--condensed mb-2 brainstorm-item status-#{item.status} #{if item.cluster_key, do: "is-clustered"} #{if @editing_item == item.id, do: "editing"}"}
+                      data-item-id={item.id}
+                      draggable={if @editing_item == item.id, do: "false", else: "true"}
+                      data-status={item.status}
+                      data-cluster={item.cluster_key || ""}
+                    >
+                      <div class="Box-body p-2 brainstorm-item-body">
+                        <%= if @editing_item == item.id do %>
+                          <div class="brainstorm-edit-form">
+                            <.form
+                              for={%{}}
+                              as={:update}
+                              phx-submit="update_item"
+                              class="brainstorm-edit-form-inner"
+                            >
+                              <input type="hidden" name="item_id" value={item.id} />
+                              <div class="form-row">
+                                <label
+                                  class="form-label text-small text-bold"
+                                  for={"edit-type-#{item.id}"}
+                                >
+                                  {gettext("Category")}
+                                </label>
+                                <.enhanced_select
+                                  id={"edit-type-#{item.id}"}
+                                  name="type"
+                                  placeholder={gettext("Select category...")}
+                                  options={
+                                    Enum.map(
+                                      get_available_types(),
+                                      &{type_display_name(&1), Atom.to_string(&1)}
+                                    )
+                                    |> Enum.sort_by(&elem(&1, 0))
+                                  }
+                                  selected={Atom.to_string(item.type)}
+                                  class="w-100"
+                                />
+                              </div>
+                              <div class="form-row">
+                                <label
+                                  class="form-label text-small text-bold"
+                                  for={"edit-text-#{item.id}"}
+                                >
+                                  {gettext("Content")}
+                                </label>
+                                <.textarea
+                                  id={"edit-text-#{item.id}"}
+                                  name="text"
+                                  value={item.raw_text}
+                                  rows="4"
+                                  class="form-control brainstorm-edit-textarea"
+                                  required
+                                  autofocus
+                                  data-select-behavior="default"
+                                  draggable="false"
+                                  phx-hook="AutoSelect"
+                                  data-autoselect-once="false"
+                                  style="user-select:text; -webkit-user-select:text;"
+                                />
+                              </div>
+                              <div class="edit-actions d-flex gap-2 flex-justify-end pt-1 mb-2">
+                                <.button
+                                  type="submit"
+                                  is_primary
+                                  data-role="save-edit"
+                                  class="mr-2"
+                                >
+                                  {gettext("Save")}
+                                </.button>
+                                <.button
+                                  type="button"
+                                  phx-click="cancel_editing"
+                                  data-role="cancel-edit"
+                                >
+                                  {gettext("Cancel")}
+                                </.button>
+                              </div>
+                            </.form>
+                          </div>
+                        <% else %>
+                          <div
+                            class="mb-2 brainstorm-item-text"
+                            phx-click="start_editing"
+                            phx-value-id={item.id}
+                            style="cursor:pointer; line-height:1.3;"
+                          >
+                            {item.raw_text}
+                          </div>
+                        <% end %>
+                        <div class="d-flex flex-items-center flex-justify-between pt-2 border-top brainstorm-item-meta">
+                          <div class="d-flex flex-items-center gap-2">
+                            <.label class={"Label #{status_color_class(item.status)}"}>
+                              {Phoenix.Naming.humanize(item.status)}
+                            </.label>
+                            <%= if not is_nil(item.cluster_key) do %>
+                              <span
+                                class="d-flex flex-items-center text-small color-fg-muted brainstorm-cluster-indicator"
+                                title={gettext("Cluster key")}
+                              >
+                                <.octicon name="package-16" class="mr-1" /> {item.cluster_key}
+                              </span>
+                            <% end %>
+                          </div>
+                          <div class="brainstorm-item-actions">
+                            <%= case item.status do %>
+                              <% :draft -> %>
+                                <button
+                                  type="button"
+                                  class="btn-icon"
+                                  phx-click="update_status"
+                                  phx-value-id={item.id}
+                                  phx-value-status="clustered"
+                                  title={gettext("Mark as Clustered")}
+                                >
+                                  <.octicon name="package-16" />
+                                </button>
+                              <% :clustered -> %>
+                                <button
+                                  type="button"
+                                  class="btn-icon"
+                                  phx-click="update_status"
+                                  phx-value-id={item.id}
+                                  phx-value-status="candidate"
+                                  title={gettext("Mark as Candidate")}
+                                >
+                                  <.octicon name="check-16" />
+                                </button>
+                              <% :candidate -> %>
+                                <button
+                                  type="button"
+                                  class="btn-icon"
+                                  phx-click="update_status"
+                                  phx-value-id={item.id}
+                                  phx-value-status="used"
+                                  title={gettext("Mark as Used")}
+                                >
+                                  <.octicon name="check-circle-16" />
+                                </button>
+                              <% :used -> %>
+                                <button
+                                  type="button"
+                                  class="btn-icon"
+                                  phx-click="update_status"
+                                  phx-value-id={item.id}
+                                  phx-value-status="candidate"
+                                  title={gettext("Revert to Candidate")}
+                                >
+                                  <.octicon name="arrow-left-16" />
+                                </button>
+                              <% :archived -> %>
+                                <button
+                                  type="button"
+                                  class="btn-icon"
+                                  phx-click="update_status"
+                                  phx-value-id={item.id}
+                                  phx-value-status="draft"
+                                  title={gettext("Restore to Draft")}
+                                >
+                                  <.octicon name="history-16" />
+                                </button>
+                            <% end %>
+                            <button
+                              type="button"
+                              class="btn-icon"
+                              phx-click="start_editing"
+                              phx-value-id={item.id}
+                              title={gettext("Edit item")}
+                            >
+                              <.octicon name="pencil-16" />
+                            </button>
+                            <%= if is_nil(item.cluster_key) do %>
+                              <button
+                                type="button"
+                                class="btn-icon"
+                                phx-click="start_cluster_assign"
+                                phx-value-id={item.id}
+                                title={gettext("Assign to cluster")}
+                              >
+                                <.octicon name="package-16" />
+                              </button>
+                            <% else %>
+                              <button
+                                type="button"
+                                class="btn-icon"
+                                phx-click="assign_cluster"
+                                phx-value-id={item.id}
+                                phx-value-cluster=""
+                                title={gettext("Remove from cluster")}
+                              >
+                                <.octicon name="x-16" />
+                              </button>
+                            <% end %>
+                            <%= if item.status != :archived do %>
+                              <button
+                                type="button"
+                                class="btn-icon"
+                                phx-click="update_status"
+                                phx-value-id={item.id}
+                                phx-value-status="archived"
+                                title={gettext("Archive")}
+                              >
+                                <.octicon name="archive-16" />
+                              </button>
+                            <% else %>
+                              <button
+                                type="button"
+                                class="btn-icon"
+                                phx-click="update_status"
+                                phx-value-id={item.id}
+                                phx-value-status="draft"
+                                title={gettext("Restore to Draft")}
+                              >
+                                <.octicon name="history-16" />
+                              </button>
+                            <% end %>
+                            <button
+                              type="button"
+                              class="btn-icon danger"
+                              phx-click="delete_item"
+                              phx-value-id={item.id}
+                              data-confirm={gettext("Are you sure you want to delete this item?")}
+                              title={gettext("Delete item")}
+                            >
+                              <.octicon name="trash-16" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+  
+<!-- Cluster Assignment Dialog -->
+  <%= if @assigning_cluster_item do %>
+    <div class="cluster-dialog-overlay" role="presentation">
+      <div
+        class="Box Box--overlay p-0 cluster-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cluster-dialog-title"
+      >
+        <div class="Box-header cluster-dialog-header">
+          <h3 class="Box-title" id="cluster-dialog-title">
+            <.octicon name="package-16" class="mr-2" /> {gettext("Assign to Cluster")}
+          </h3>
+          <button
+            class="Box-btn-octicon btn-octicon"
+            phx-click="cancel_cluster_assign"
+            type="button"
+            aria-label={gettext("Close dialog")}
+          >
+            <.octicon name="x-16" />
+          </button>
+        </div>
+        <div class="Box-body cluster-dialog-body">
+          <.form
+            for={%{}}
+            as={:cluster_assign}
+            phx-submit="assign_cluster"
+            phx-value-id={@assigning_cluster_item}
+            class="cluster-dialog-form"
+          >
+            <fieldset class="fieldset-group">
+              <legend class="sr-only">{gettext("Cluster selection")}</legend>
+              <div class="form-group mb-3">
+                <label class="form-label d-block text-small color-fg-muted mb-1 uppercase">
+                  {gettext("Choose Existing Cluster")}
+                </label>
+                <%= if @available_clusters && @available_clusters != [] do %>
+                  <div class="select-wrapper">
+                    <select name="existing_cluster" class="form-select width-full">
+                      <option value="">-- {gettext("Select a cluster")} --</option>
+                      <%= for cluster <- @available_clusters do %>
+                        <option value={cluster}>{cluster}</option>
+                      <% end %>
+                    </select>
+                  </div>
+                  <p class="form-help-text mt-1 mb-0 text-small color-fg-subtle">
+                    {gettext("Pick one of the existing clusters for this category (type).")}
+                  </p>
+                <% else %>
+                  <div class="flash flash-warn mb-2">
+                    {gettext("No clusters exist yet for this category. Create one below.")}
+                  </div>
+                <% end %>
+              </div>
+
+              <div class="form-group mb-1">
+                <label class="form-label d-block text-small color-fg-muted mb-1 uppercase">
+                  {gettext("Or Create New Cluster")}
+                </label>
+                <.text_input
+                  name="new_cluster"
+                  placeholder={gettext("Enter new cluster name...")}
+                  class="form-control"
+                />
+                <p class="form-help-text mt-1 mb-0 text-small color-fg-subtle">
+                  {gettext("If you enter a new cluster name it will be created and used.")}
+                </p>
+              </div>
+            </fieldset>
+            <div class="cluster-dialog-actions d-flex flex-justify-end gap-2 mt-4">
+              <.button type="button" phx-click="cancel_cluster_assign" class="btn-sm mr-2">
+                {gettext("Cancel")}
+              </.button>
+              <.button type="submit" is_primary class="btn-sm">
+                <.octicon name="package-16" class="mr-1" />
+                {gettext("Assign")}
+              </.button>
+            </div>
+          </.form>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

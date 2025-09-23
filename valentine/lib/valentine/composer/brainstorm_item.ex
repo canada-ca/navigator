@@ -242,6 +242,7 @@ defmodule Valentine.Composer.BrainstormItem do
       # Allow reverting when unmarking from threats
       {:used, :candidate} -> true
       {:used, :archived} -> true
+      {:archived, :draft} -> true
       _ -> false
     end
   end
