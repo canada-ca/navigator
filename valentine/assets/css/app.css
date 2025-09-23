@@ -244,6 +244,73 @@
     opacity: .85;
 }
 
+/* Editing state */
+.brainstorm-item.editing {
+    border-color: var(--color-accent-emphasis, #0969da);
+    box-shadow: 0 0 0 2px var(--color-accent-muted, #b6e3ff);
+    background: var(--color-canvas-subtle);
+    position: relative;
+}
+
+.brainstorm-item.editing:before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    pointer-events: none;
+}
+
+.brainstorm-edit-form-inner {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+.brainstorm-edit-form .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+}
+
+.brainstorm-edit-textarea {
+    resize: vertical;
+    min-height: 110px;
+    font-size: .85rem;
+    line-height: 1.3;
+}
+
+.brainstorm-item.editing .edit-actions {
+    border-top: 1px solid var(--color-border-muted, var(--color-border-default));
+    margin-top: .25rem;
+}
+
+.brainstorm-item.editing [data-role="save-edit"] {
+    min-width: 70px;
+}
+
+.brainstorm-item.editing [data-role="cancel-edit"] {
+    background: var(--color-neutral-subtle);
+}
+
+.brainstorm-item.editing [data-role="cancel-edit"]:hover {
+    /* fallback when not portaled */
+    width: 100%;
+}
+
+[data-color-mode="dark"] .brainstorm-item.editing {
+    box-shadow: 0 0 0 2px rgba(56, 139, 253, 0.4);
+    background: #1d232a;
+
+    /* When rendered in-flow (not portaled) keep width to container */
+    .enh-select:not([data-portaled="true"])>.enh-select-list {
+        width: 100%;
+    }
+}
+
+[data-color-mode="dark"] .brainstorm-item.editing .edit-actions {
+    border-top-color: #30363d;
+}
+
 .brainstorm-item-text {
     font-size: .85rem;
     line-height: 1.25;
@@ -963,6 +1030,8 @@ ul {
 /* Enhanced Select component */
 .enh-select {
     max-width: 280px;
+    position: relative;
+    /* ensure absolute list positions relative here */
 }
 
 .enh-select-input {
@@ -979,13 +1048,14 @@ ul {
 }
 
 .enh-select-list {
-    z-index: 40;
+    z-index: 500;
+    /* elevated above cards, action bars, and most overlays (cluster modal at 100) */
     max-height: 220px;
     overflow-y: auto;
     width: 100%;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     border: 1px solid var(--color-border-default, #d0d7de);
-    background: var(--color-canvas-overlay, #fff);
+    background: #fff;
     border-radius: 6px;
 }
 

@@ -15,6 +15,44 @@ const EnhancedSelect = {
     this.minChars = parseInt(this.el.dataset.minChars || '0', 10);
     this.activeIndex = this.items.findIndex(i => i.dataset.value === this.valueEl.value);
 
+    // Portal the list to body to escape local stacking contexts
+    this.portaled = false;
+    const originalList = this.listEl;
+    const placeholder = document.createComment('enh-select-list-placeholder');
+    originalList.parentNode.insertBefore(placeholder, originalList);
+    document.body.appendChild(originalList);
+    this.portaled = true;
+    const baseRect = this.el.getBoundingClientRect();
+    originalList.style.position = 'absolute';
+    originalList.style.minWidth = `${baseRect.width}px`;
+    originalList.style.width = `${baseRect.width}px`;
+    originalList.dataset.portaled = 'true';
+
+    this.positionList = () => {
+      if (!this.isOpen()) return;
+      const rect = this.el.getBoundingClientRect();
+      const listRect = this.listEl.getBoundingClientRect();
+      // Keep width in sync with trigger width (handles responsive layout changes)
+      this.listEl.style.width = `${rect.width}px`;
+      // Basic viewport boundary adjustments
+      let top = rect.bottom + window.scrollY;
+      let left = rect.left + window.scrollX;
+      const maxHeight = 260; // allow a bit more when portaled
+      let availableBelow = window.innerHeight - rect.bottom;
+      if (availableBelow < 160 && rect.top > availableBelow) {
+        // Open upward
+        top = rect.top + window.scrollY - Math.min(maxHeight, listRect.height || maxHeight) - 4;
+      }
+      // Avoid horizontal overflow
+      const overflowRight = (left + listRect.width) - (window.scrollX + window.innerWidth);
+      if (overflowRight > 0) left = Math.max(window.scrollX + 8, left - overflowRight - 8);
+      Object.assign(this.listEl.style, { top: `${top}px`, left: `${left}px`, zIndex: 3000 });
+      this.listEl.style.maxHeight = `${maxHeight}px`;
+    };
+
+    window.addEventListener('scroll', this.positionList, true);
+    window.addEventListener('resize', this.positionList);
+
     this.boundDocClick = (e) => {
       if (!this.el.contains(e.target)) this.close();
     };
@@ -22,6 +60,15 @@ const EnhancedSelect = {
     this.inputEl.addEventListener('focus', () => this.open());
     this.inputEl.addEventListener('input', () => this.filter());
     this.inputEl.addEventListener('keydown', (e) => this.onKey(e));
+    // Double-click selects all text for quick replacement
+    this.inputEl.addEventListener('dblclick', (e) => {
+      // Prevent any ancestor drag logic and select all text
+      e.stopPropagation();
+      // Use setTimeout to allow native selection first, then expand to full
+      setTimeout(() => {
+        try { this.inputEl.select(); } catch (_) { /* noop */ }
+      }, 0);
+    });
 
     this.items.forEach((item, idx) => {
       item.addEventListener('click', () => this.select(idx));
@@ -35,6 +82,7 @@ const EnhancedSelect = {
     this.listEl.removeAttribute('hidden');
     this.inputEl.setAttribute('aria-expanded', 'true');
     document.addEventListener('click', this.boundDocClick);
+    if (this.portaled) this.positionList();
     this.ensureVisible();
   },
   close() {

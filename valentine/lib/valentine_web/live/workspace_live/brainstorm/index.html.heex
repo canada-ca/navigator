@@ -163,51 +163,85 @@
                     </div>
                   <% else %>
                     <div
-                      class={"Box Box--condensed mb-2 brainstorm-item status-#{item.status} #{if item.cluster_key, do: "is-clustered"}"}
+                      class={"Box Box--condensed mb-2 brainstorm-item status-#{item.status} #{if item.cluster_key, do: "is-clustered"} #{if @editing_item == item.id, do: "editing"}"}
                       data-item-id={item.id}
-                      draggable="true"
+                      draggable={if @editing_item == item.id, do: "false", else: "true"}
                       data-status={item.status}
                       data-cluster={item.cluster_key || ""}
                     >
                       <div class="Box-body p-2 brainstorm-item-body">
                         <%= if @editing_item == item.id do %>
-                          <.form for={%{}} as={:update} phx-submit="update_item" class="mb-2">
-                            <input type="hidden" name="item_id" value={item.id} />
-                            <div class="mb-2">
-                              <label class="form-label text-small text-bold">
-                                {gettext("Category")}
-                              </label>
-                              <.select
-                                name="type"
-                                class="form-select"
-                                options={
-                                  Enum.map(
-                                    get_populated_types(@items_by_type),
-                                    &{type_display_name(&1), &1}
-                                  )
-                                }
-                                id={"edit-type-#{item.id}"}
-                              />
-                            </div>
-                            <div class="mb-2">
-                              <label class="form-label text-small text-bold">
-                                {gettext("Content")}
-                              </label>
-                              <.textarea
-                                name="text"
-                                value={item.raw_text}
-                                rows="3"
-                                class="form-control"
-                                required
-                              />
-                            </div>
-                            <div class="d-flex gap-2">
-                              <.button type="submit" is_primary>{gettext("Save")}</.button>
-                              <.button type="button" phx-click="cancel_editing">
-                                {gettext("Cancel")}
-                              </.button>
-                            </div>
-                          </.form>
+                          <div class="brainstorm-edit-form">
+                            <.form
+                              for={%{}}
+                              as={:update}
+                              phx-submit="update_item"
+                              class="brainstorm-edit-form-inner"
+                            >
+                              <input type="hidden" name="item_id" value={item.id} />
+                              <div class="form-row">
+                                <label
+                                  class="form-label text-small text-bold"
+                                  for={"edit-type-#{item.id}"}
+                                >
+                                  {gettext("Category")}
+                                </label>
+                                <.enhanced_select
+                                  id={"edit-type-#{item.id}"}
+                                  name="type"
+                                  placeholder={gettext("Select category...")}
+                                  options={
+                                    Enum.map(
+                                      get_available_types(),
+                                      &{type_display_name(&1), Atom.to_string(&1)}
+                                    )
+                                    |> Enum.sort_by(&elem(&1, 0))
+                                  }
+                                  selected={Atom.to_string(item.type)}
+                                  class="w-100"
+                                />
+                              </div>
+                              <div class="form-row">
+                                <label
+                                  class="form-label text-small text-bold"
+                                  for={"edit-text-#{item.id}"}
+                                >
+                                  {gettext("Content")}
+                                </label>
+                                <.textarea
+                                  id={"edit-text-#{item.id}"}
+                                  name="text"
+                                  value={item.raw_text}
+                                  rows="4"
+                                  class="form-control brainstorm-edit-textarea"
+                                  required
+                                  autofocus
+                                  data-select-behavior="default"
+                                  draggable="false"
+                                  phx-hook="AutoSelect"
+                                  data-autoselect-once="false"
+                                  style="user-select:text; -webkit-user-select:text;"
+                                />
+                              </div>
+                              <div class="edit-actions d-flex gap-2 flex-justify-end pt-1 mb-2">
+                                <.button
+                                  type="submit"
+                                  is_primary
+                                  data-role="save-edit"
+                                  class="mr-2"
+                                >
+                                  {gettext("Save")}
+                                </.button>
+                                <.button
+                                  type="button"
+                                  phx-click="cancel_editing"
+                                  data-role="cancel-edit"
+                                >
+                                  {gettext("Cancel")}
+                                </.button>
+                              </div>
+                            </.form>
+                          </div>
                         <% else %>
                           <div
                             class="mb-2 brainstorm-item-text"
