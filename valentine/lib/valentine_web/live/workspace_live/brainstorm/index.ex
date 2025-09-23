@@ -522,19 +522,6 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
     Ecto.Enum.values(BrainstormItem, :type)
   end
 
-  # Get only types that have items (for masonry layout)
-  defp get_populated_types(items_by_type) do
-    items_by_type |> Map.keys() |> Enum.sort()
-  end
-
-  # Order populated types according to provided order list
-  defp ordered_populated_types(items_by_type, order) do
-    populated = Map.keys(items_by_type) |> MapSet.new()
-    ordered = Enum.filter(order, &MapSet.member?(populated, &1))
-    remainder = Enum.reject(populated, &(&1 in ordered)) |> Enum.sort()
-    ordered ++ remainder
-  end
-
   # Visible types: hide types whose items are all archived unless filtering to archived
   defp ordered_visible_types(items_by_type, order, filters) do
     populated_visible =
@@ -607,22 +594,10 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   defp type_icon(:external_entity), do: "globe-16"
   defp type_icon(_), do: "circle-16"
 
-  # Get status display class
-  defp status_class(:draft), do: "color-bg-accent-subtle"
-  defp status_class(:clustered), do: "color-bg-attention-subtle"
-  defp status_class(:candidate), do: "color-bg-success-subtle"
-  defp status_class(:used), do: "color-bg-done-subtle"
-  defp status_class(:archived), do: "color-bg-neutral-subtle"
-
   # Status color classes for labels
   defp status_color_class(:draft), do: "Label--accent"
   defp status_color_class(:clustered), do: "Label--attention"
   defp status_color_class(:candidate), do: "Label--success"
   defp status_color_class(:used), do: "Label--done"
   defp status_color_class(:archived), do: "Label--secondary"
-
-  # Check if item has duplicate warning
-  defp has_duplicate_warning?(item) do
-    get_in(item.metadata, [:duplicate_warning]) == true
-  end
 end
