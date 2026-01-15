@@ -10,6 +10,8 @@ Navigator is a real-time collaborative threat modeling tool that combines human 
 
 IMPORTANT: This project is undergoing active development and may experience breaking changes. This project is also still missing feature and has bugs. Please review the [issues](https://github.com/canada-ca/navigator/issues) for more information. If you have any specific questions, please contact [max.neuvians@cds-snc.ca](mailto:max.neuvians@cds-snc.ca).
 
+NOTE: Navigator should be deployed in an environment with the appropriate safeguards in place to protect the confidentiality, integrity, and availability of the data that will be stored there. For example, before using Navigator to conduct threat modeling and other analysis at the Protected B level, Navigator should be deployed to an environment with security controls in place commesurate with the hosting of that data. Departmental Risk Management processes should be followed, including the completion of a security assessment where required.
+
 ## Features
 
 1. Threat modeling with [STRIDE](https://en.wikipedia.org/wiki/STRIDE_model) based on a pre-defined [threat grammar](https://catalog.workshops.aws/threatmodel/en-US/what-can-go-wrong/threat-grammar). For more information see [Threat Composer](https://github.com/awslabs/threat-composer).
@@ -126,6 +128,8 @@ Navigator est un outil collaboratif de modélisation des menaces en temps réel 
 ![Capture d’écran d’un diagramme de flux de données dans Navigator](screenshots/data_flow_diagram.png)
 
 IMPORTANT : Ce projet est en cours de développement et peut subir des modifications importantes. Il manque encore des fonctionnalités à ce projet et il comporte des bogues. Veuillez examiner les [problèmes](https://github.com/canada-ca/navigator/issues) pour plus de renseignements. Si vous avez des questions spécifiques, veuillez contacter : [max.neuvians@cds-snc.ca](mailto:max.neuvians@cds-snc.ca).
+
+REMARQUE : Navigator doit être déployé dans un environnement doté des mesures de protection appropriées afin de garantir la confidentialité, l'intégrité et la disponibilité des données qui y seront stockées. Par exemple, avant d'utiliser Navigator pour mener des analyses de modélisation des menaces et d'autres analyses au niveau Protégé B, Navigator doit être déployé dans un environnement disposant de contrôles de sécurité proportionnés à l'hébergement de ces données. Les processus de gestion des risques ministériels doivent être suivis, y compris la réalisation d'une évaluation de sécurité lorsque cela est requis.
 
 ## Fonctionnalités
 
