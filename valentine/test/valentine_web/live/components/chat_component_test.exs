@@ -130,7 +130,20 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
         }
 
       {:ok, updated_socket} = ChatComponent.update(%{chat_response: data}, socket)
-      assert updated_socket.assigns.chain.delta == data
+
+      # After applying deltas, the chain should have a delta
+      # In newer langchain versions, the delta structure may be transformed
+      delta = updated_socket.assigns.chain.delta
+      assert delta != nil
+
+      # The content should be present either in content or merged_content
+      content_text =
+        case delta do
+          %{merged_content: [%{content: text} | _]} -> text
+          %{content: text} when is_binary(text) -> text
+        end
+
+      assert content_text == "{\"content\":\"I am a system"
     end
 
     test "updates the socket with the skill_result data", %{socket: socket} do
@@ -142,7 +155,15 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
 
       {:ok, updated_socket} = ChatComponent.update(%{skill_result: data}, socket)
 
-      assert hd(updated_socket.assigns.chain.messages).content ==
+      message = hd(updated_socket.assigns.chain.messages)
+      # In newer langchain versions, content is a list of ContentPart structs
+      content =
+        case message.content do
+          [%{content: text} | _] -> text
+          text when is_binary(text) -> text
+        end
+
+      assert content ==
                "The user clicked the button with id: some_id and the result was: some_status - some_msg"
     end
 
@@ -234,8 +255,18 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
 
       assert length(updated_socket.assigns.chain.messages) == 2
       assert hd(updated_socket.assigns.chain.messages).role == :system
-      assert hd(tl(updated_socket.assigns.chain.messages)).role == :user
-      assert hd(tl(updated_socket.assigns.chain.messages)).content == value
+
+      user_message = hd(tl(updated_socket.assigns.chain.messages))
+      assert user_message.role == :user
+
+      # In newer langchain versions, content is a list of ContentPart structs
+      content =
+        case user_message.content do
+          [%{content: text} | _] -> text
+          text when is_binary(text) -> text
+        end
+
+      assert content == value
     end
 
     test "executes skills if the id is a skill", %{socket: socket} do

@@ -89,7 +89,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
   def update(%{chat_response: data}, socket) do
     chain =
       socket.assigns.chain
-      |> LLMChain.apply_delta(data)
+      |> LLMChain.apply_deltas([data])
 
     Valentine.Cache.put({socket.id, :chatbot_history}, chain, expire: :timer.hours(24))
 
