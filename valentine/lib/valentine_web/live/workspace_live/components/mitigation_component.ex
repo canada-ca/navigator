@@ -203,6 +203,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
       updated_tags = current_tags ++ [tag]
 
       Composer.update_mitigation(socket.assigns.mitigation, %{tags: updated_tags})
+      broadcast_mitigation_change(socket.assigns.mitigation)
 
       {:noreply,
        socket
@@ -219,6 +220,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
   def handle_event("remove_tag", %{"tag" => tag}, socket) do
     updated_tags = List.delete(socket.assigns.mitigation.tags, tag)
     Composer.update_mitigation(socket.assigns.mitigation, %{tags: updated_tags})
+    broadcast_mitigation_change(socket.assigns.mitigation)
     {:noreply, assign(socket, :mitigation, %{socket.assigns.mitigation | tags: updated_tags})}
   end
 
@@ -228,6 +230,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
     Composer.update_mitigation(Map.put(socket.assigns.mitigation, :comments, nil), %{
       :comments => comments
     })
+
+    broadcast_mitigation_change(socket.assigns.mitigation)
 
     {:noreply,
      socket
@@ -251,4 +255,12 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
 
   defp assoc_length(l) when is_list(l), do: length(l)
   defp assoc_length(_), do: 0
+
+  defp broadcast_mitigation_change(mitigation) do
+    ValentineWeb.Endpoint.broadcast(
+      "workspace_" <> mitigation.workspace_id,
+      "mitigation_updated",
+      %{}
+    )
+  end
 end

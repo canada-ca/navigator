@@ -135,6 +135,15 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Index do
     }
   end
 
+  @impl true
+  def handle_info(%{topic: "workspace_" <> workspace_id}, socket) do
+    workspace = get_workspace(workspace_id)
+
+    {:noreply,
+     socket
+     |> assign(:mitigations, get_sorted_mitigations(workspace))}
+  end
+
   defp get_sorted_mitigations(workspace) do
     workspace.mitigations |> Enum.sort(&(&1.numeric_id >= &2.numeric_id))
   end

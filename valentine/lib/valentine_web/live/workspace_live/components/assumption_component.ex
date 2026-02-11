@@ -189,6 +189,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
       updated_tags = current_tags ++ [tag]
 
       Composer.update_assumption(socket.assigns.assumption, %{tags: updated_tags})
+      broadcast_assumption_change(socket.assigns.assumption)
 
       {:noreply,
        socket
@@ -205,6 +206,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
   def handle_event("remove_tag", %{"tag" => tag}, socket) do
     updated_tags = List.delete(socket.assigns.assumption.tags, tag)
     Composer.update_assumption(socket.assigns.assumption, %{tags: updated_tags})
+    broadcast_assumption_change(socket.assigns.assumption)
     {:noreply, assign(socket, :assumption, %{socket.assigns.assumption | tags: updated_tags})}
   end
 
@@ -214,6 +216,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
     Composer.update_assumption(Map.put(socket.assigns.assumption, :comments, nil), %{
       :comments => comments
     })
+
+    broadcast_assumption_change(socket.assigns.assumption)
 
     {:noreply,
      socket
@@ -237,4 +241,12 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
 
   defp assoc_length(l) when is_list(l), do: length(l)
   defp assoc_length(_), do: 0
+
+  defp broadcast_assumption_change(assumption) do
+    ValentineWeb.Endpoint.broadcast(
+      "workspace_" <> assumption.workspace_id,
+      "assumption_updated",
+      %{}
+    )
+  end
 end
