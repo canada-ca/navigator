@@ -217,9 +217,11 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
         )
 
       socket =
-        socket
-        |> Map.put(:assigns, Map.put(socket.assigns, :myself, "myself"))
-        |> Map.put(:assigns, Map.put(socket.assigns, :current_user, "test_user@example.com"))
+        Map.put(
+          socket,
+          :assigns,
+          Map.put(socket.assigns, :myself, "myself")
+        )
 
       {:noreply, updated_socket} =
         ChatComponent.handle_event("chat_submit", %{"value" => value}, socket)
