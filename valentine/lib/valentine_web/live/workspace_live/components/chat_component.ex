@@ -4,7 +4,6 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
 
   alias Valentine.Prompts.PromptRegistry
   alias Phoenix.LiveView.AsyncResult
-  alias Valentine.Composer
 
   alias LangChain.Chains.LLMChain
   alias LangChain.ChatModels.ChatOpenAI
@@ -82,18 +81,6 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
         _ -> []
       end
 
-    # Persist assistant message to database
-    %{workspace_id: workspace_id, current_user: user_id, active_module: active_module, active_action: active_action} = socket.assigns
-    
-    context = %{
-      active_module: active_module,
-      active_action: active_action
-    }
-
-    # Create an assistant message from the completed data
-    assistant_message = %{role: :assistant, content: data.content}
-    persist_message(workspace_id, user_id, assistant_message, context)
-
     {:ok,
      socket
      |> assign(:skills, skills)}
@@ -135,16 +122,13 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
   def update(assigns, socket) do
     %{workspace_id: workspace_id, current_user: user_id} = assigns
 
-    # Try to get from cache first, then from database
+    # Get from cache or create new chain
     cached_chain = Valentine.Cache.get(cache_key(workspace_id, user_id))
 
     chain =
       if cached_chain do
         cached_chain
       else
-        # Load messages from database
-        messages = load_messages_from_db(workspace_id, user_id)
-
         build_chain(%{
           stream: true,
           stream_options: %{include_usage: true},
@@ -157,7 +141,6 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
           callbacks: [llm_handler(self(), socket.assigns.myself)],
           cid: socket.assigns.myself
         })
-        |> LLMChain.add_messages(messages)
       end
 
     {:ok,
@@ -195,9 +178,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
         cid: socket.assigns.myself
       })
 
-    # Clear from cache and database
+    # Clear from cache
     Valentine.Cache.put(cache_key(workspace_id, user_id), chain, expire: :timer.hours(24))
-    clear_chat_history(workspace_id, user_id)
 
     {:noreply,
      socket
@@ -213,25 +195,16 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
     } = socket.assigns
 
     system_prompt = PromptRegistry.get_system_prompt(active_module, active_action, workspace_id)
-    user_message = Message.new_user!(value)
 
     chain =
       socket.assigns.chain
       |> LLMChain.add_messages([
         Message.new_system!(system_prompt),
-        user_message
+        Message.new_user!(value)
       ])
 
     # Update cache
     Valentine.Cache.put(cache_key(workspace_id, user_id), chain, expire: :timer.hours(24))
-
-    # Persist user message to database
-    context = %{
-      active_module: active_module,
-      active_action: active_action
-    }
-
-    persist_message(workspace_id, user_id, user_message, context)
 
     {:noreply,
      socket
@@ -378,33 +351,9 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
 
   # Helper functions for chat persistence
 
-  defp cache_key(workspace_id, user_id) do
+  defp cache_key(workspace_id, user_id) when is_binary(workspace_id) and is_binary(user_id) do
     {workspace_id, user_id, :chatbot_history}
   end
 
-  defp persist_message(workspace_id, user_id, message, context) do
-    Composer.create_chat_message(%{
-      workspace_id: workspace_id,
-      user_id: user_id,
-      role: Atom.to_string(message.role),
-      content: message.content,
-      context: context
-    })
-  end
-
-  defp load_messages_from_db(workspace_id, user_id) do
-    workspace_id
-    |> Composer.list_chat_messages(user_id)
-    |> Enum.map(fn msg ->
-      case String.to_existing_atom(msg.role) do
-        :user -> Message.new_user!(msg.content)
-        :assistant -> Message.new_assistant!(msg.content)
-        :system -> Message.new_system!(msg.content)
-      end
-    end)
-  end
-
-  defp clear_chat_history(workspace_id, user_id) do
-    Composer.delete_chat_messages(workspace_id, user_id)
-  end
+  defp cache_key(_workspace_id, _user_id), do: {:unknown, :chatbot_history}
 end
