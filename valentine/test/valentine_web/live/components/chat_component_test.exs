@@ -17,7 +17,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
       chain: %LangChain.Chains.LLMChain{},
       id: "chat-component",
       skills: [],
-      workspace_id: workspace.id
+      workspace_id: workspace.id,
+      current_user: "test_user@example.com"
     }
 
     socket = %Phoenix.LiveView.Socket{
@@ -158,6 +159,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
       assigns = %{
         active_module: "some_active_module",
         active_action: "some_active_action",
+        workspace_id: socket.assigns.workspace_id,
+        current_user: socket.assigns.current_user,
         some_key: "some_value"
       }
 
@@ -196,10 +199,10 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
       value = "/clear"
 
       socket =
-        Map.put(
-          socket,
-          :assigns,
-          Map.put(socket.assigns, :chain, %{
+        socket
+        |> Map.put(:assigns, 
+          socket.assigns
+          |> Map.put(:chain, %{
             messages: [
               %LangChain.Message{
                 role: :system,
@@ -211,13 +214,10 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
               }
             ]
           })
-        )
-
-      socket =
-        Map.put(
-          socket,
-          :assigns,
-          Map.put(socket.assigns, :myself, "myself")
+          |> Map.put(:myself, "myself")
+          |> Map.put(:current_user, "test_user@example.com")
+          |> Map.put(:active_module, "some_module")
+          |> Map.put(:active_action, "some_action")
         )
 
       {:noreply, updated_socket} =
