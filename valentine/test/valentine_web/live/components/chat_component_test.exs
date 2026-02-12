@@ -200,7 +200,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
 
       socket =
         socket
-        |> Map.put(:assigns, 
+        |> Map.put(
+          :assigns,
           socket.assigns
           |> Map.put(:chain, %{
             messages: [

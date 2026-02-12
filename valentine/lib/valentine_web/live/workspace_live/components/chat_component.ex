@@ -91,8 +91,12 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
       socket.assigns.chain
       |> LLMChain.apply_delta(data)
 
-    %{workspace_id: workspace_id, current_user: user_id} = socket.assigns
-    Valentine.Cache.put(cache_key(workspace_id, user_id), chain, expire: :timer.hours(24))
+    workspace_id = Map.get(socket.assigns, :workspace_id)
+    user_id = Map.get(socket.assigns, :current_user)
+    
+    if workspace_id && user_id do
+      Valentine.Cache.put(cache_key(workspace_id, user_id), chain, expire: :timer.hours(24))
+    end
 
     {:ok,
      socket
@@ -120,14 +124,20 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
   end
 
   def update(assigns, socket) do
-    %{workspace_id: workspace_id, current_user: user_id} = assigns
+    workspace_id = Map.get(assigns, :workspace_id)
+    user_id = Map.get(assigns, :current_user)
 
     # Get from cache or create new chain
-    cached_chain = Valentine.Cache.get(cache_key(workspace_id, user_id))
+    cached_chain = if workspace_id && user_id do
+      Valentine.Cache.get(cache_key(workspace_id, user_id))
+    else
+      nil
+    end
 
     chain =
       if cached_chain do
-        cached_chain
+        # Update callbacks for current socket context
+        %{cached_chain | callbacks: [llm_handler(self(), socket.assigns.myself)]}
       else
         build_chain(%{
           stream: true,
@@ -162,7 +172,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
   end
 
   def handle_event("chat_submit", %{"value" => "/clear"}, socket) do
-    %{workspace_id: workspace_id, current_user: user_id} = socket.assigns
+    workspace_id = Map.get(socket.assigns, :workspace_id)
+    user_id = Map.get(socket.assigns, :current_user)
 
     chain =
       build_chain(%{
@@ -179,7 +190,9 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
       })
 
     # Clear from cache
-    Valentine.Cache.put(cache_key(workspace_id, user_id), chain, expire: :timer.hours(24))
+    if workspace_id && user_id do
+      Valentine.Cache.put(cache_key(workspace_id, user_id), chain, expire: :timer.hours(24))
+    end
 
     {:noreply,
      socket
@@ -187,12 +200,10 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
   end
 
   def handle_event("chat_submit", %{"value" => value}, socket) do
-    %{
-      active_module: active_module,
-      active_action: active_action,
-      workspace_id: workspace_id,
-      current_user: user_id
-    } = socket.assigns
+    workspace_id = Map.get(socket.assigns, :workspace_id)
+    user_id = Map.get(socket.assigns, :current_user)
+    active_module = socket.assigns.active_module
+    active_action = socket.assigns.active_action
 
     system_prompt = PromptRegistry.get_system_prompt(active_module, active_action, workspace_id)
 
@@ -204,7 +215,9 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
       ])
 
     # Update cache
-    Valentine.Cache.put(cache_key(workspace_id, user_id), chain, expire: :timer.hours(24))
+    if workspace_id && user_id do
+      Valentine.Cache.put(cache_key(workspace_id, user_id), chain, expire: :timer.hours(24))
+    end
 
     {:noreply,
      socket
@@ -351,9 +364,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
 
   # Helper functions for chat persistence
 
-  defp cache_key(workspace_id, user_id) when is_binary(workspace_id) and is_binary(user_id) do
+  defp cache_key(workspace_id, user_id) do
     {workspace_id, user_id, :chatbot_history}
   end
-
-  defp cache_key(_workspace_id, _user_id), do: {:unknown, :chatbot_history}
 end
