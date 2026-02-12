@@ -199,11 +199,10 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
       value = "/clear"
 
       socket =
-        socket
-        |> Map.put(
+        Map.put(
+          socket,
           :assigns,
-          socket.assigns
-          |> Map.put(:chain, %{
+          Map.put(socket.assigns, :chain, %{
             messages: [
               %LangChain.Message{
                 role: :system,
@@ -215,11 +214,12 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
               }
             ]
           })
-          |> Map.put(:myself, "myself")
-          |> Map.put(:current_user, "test_user@example.com")
-          |> Map.put(:active_module, "some_module")
-          |> Map.put(:active_action, "some_action")
         )
+
+      socket =
+        socket
+        |> Map.put(:assigns, Map.put(socket.assigns, :myself, "myself"))
+        |> Map.put(:assigns, Map.put(socket.assigns, :current_user, "test_user@example.com"))
 
       {:noreply, updated_socket} =
         ChatComponent.handle_event("chat_submit", %{"value" => value}, socket)

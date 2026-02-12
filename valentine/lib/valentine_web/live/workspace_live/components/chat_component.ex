@@ -92,10 +92,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
       |> LLMChain.apply_delta(data)
 
     %{workspace_id: workspace_id, current_user: user_id} = socket.assigns
-
-    Valentine.Cache.put(cache_key(workspace_id, user_id), chain.messages,
-      expire: :timer.hours(24)
-    )
+    Valentine.Cache.put(cache_key(workspace_id, user_id), chain.messages, expire: :timer.hours(24))
 
     {:ok,
      socket
@@ -124,36 +121,26 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
 
   def update(assigns, socket) do
     %{workspace_id: workspace_id, current_user: user_id} = assigns
-
-    # Get cached messages if available
-    cached_messages = Valentine.Cache.get(cache_key(workspace_id, user_id))
-
-    # Build a new chain with current context
-    chain =
-      build_chain(%{
-        stream: true,
-        stream_options: %{include_usage: true},
-        json_response: true,
-        json_schema:
-          PromptRegistry.get_schema(
-            assigns.active_module,
-            assigns.active_action
-          ),
-        callbacks: [llm_handler(self(), socket.assigns.myself)],
-        cid: socket.assigns.myself
-      })
-
-    # Add cached messages if they exist
-    chain =
-      if cached_messages && is_list(cached_messages) do
-        LLMChain.add_messages(chain, cached_messages)
-      else
-        chain
-      end
+    cached_messages = Valentine.Cache.get(cache_key(workspace_id, user_id)) || []
 
     {:ok,
      socket
-     |> assign(:chain, chain)
+     |> assign(
+       :chain,
+       build_chain(%{
+         stream: true,
+         stream_options: %{include_usage: true},
+         json_response: true,
+         json_schema:
+           PromptRegistry.get_schema(
+             assigns.active_module,
+             assigns.active_action
+           ),
+         callbacks: [llm_handler(self(), socket.assigns.myself)],
+         cid: socket.assigns.myself
+       })
+       |> LLMChain.add_messages(cached_messages)
+     )
      |> assign(assigns)}
   end
 
@@ -202,19 +189,16 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
       active_action: active_action
     } = socket.assigns
 
-    system_prompt = PromptRegistry.get_system_prompt(active_module, active_action, workspace_id)
-
     chain =
       socket.assigns.chain
       |> LLMChain.add_messages([
-        Message.new_system!(system_prompt),
+        Message.new_system!(
+          PromptRegistry.get_system_prompt(active_module, active_action, workspace_id)
+        ),
         Message.new_user!(value)
       ])
 
-    # Update cache with messages only
-    Valentine.Cache.put(cache_key(workspace_id, user_id), chain.messages,
-      expire: :timer.hours(24)
-    )
+    Valentine.Cache.put(cache_key(workspace_id, user_id), chain.messages, expire: :timer.hours(24))
 
     {:noreply,
      socket
