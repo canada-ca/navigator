@@ -92,7 +92,10 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
       |> LLMChain.apply_delta(data)
 
     %{workspace_id: workspace_id, current_user: user_id} = socket.assigns
-    Valentine.Cache.put({workspace_id, user_id, :chatbot_history}, chain.messages, expire: :timer.hours(24))
+
+    Valentine.Cache.put({workspace_id, user_id, :chatbot_history}, chain.messages,
+      expire: :timer.hours(24)
+    )
 
     {:ok,
      socket
@@ -198,7 +201,9 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
         Message.new_user!(value)
       ])
 
-    Valentine.Cache.put({workspace_id, user_id, :chatbot_history}, chain.messages, expire: :timer.hours(24))
+    Valentine.Cache.put({workspace_id, user_id, :chatbot_history}, chain.messages,
+      expire: :timer.hours(24)
+    )
 
     {:noreply,
      socket
