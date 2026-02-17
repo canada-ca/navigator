@@ -1,0 +1,5 @@
+Contact: mailto:ZZTBSCYBERS@tbs-sct.gc.ca
+Contact: https://hackerone.com/tbs-sct/
+Policy: https://hackerone.com/tbs-sct/policy
+Preferred-Languages: en, fr
+Expires: 2026-03-02T12:00:00.000Z
