@@ -17,7 +17,7 @@ defmodule ValentineWeb do
   those modules here.
   """
 
-  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt primer_live)
+  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt primer_live .well-known)
 
   def router do
     quote do
