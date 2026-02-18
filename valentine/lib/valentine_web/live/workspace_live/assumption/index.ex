@@ -87,6 +87,15 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
   end
 
   @impl true
+  def handle_info(%{topic: "workspace_" <> workspace_id}, socket) do
+    workspace = get_workspace(workspace_id)
+
+    {:noreply,
+     socket
+     |> assign(:assumptions, get_sorted_assumptions(workspace))}
+  end
+
+  @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     case Composer.get_assumption!(id) do
       nil ->
