@@ -32,14 +32,14 @@ defmodule Valentine.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.7.18"},
+      {:phoenix, "~> 1.8.0"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 1.0.1", override: true},
-      {:floki, ">= 0.30.0", only: :test},
+      {:phoenix_live_view, "~> 1.1.0", override: true},
+      {:lazy_html, ">= 0.1.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:swoosh, "~> 1.5"},
@@ -48,7 +48,7 @@ defmodule Valentine.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
-      {:dns_cluster, "~> 0.1.1"},
+      {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
       {:mock, "~> 0.3.0", only: :test},
       {:primer_live, "~> 0.9"},
@@ -63,7 +63,7 @@ defmodule Valentine.MixProject do
       {:logger_formatter_json, "~> 0.8"},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
       {:guardian, "~> 2.3"},
-      {:usage_rules, "~> 0.1"}
+      {:usage_rules, "~> 1.1"}
     ]
   end
 
