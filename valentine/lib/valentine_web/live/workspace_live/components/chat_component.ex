@@ -91,7 +91,11 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
       socket.assigns.chain
       |> LLMChain.apply_delta(data)
 
-    Valentine.Cache.put({socket.id, :chatbot_history}, chain, expire: :timer.hours(24))
+    %{workspace_id: workspace_id, current_user: user_id} = socket.assigns
+
+    Valentine.Cache.put({workspace_id, user_id, :chatbot_history}, chain.messages,
+      expire: :timer.hours(24)
+    )
 
     {:ok,
      socket
@@ -119,7 +123,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
   end
 
   def update(assigns, socket) do
-    cached_chain = Valentine.Cache.get({socket.id, :chatbot_history}) || %LLMChain{}
+    %{workspace_id: workspace_id, current_user: user_id} = assigns
+    cached_messages = Valentine.Cache.get({workspace_id, user_id, :chatbot_history}) || []
 
     {:ok,
      socket
@@ -137,7 +142,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
          callbacks: [llm_handler(self(), socket.assigns.myself)],
          cid: socket.assigns.myself
        })
-       |> LLMChain.add_messages(cached_chain.messages)
+       |> LLMChain.add_messages(cached_messages)
      )
      |> assign(assigns)}
   end
@@ -155,6 +160,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
   end
 
   def handle_event("chat_submit", %{"value" => "/clear"}, socket) do
+    %{workspace_id: workspace_id, current_user: user_id} = socket.assigns
+
     chain =
       build_chain(%{
         stream: true,
@@ -169,7 +176,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
         cid: socket.assigns.myself
       })
 
-    Valentine.Cache.put({socket.id, :chatbot_history}, chain, expire: :timer.hours(24))
+    # Clear from cache (store empty messages list)
+    Valentine.Cache.put({workspace_id, user_id, :chatbot_history}, [], expire: :timer.hours(24))
 
     {:noreply,
      socket
@@ -177,8 +185,12 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
   end
 
   def handle_event("chat_submit", %{"value" => value}, socket) do
-    %{active_module: active_module, active_action: active_action, workspace_id: workspace_id} =
-      socket.assigns
+    %{
+      workspace_id: workspace_id,
+      current_user: user_id,
+      active_module: active_module,
+      active_action: active_action
+    } = socket.assigns
 
     chain =
       socket.assigns.chain
@@ -189,7 +201,9 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
         Message.new_user!(value)
       ])
 
-    Valentine.Cache.put({socket.id, :chatbot_history}, chain, expire: :timer.hours(24))
+    Valentine.Cache.put({workspace_id, user_id, :chatbot_history}, chain.messages,
+      expire: :timer.hours(24)
+    )
 
     {:noreply,
      socket

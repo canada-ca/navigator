@@ -17,7 +17,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
       chain: %LangChain.Chains.LLMChain{},
       id: "chat-component",
       skills: [],
-      workspace_id: workspace.id
+      workspace_id: workspace.id,
+      current_user: "test_user@example.com"
     }
 
     socket = %Phoenix.LiveView.Socket{
@@ -158,6 +159,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
       assigns = %{
         active_module: "some_active_module",
         active_action: "some_active_action",
+        workspace_id: socket.assigns.workspace_id,
+        current_user: socket.assigns.current_user,
         some_key: "some_value"
       }
 
