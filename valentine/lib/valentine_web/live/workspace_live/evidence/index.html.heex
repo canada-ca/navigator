@@ -1,5 +1,10 @@
 <.subhead>
   {gettext("Evidence Overview")}
+  <:actions>
+    <.link navigate={~p"/workspaces/#{@workspace_id}/evidence/new"}>
+      <.button is_primary>{gettext("New Evidence")}</.button>
+    </.link>
+  </:actions>
 </.subhead>
 
 <%= if length(@evidence) == 0 do %>
@@ -164,6 +169,14 @@
         </div>
 
         <div class="flex-shrink-0 ml-3">
+          <.button
+            is_icon_button
+            navigate={~p"/workspaces/#{@workspace_id}/evidence/#{evidence.id}"}
+            aria-label={gettext("Edit")}
+            id={"edit-evidence-#{evidence.id}"}
+          >
+            <.octicon name="pencil-16" />
+          </.button>
           <.button
             is_icon_button
             phx-click="delete"

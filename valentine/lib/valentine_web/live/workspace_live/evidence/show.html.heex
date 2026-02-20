@@ -1,0 +1,174 @@
+<.subhead>
+  <%= if @evidence.id do %>
+    {gettext("Edit Evidence")}
+  <% else %>
+    {gettext("New Evidence")}
+  <% end %>
+  <:actions>
+    <.link navigate={~p"/workspaces/#{@workspace_id}/evidence"}>
+      <.button>{gettext("Back")}</.button>
+    </.link>
+    <.button phx-click="save" is_primary>{gettext("Save")}</.button>
+  </:actions>
+</.subhead>
+
+<div class="clearfix">
+  <div class="float-left col-10">
+    <.box class="p-4">
+      <form phx-change="update_field">
+        <div class="form-row">
+          <label class="form-label text-small text-bold" for="evidence-name">
+            {gettext("Name")}
+          </label>
+          <.text_input
+            id="evidence-name"
+            name="name"
+            is_full_width
+            value={@changes[:name]}
+          />
+        </div>
+
+        <div class="form-row">
+          <label class="form-label text-small text-bold" for="evidence-description">
+            {gettext("Description")}
+          </label>
+          <.textarea
+            id="evidence-description"
+            name="description"
+            rows="4"
+            class="form-control"
+            value={@changes[:description]}
+          />
+        </div>
+
+        <div class="form-row">
+          <label class="form-label text-small text-bold" for="evidence-type">
+            {gettext("Evidence type")}
+          </label>
+          <.select
+            name="evidence_type"
+            input_id="evidence-type"
+            options={
+              Ecto.Enum.values(Valentine.Composer.Evidence, :evidence_type)
+              |> Enum.map(&{Phoenix.Naming.humanize(&1), &1})
+            }
+            selected={@changes[:evidence_type]}
+            is_full_width
+          />
+        </div>
+
+        <%= if @changes[:evidence_type] == :json_data do %>
+          <div class="form-row">
+            <label class="form-label text-small text-bold" for="evidence-content">
+              {gettext("JSON content")}
+            </label>
+            <.textarea
+              id="evidence-content"
+              name="content_raw"
+              rows="10"
+              class="form-control"
+              value={@content_raw}
+            />
+          </div>
+        <% end %>
+
+        <%= if @changes[:evidence_type] == :blob_store_link do %>
+          <div class="form-row">
+            <label class="form-label text-small text-bold" for="evidence-blob-store-url">
+              {gettext("Blob store URL")}
+            </label>
+            <.text_input
+              id="evidence-blob-store-url"
+              name="blob_store_url"
+              is_full_width
+              value={@changes[:blob_store_url]}
+            />
+          </div>
+        <% end %>
+      </form>
+
+      <%= if @errors do %>
+        <.alert state="error" class="mt-2">
+          <p><.octicon name="stop-16" /> {gettext("Error")}</p>
+          <ul class="ml-6">
+            <%= for {field, error} <- @errors do %>
+              <li>{"#{Phoenix.Naming.humanize(field)} #{elem(error, 0)}"}</li>
+            <% end %>
+          </ul>
+        </.alert>
+      <% end %>
+    </.box>
+
+    <.box class="p-4 mt-2">
+      <h3>{gettext("NIST Controls")}</h3>
+      <form phx-change="set_tag_input" phx-submit="add_tag" class="clearfix">
+        <div class="float-left col-3 mr-2 mt-1">
+          <.text_input
+            id="nist-control-input"
+            name="value"
+            placeholder={gettext("Add a control")}
+            value={@nist_control_input}
+          >
+            <:group_button>
+              <input type="hidden" name="field" value="nist_controls" />
+              <.button type="submit">{gettext("Add")}</.button>
+            </:group_button>
+          </.text_input>
+        </div>
+      </form>
+      <div class="clearfix">
+        <%= for control <- @changes[:nist_controls] || [] do %>
+          <.button_group class="mt-1 float-left mr-2">
+            <.button phx-click="view_control_modal" phx-value-nist_id={control}>
+              <span>{control}</span>
+            </.button>
+            <.button
+              is_icon_button
+              phx-click="remove_tag"
+              phx-value-field="nist_controls"
+              phx-value-tag={control}
+            >
+              <.octicon name="x-16" />
+            </.button>
+          </.button_group>
+        <% end %>
+      </div>
+    </.box>
+
+    <.box class="p-4 mt-2">
+      <h3>{gettext("Tags")}</h3>
+      <form phx-change="set_tag_input" phx-submit="add_tag" class="clearfix">
+        <div class="float-left col-3 mr-2 mt-1">
+          <.text_input
+            id="evidence-tag-input"
+            name="value"
+            placeholder={gettext("Add a tag")}
+            value={@tag_input}
+          >
+            <:group_button>
+              <input type="hidden" name="field" value="tags" />
+              <.button type="submit">{gettext("Add")}</.button>
+            </:group_button>
+          </.text_input>
+        </div>
+      </form>
+      <div class="clearfix">
+        <%= for tag <- @changes[:tags] || [] do %>
+          <.button_group class="mt-1 float-left mr-2">
+            <.button>
+              <span>{tag}</span>
+            </.button>
+            <.button
+              is_icon_button
+              phx-click="remove_tag"
+              phx-value-field="tags"
+              phx-value-tag={tag}
+            >
+              <.octicon name="x-16" />
+            </.button>
+          </.button_group>
+        <% end %>
+      </div>
+    </.box>
+  </div>
+</div>

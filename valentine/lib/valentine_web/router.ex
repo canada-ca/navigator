@@ -135,6 +135,8 @@ defmodule ValentineWeb.Router do
            :threats
 
       live "/workspaces/:workspace_id/evidence", WorkspaceLive.Evidence.Index, :index
+      live "/workspaces/:workspace_id/evidence/new", WorkspaceLive.Evidence.Show, :new
+      live "/workspaces/:workspace_id/evidence/:id", WorkspaceLive.Evidence.Show, :edit
 
       live "/workspaces/:workspace_id/threats", WorkspaceLive.Threat.Index, :index
       live "/workspaces/:workspace_id/threats/new", WorkspaceLive.Threat.Show, :new
