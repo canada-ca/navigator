@@ -29,7 +29,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
     socket
     |> assign(:page_title, gettext("Create Evidence"))
     |> assign(:evidence, %Evidence{})
-    |> assign(:changes, %{workspace_id: socket.assigns.workspace_id, tags: [], nist_controls: []})
+    |> assign(:changes, %{workspace_id: socket.assigns.workspace_id, tags: [], nist_controls: [], evidence_type: :json_data})
     |> assign(:content_raw, "")
   end
 

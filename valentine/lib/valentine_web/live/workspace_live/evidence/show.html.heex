@@ -17,9 +17,7 @@
     <.box class="p-4">
       <form phx-change="update_field">
         <div class="form-row">
-          <label class="form-label text-small text-bold" for="evidence-name">
-            {gettext("Name")}
-          </label>
+          <h3>{gettext("Name")}</h3>
           <.text_input
             id="evidence-name"
             name="name"
@@ -29,22 +27,18 @@
         </div>
 
         <div class="form-row">
-          <label class="form-label text-small text-bold" for="evidence-description">
-            {gettext("Description")}
-          </label>
+          <h3>{gettext("Description")}</h3>
           <.textarea
             id="evidence-description"
             name="description"
             rows="4"
-            class="form-control"
+            is_full_width
             value={@changes[:description]}
           />
         </div>
 
         <div class="form-row">
-          <label class="form-label text-small text-bold" for="evidence-type">
-            {gettext("Evidence type")}
-          </label>
+          <h3>{gettext("Evidence type")}</h3>
           <.select
             name="evidence_type"
             input_id="evidence-type"
@@ -59,14 +53,12 @@
 
         <%= if @changes[:evidence_type] == :json_data do %>
           <div class="form-row">
-            <label class="form-label text-small text-bold" for="evidence-content">
-              {gettext("JSON content")}
-            </label>
+            <h3>{gettext("JSON content")}</h3>
             <.textarea
               id="evidence-content"
               name="content_raw"
               rows="10"
-              class="form-control"
+              is_full_width
               value={@content_raw}
             />
           </div>
@@ -74,9 +66,7 @@
 
         <%= if @changes[:evidence_type] == :blob_store_link do %>
           <div class="form-row">
-            <label class="form-label text-small text-bold" for="evidence-blob-store-url">
-              {gettext("Blob store URL")}
-            </label>
+            <h3>{gettext("Blob store URL")}</h3>
             <.text_input
               id="evidence-blob-store-url"
               name="blob_store_url"
