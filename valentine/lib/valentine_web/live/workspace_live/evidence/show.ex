@@ -233,9 +233,16 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
   defp normalize_evidence_type(value) when is_atom(value), do: value
 
   defp normalize_evidence_type(value) when is_binary(value) do
-    value
-    |> Phoenix.Naming.underscore()
-    |> String.to_existing_atom()
+    normalized =
+      value
+      |> Phoenix.Naming.underscore()
+
+    allowed_values = Ecto.Enum.values(Evidence, :evidence_type)
+
+    case Enum.find(allowed_values, fn atom -> Atom.to_string(atom) == normalized end) do
+      nil -> nil
+      atom -> atom
+    end
   end
 
   defp blank_to_nil(nil), do: nil

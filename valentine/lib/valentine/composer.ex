@@ -900,7 +900,7 @@ defmodule Valentine.Composer do
 
   def add_assumption_to_evidence(%Evidence{} = evidence, %Assumption{} = assumption) do
     %EvidenceAssumption{evidence_id: evidence.id, assumption_id: assumption.id}
-    |> Repo.insert(on_conflict: :nothing)
+    |> Repo.insert(on_conflict: :nothing, conflict_target: [:evidence_id, :assumption_id])
     |> case do
       {:ok, _} -> {:ok, evidence |> Repo.preload(:assumptions, force: true)}
       {:error, _} -> {:error, evidence}
@@ -913,15 +913,13 @@ defmodule Valentine.Composer do
         where: ea.evidence_id == ^evidence.id and ea.assumption_id == ^assumption.id
       )
     )
-    |> case do
-      {_, nil} -> {:ok, evidence |> Repo.preload(:assumptions, force: true)}
-      {:error, _} -> {:error, evidence}
-    end
+
+    {:ok, evidence |> Repo.preload(:assumptions, force: true)}
   end
 
   def add_threat_to_evidence(%Evidence{} = evidence, %Threat{} = threat) do
     %EvidenceThreat{evidence_id: evidence.id, threat_id: threat.id}
-    |> Repo.insert(on_conflict: :nothing)
+    |> Repo.insert(on_conflict: :nothing, conflict_target: [:evidence_id, :threat_id])
     |> case do
       {:ok, _} -> {:ok, evidence |> Repo.preload(:threats, force: true)}
       {:error, _} -> {:error, evidence}
@@ -934,15 +932,13 @@ defmodule Valentine.Composer do
         where: et.evidence_id == ^evidence.id and et.threat_id == ^threat.id
       )
     )
-    |> case do
-      {_, nil} -> {:ok, evidence |> Repo.preload(:threats, force: true)}
-      {:error, _} -> {:error, evidence}
-    end
+
+    {:ok, evidence |> Repo.preload(:threats, force: true)}
   end
 
   def add_mitigation_to_evidence(%Evidence{} = evidence, %Mitigation{} = mitigation) do
     %EvidenceMitigation{evidence_id: evidence.id, mitigation_id: mitigation.id}
-    |> Repo.insert(on_conflict: :nothing)
+    |> Repo.insert(on_conflict: :nothing, conflict_target: [:evidence_id, :mitigation_id])
     |> case do
       {:ok, _} -> {:ok, evidence |> Repo.preload(:mitigations, force: true)}
       {:error, _} -> {:error, evidence}
@@ -955,10 +951,8 @@ defmodule Valentine.Composer do
         where: em.evidence_id == ^evidence.id and em.mitigation_id == ^mitigation.id
       )
     )
-    |> case do
-      {_, nil} -> {:ok, evidence |> Repo.preload(:mitigations, force: true)}
-      {:error, _} -> {:error, evidence}
-    end
+
+    {:ok, evidence |> Repo.preload(:mitigations, force: true)}
   end
 
   @doc """

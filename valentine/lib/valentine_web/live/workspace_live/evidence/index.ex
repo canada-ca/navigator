@@ -3,7 +3,6 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
   use PrimerLive
 
   import Ecto.Query
-  alias Valentine.Repo
   alias Valentine.Composer
   alias Valentine.Composer.Evidence
 
