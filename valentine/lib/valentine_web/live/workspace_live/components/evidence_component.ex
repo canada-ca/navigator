@@ -57,9 +57,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EvidenceComponent do
           is_icon_button
           aria-label="Linked assumptions"
           phx-click={
-            JS.patch(
-              ~p"/workspaces/#{@evidence.workspace_id}/evidence/#{@evidence.id}/assumptions"
-            )
+            JS.patch(~p"/workspaces/#{@evidence.workspace_id}/evidence/#{@evidence.id}/assumptions")
           }
           id={"linked-evidence-assumptions-#{@evidence.id}"}
         >

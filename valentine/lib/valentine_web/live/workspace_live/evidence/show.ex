@@ -29,7 +29,12 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
     socket
     |> assign(:page_title, gettext("Create Evidence"))
     |> assign(:evidence, %Evidence{})
-    |> assign(:changes, %{workspace_id: socket.assigns.workspace_id, tags: [], nist_controls: [], evidence_type: :json_data})
+    |> assign(:changes, %{
+      workspace_id: socket.assigns.workspace_id,
+      tags: [],
+      nist_controls: [],
+      evidence_type: :json_data
+    })
     |> assign(:content_raw, "")
   end
 
@@ -115,7 +120,8 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
     current_values = Map.get(socket.assigns.changes, field_key) || []
     updated_values = List.delete(current_values, tag)
 
-    {:noreply, assign(socket, :changes, Map.put(socket.assigns.changes, field_key, updated_values))}
+    {:noreply,
+     assign(socket, :changes, Map.put(socket.assigns.changes, field_key, updated_values))}
   end
 
   @impl true
