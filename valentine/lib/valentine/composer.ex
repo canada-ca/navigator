@@ -1951,12 +1951,11 @@ defmodule Valentine.Composer do
       assumption = get_assumption!(assumption_id)
 
       if assumption.workspace_id == evidence.workspace_id do
-        case %EvidenceAssumption{evidence_id: evidence.id, assumption_id: assumption.id}
-             |> Repo.insert() do
-          {:ok, _} -> :ok
-          # Ignore duplicates or constraint errors
-          {:error, _} -> :ok
-        end
+        Repo.insert(
+          %EvidenceAssumption{evidence_id: evidence.id, assumption_id: assumption.id},
+          on_conflict: :nothing,
+          conflict_target: [:evidence_id, :assumption_id]
+        )
       end
     rescue
       Ecto.NoResultsError -> :ok
@@ -1968,12 +1967,11 @@ defmodule Valentine.Composer do
       threat = get_threat!(threat_id)
 
       if threat.workspace_id == evidence.workspace_id do
-        case %EvidenceThreat{evidence_id: evidence.id, threat_id: threat.id}
-             |> Repo.insert() do
-          {:ok, _} -> :ok
-          # Ignore duplicates or constraint errors
-          {:error, _} -> :ok
-        end
+        Repo.insert(
+          %EvidenceThreat{evidence_id: evidence.id, threat_id: threat.id},
+          on_conflict: :nothing,
+          conflict_target: [:evidence_id, :threat_id]
+        )
       end
     rescue
       Ecto.NoResultsError -> :ok
@@ -1997,36 +1995,33 @@ defmodule Valentine.Composer do
     assumptions = find_assumptions_by_nist_tags(workspace_id, nist_controls)
 
     Enum.each(assumptions, fn assumption ->
-      case %EvidenceAssumption{evidence_id: evidence.id, assumption_id: assumption.id}
-           |> Repo.insert() do
-        {:ok, _} -> :ok
-        # Ignore duplicates or constraint errors
-        {:error, _} -> :ok
-      end
+      Repo.insert(
+        %EvidenceAssumption{evidence_id: evidence.id, assumption_id: assumption.id},
+        on_conflict: :nothing,
+        conflict_target: [:evidence_id, :assumption_id]
+      )
     end)
 
     # Find threats with overlapping NIST controls in tags
     threats = find_threats_by_nist_tags(workspace_id, nist_controls)
 
     Enum.each(threats, fn threat ->
-      case %EvidenceThreat{evidence_id: evidence.id, threat_id: threat.id}
-           |> Repo.insert() do
-        {:ok, _} -> :ok
-        # Ignore duplicates or constraint errors
-        {:error, _} -> :ok
-      end
+      Repo.insert(
+        %EvidenceThreat{evidence_id: evidence.id, threat_id: threat.id},
+        on_conflict: :nothing,
+        conflict_target: [:evidence_id, :threat_id]
+      )
     end)
 
     # Find mitigations with overlapping NIST controls in tags
     mitigations = find_mitigations_by_nist_tags(workspace_id, nist_controls)
 
     Enum.each(mitigations, fn mitigation ->
-      case %EvidenceMitigation{evidence_id: evidence.id, mitigation_id: mitigation.id}
-           |> Repo.insert() do
-        {:ok, _} -> :ok
-        # Ignore duplicates or constraint errors
-        {:error, _} -> :ok
-      end
+      Repo.insert(
+        %EvidenceMitigation{evidence_id: evidence.id, mitigation_id: mitigation.id},
+        on_conflict: :nothing,
+        conflict_target: [:evidence_id, :mitigation_id]
+      )
     end)
   end
 
@@ -2056,12 +2051,11 @@ defmodule Valentine.Composer do
       mitigation = get_mitigation!(mitigation_id)
 
       if mitigation.workspace_id == evidence.workspace_id do
-        case %EvidenceMitigation{evidence_id: evidence.id, mitigation_id: mitigation.id}
-             |> Repo.insert() do
-          {:ok, _} -> :ok
-          # Ignore duplicates or constraint errors
-          {:error, _} -> :ok
-        end
+        Repo.insert(
+          %EvidenceMitigation{evidence_id: evidence.id, mitigation_id: mitigation.id},
+          on_conflict: :nothing,
+          conflict_target: [:evidence_id, :mitigation_id]
+        )
       end
     rescue
       Ecto.NoResultsError -> :ok
