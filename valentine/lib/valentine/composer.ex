@@ -898,6 +898,69 @@ defmodule Valentine.Composer do
     end
   end
 
+  def add_assumption_to_evidence(%Evidence{} = evidence, %Assumption{} = assumption) do
+    %EvidenceAssumption{evidence_id: evidence.id, assumption_id: assumption.id}
+    |> Repo.insert(on_conflict: :nothing)
+    |> case do
+      {:ok, _} -> {:ok, evidence |> Repo.preload(:assumptions, force: true)}
+      {:error, _} -> {:error, evidence}
+    end
+  end
+
+  def remove_assumption_from_evidence(%Evidence{} = evidence, %Assumption{} = assumption) do
+    Repo.delete_all(
+      from(ea in EvidenceAssumption,
+        where: ea.evidence_id == ^evidence.id and ea.assumption_id == ^assumption.id
+      )
+    )
+    |> case do
+      {_, nil} -> {:ok, evidence |> Repo.preload(:assumptions, force: true)}
+      {:error, _} -> {:error, evidence}
+    end
+  end
+
+  def add_threat_to_evidence(%Evidence{} = evidence, %Threat{} = threat) do
+    %EvidenceThreat{evidence_id: evidence.id, threat_id: threat.id}
+    |> Repo.insert(on_conflict: :nothing)
+    |> case do
+      {:ok, _} -> {:ok, evidence |> Repo.preload(:threats, force: true)}
+      {:error, _} -> {:error, evidence}
+    end
+  end
+
+  def remove_threat_from_evidence(%Evidence{} = evidence, %Threat{} = threat) do
+    Repo.delete_all(
+      from(et in EvidenceThreat,
+        where: et.evidence_id == ^evidence.id and et.threat_id == ^threat.id
+      )
+    )
+    |> case do
+      {_, nil} -> {:ok, evidence |> Repo.preload(:threats, force: true)}
+      {:error, _} -> {:error, evidence}
+    end
+  end
+
+  def add_mitigation_to_evidence(%Evidence{} = evidence, %Mitigation{} = mitigation) do
+    %EvidenceMitigation{evidence_id: evidence.id, mitigation_id: mitigation.id}
+    |> Repo.insert(on_conflict: :nothing)
+    |> case do
+      {:ok, _} -> {:ok, evidence |> Repo.preload(:mitigations, force: true)}
+      {:error, _} -> {:error, evidence}
+    end
+  end
+
+  def remove_mitigation_from_evidence(%Evidence{} = evidence, %Mitigation{} = mitigation) do
+    Repo.delete_all(
+      from(em in EvidenceMitigation,
+        where: em.evidence_id == ^evidence.id and em.mitigation_id == ^mitigation.id
+      )
+    )
+    |> case do
+      {_, nil} -> {:ok, evidence |> Repo.preload(:mitigations, force: true)}
+      {:error, _} -> {:error, evidence}
+    end
+  end
+
   @doc """
   Returns the list of application_informations.
 
@@ -1798,7 +1861,14 @@ defmodule Valentine.Composer do
       ** (Ecto.NoResultsError)
 
   """
-  def get_evidence!(id), do: Repo.get!(Evidence, id)
+  def get_evidence!(id, _preload \\ nil)
+
+  def get_evidence!(id, preload) when is_list(preload) do
+    Repo.get!(Evidence, id)
+    |> Repo.preload(preload)
+  end
+
+  def get_evidence!(id, preload) when is_nil(preload), do: Repo.get!(Evidence, id)
 
   @doc """
   Creates evidence.

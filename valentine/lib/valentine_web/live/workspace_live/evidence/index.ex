@@ -3,6 +3,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
   use PrimerLive
 
   import Ecto.Query
+  alias Valentine.Repo
   alias Valentine.Composer
   alias Valentine.Composer.Evidence
 
@@ -29,6 +30,42 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, gettext("Evidence Overview"))
+  end
+
+  defp apply_action(socket, :assumptions, %{"id" => evidence_id}) do
+    evidence_item = Composer.get_evidence!(evidence_id, [:assumptions])
+
+    socket
+    |> assign(:page_title, gettext("Link Evidence"))
+    |> assign(:evidence_item, evidence_item)
+    |> assign(:source_entity_type, :evidence)
+    |> assign(:target_entity_type, :assumptions)
+    |> assign(:linkable_entities, socket.assigns.workspace.assumptions)
+    |> assign(:linked_entities, evidence_item.assumptions)
+  end
+
+  defp apply_action(socket, :threats, %{"id" => evidence_id}) do
+    evidence_item = Composer.get_evidence!(evidence_id, [:threats])
+
+    socket
+    |> assign(:page_title, gettext("Link Evidence"))
+    |> assign(:evidence_item, evidence_item)
+    |> assign(:source_entity_type, :evidence)
+    |> assign(:target_entity_type, :threats)
+    |> assign(:linkable_entities, socket.assigns.workspace.threats)
+    |> assign(:linked_entities, evidence_item.threats)
+  end
+
+  defp apply_action(socket, :mitigations, %{"id" => evidence_id}) do
+    evidence_item = Composer.get_evidence!(evidence_id, [:mitigations])
+
+    socket
+    |> assign(:page_title, gettext("Link Evidence"))
+    |> assign(:evidence_item, evidence_item)
+    |> assign(:source_entity_type, :evidence)
+    |> assign(:target_entity_type, :mitigations)
+    |> assign(:linkable_entities, socket.assigns.workspace.mitigations)
+    |> assign(:linked_entities, evidence_item.mitigations)
   end
 
   @impl true
@@ -75,6 +112,17 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
      |> assign(:evidence, get_filtered_evidence_list(socket.assigns.workspace_id, filters))}
   end
 
+  @impl true
+  def handle_info(
+        {ValentineWeb.WorkspaceLive.Components.EntityLinkerComponent, {:saved, _entity}},
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> assign(:evidence, get_evidence_list(socket.assigns.workspace_id))
+     |> push_patch(to: ~p"/workspaces/#{socket.assigns.workspace_id}/evidence")}
+  end
+
   defp get_evidence_list(workspace_id) do
     from(e in Evidence,
       where: e.workspace_id == ^workspace_id,
@@ -115,7 +163,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
   end
 
   defp get_workspace(id) do
-    Composer.get_workspace!(id, [:evidence])
+    Composer.get_workspace!(id, [:evidence, :assumptions, :threats, :mitigations])
   end
 
   defp format_evidence_type(:json_data), do: "JSON Data"
