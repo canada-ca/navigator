@@ -16,7 +16,7 @@
   <div class="float-left col-10">
     <.box class="p-4">
       <form phx-change="update_field">
-        <div class="form-row">
+        <div class="mb-4">
           <h3>{gettext("Name")}</h3>
           <.text_input
             id="evidence-name"
@@ -26,7 +26,7 @@
           />
         </div>
 
-        <div class="form-row">
+        <div class="mb-4">
           <h3>{gettext("Description")}</h3>
           <.textarea
             id="evidence-description"
@@ -37,7 +37,7 @@
           />
         </div>
 
-        <div class="form-row">
+        <div class="mb-4">
           <h3>{gettext("Evidence type")}</h3>
           <.select
             name="evidence_type"
@@ -52,7 +52,7 @@
         </div>
 
         <%= if @changes[:evidence_type] == :json_data do %>
-          <div class="form-row">
+          <div class="mb-4">
             <h3>{gettext("JSON content")}</h3>
             <.textarea
               id="evidence-content"
@@ -65,7 +65,7 @@
         <% end %>
 
         <%= if @changes[:evidence_type] == :blob_store_link do %>
-          <div class="form-row">
+          <div class="mb-4">
             <h3>{gettext("Blob store URL")}</h3>
             <.text_input
               id="evidence-blob-store-url"
