@@ -18,7 +18,7 @@
 
 ## 2. Evidence.Show LiveView Tests
 
-- [x] 2.1 Create test file `test/valentine_web/live/workspace_live/evidence/show_test.exs`
+- [x] 2.1 Create test file `test/valentine_web/live/workspace/evidence/show_test.exs`
 - [x] 2.2 Add test setup with workspace and socket fixtures
 - [x] 2.3 Test mount/3 initializes workspace and form state
 - [x] 2.4 Test handle_params for :new action
@@ -56,7 +56,7 @@
 
 ## 3. Evidence.Index Linking Tests
 
-- [x] 3.1 Open existing test file `test/valentine_web/live/workspace_live/evidence/index_test.exs`
+- [x] 3.1 Open existing test file `test/valentine_web/live/workspace/evidence/index_test.exs`
 - [x] 3.2 Add test for handle_params :assumptions action
 - [x] 3.3 Verify evidence loaded with preloaded assumptions
 - [x] 3.4 Verify correct assigns for assumptions linking

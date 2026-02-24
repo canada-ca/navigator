@@ -27,8 +27,8 @@ The evidence-ui branch introduces significant new UI functionality for evidence 
 
 - Test files: Creates 5 new test files or extends existing ones
   - `test/valentine_web/live/components/evidence_component_test.exs` (new)
-  - `test/valentine_web/live/workspace_live/evidence/show_test.exs` (new)
-  - `test/valentine_web/live/workspace_live/evidence/index_test.exs` (extend)
+  - `test/valentine_web/live/workspace/evidence/show_test.exs` (new)
+  - `test/valentine_web/live/workspace/evidence/index_test.exs` (extend)
   - `test/valentine/composer_test.exs` (extend with new evidence linking functions)
   - `test/valentine_web/live/components/entity_linker_component_test.exs` (extend)
 - No impact on production code - tests only
