@@ -98,10 +98,36 @@ defmodule Valentine.Composer.Evidence do
           changeset
           # Clear content for blob_store_link type
           |> put_change(:content, nil)
+          |> validate_blob_store_url()
         end
 
       _ ->
         changeset
+    end
+  end
+
+  defp validate_blob_store_url(changeset) do
+    blob_store_url = get_field(changeset, :blob_store_url)
+
+    # Skip validation if URL is nil or empty (already validated by validate_evidence_type_content)
+    if is_nil(blob_store_url) or blob_store_url == "" do
+      changeset
+    else
+      case URI.new(blob_store_url) do
+        {:ok, uri} ->
+          if is_nil(uri.scheme) do
+            add_error(
+              changeset,
+              :blob_store_url,
+              "must be a valid URL with a scheme (e.g., https://example.com)"
+            )
+          else
+            changeset
+          end
+
+        {:error, _part} ->
+          add_error(changeset, :blob_store_url, "must be a valid URL")
+      end
     end
   end
 

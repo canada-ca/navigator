@@ -102,6 +102,123 @@ defmodule Valentine.Composer.EvidenceTest do
       assert "must be provided when evidence_type is blob_store_link" in errors_on(changeset).blob_store_url
     end
 
+    test "create_evidence/1 with valid blob_store_link URLs with various schemes succeeds" do
+      workspace = workspace_fixture()
+
+      valid_urls = [
+        "https://example.com/document.pdf",
+        "http://example.com/file.txt",
+        "s3://my-bucket/path/to/file.zip",
+        "gs://bucket/object",
+        "ftp://ftp.example.com/file.tar.gz"
+      ]
+
+      for url <- valid_urls do
+        attrs = %{
+          workspace_id: workspace.id,
+          name: "Evidence with #{URI.parse(url).scheme} URL",
+          evidence_type: :blob_store_link,
+          blob_store_url: url
+        }
+
+        assert {:ok, %Evidence{} = evidence} = Composer.create_evidence(attrs)
+        assert evidence.blob_store_url == url
+      end
+    end
+
+    test "create_evidence/1 with blob_store_link URL without scheme returns error" do
+      workspace = workspace_fixture()
+
+      invalid_urls = [
+        "example.com/document.pdf",
+        "//example.com/file",
+        "/absolute/path",
+        "relative/path"
+      ]
+
+      for url <- invalid_urls do
+        attrs = %{
+          workspace_id: workspace.id,
+          name: "Invalid Evidence",
+          evidence_type: :blob_store_link,
+          blob_store_url: url
+        }
+
+        assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(attrs)
+
+        assert "must be a valid URL with a scheme (e.g., https://example.com)" in errors_on(
+                 changeset
+               ).blob_store_url
+      end
+    end
+
+    test "create_evidence/1 with blob_store_link malformed URL returns error" do
+      workspace = workspace_fixture()
+
+      malformed_urls = [
+        "ht!tp://bad url with spaces",
+        "not a url at all",
+        "https://[invalid",
+        "just plain text"
+      ]
+
+      for url <- malformed_urls do
+        attrs = %{
+          workspace_id: workspace.id,
+          name: "Malformed Evidence",
+          evidence_type: :blob_store_link,
+          blob_store_url: url
+        }
+
+        assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(attrs)
+        errors = errors_on(changeset).blob_store_url
+        assert Enum.any?(errors, fn error -> String.contains?(error, "must be a valid URL") end)
+      end
+    end
+
+    test "create_evidence/1 with json_data type ignores blob_store_url validation" do
+      workspace = workspace_fixture()
+
+      # Even with an invalid URL, json_data evidence should succeed
+      # because blob_store_url is cleared for json_data type
+      attrs = %{
+        workspace_id: workspace.id,
+        name: "JSON Evidence",
+        evidence_type: :json_data,
+        content: %{"data" => "test content"},
+        blob_store_url: "not a valid url"
+      }
+
+      assert {:ok, %Evidence{} = evidence} = Composer.create_evidence(attrs)
+      assert evidence.evidence_type == :json_data
+      assert evidence.content == %{"data" => "test content"}
+      # blob_store_url should be cleared for json_data type
+      assert is_nil(evidence.blob_store_url)
+    end
+
+    test "update_evidence/2 with invalid blob_store_link URL returns error" do
+      workspace = workspace_fixture()
+
+      # Create valid evidence first
+      {:ok, evidence} =
+        Composer.create_evidence(%{
+          workspace_id: workspace.id,
+          name: "Valid Evidence",
+          evidence_type: :blob_store_link,
+          blob_store_url: "https://example.com/original.pdf"
+        })
+
+      # Try to update with invalid URL
+      invalid_update = %{blob_store_url: "example.com/no-scheme.pdf"}
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Composer.update_evidence(evidence, invalid_update)
+
+      assert "must be a valid URL with a scheme (e.g., https://example.com)" in errors_on(
+               changeset
+             ).blob_store_url
+    end
+
     test "create_evidence/1 with invalid NIST controls returns error changeset" do
       workspace = workspace_fixture()
 
