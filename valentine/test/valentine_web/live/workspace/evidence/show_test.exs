@@ -36,7 +36,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.ShowTest do
         live(conn, ~p"/workspaces/#{workspace.id}/evidence/new")
 
       # Verify new evidence form is shown
-      assert html =~ "Create Evidence"
+      assert html =~ "New Evidence"
       assert has_element?(view, "#evidence-form")
       assert has_element?(view, "#evidence-name")
       assert has_element?(view, "#evidence-type")

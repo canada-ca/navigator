@@ -27,7 +27,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
 
   defp apply_action(socket, :new, _params) do
     socket
-    |> assign(:page_title, gettext("Create Evidence"))
+    |> assign(:page_title, gettext("New Evidence"))
     |> assign(:evidence, %Evidence{})
     |> assign(:changes, %{
       workspace_id: socket.assigns.workspace_id,
