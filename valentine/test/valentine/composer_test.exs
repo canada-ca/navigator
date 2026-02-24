@@ -1546,7 +1546,9 @@ defmodule Valentine.ComposerTest do
     end
 
     test "get_evidence!/2 with preload list loads associations", %{evidence: evidence} do
-      loaded_evidence = Composer.get_evidence!(evidence.id, [:assumptions, :threats, :mitigations])
+      loaded_evidence =
+        Composer.get_evidence!(evidence.id, [:assumptions, :threats, :mitigations])
+
       assert is_list(loaded_evidence.assumptions)
       assert is_list(loaded_evidence.threats)
       assert is_list(loaded_evidence.mitigations)
