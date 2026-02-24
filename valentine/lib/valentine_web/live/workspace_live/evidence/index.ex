@@ -165,14 +165,6 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
     Composer.get_workspace!(id, [:evidence, :assumptions, :threats, :mitigations])
   end
 
-  defp format_evidence_type(:json_data), do: "JSON Data"
-  defp format_evidence_type(:blob_store_link), do: "File Link"
-  defp format_evidence_type(type), do: to_string(type) |> String.capitalize()
-
-  defp format_date(datetime) do
-    Calendar.strftime(datetime, "%Y-%m-%d %H:%M")
-  end
-
   defp get_all_tags(evidence_list) when is_list(evidence_list) and length(evidence_list) > 0 do
     evidence_list
     |> Enum.flat_map(& &1.tags)

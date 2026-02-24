@@ -58,6 +58,103 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.IndexTest do
     end
   end
 
+  describe "Evidence Entity Linking" do
+    setup [:create_workspace_with_entities, :create_evidence]
+
+    test "handle_params for :assumptions action loads evidence with preloaded assumptions", %{
+      conn: conn,
+      workspace: workspace,
+      evidence: evidence
+    } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+
+      {:ok, _view, html} =
+        live(conn, ~p"/workspaces/#{workspace.id}/evidence/#{evidence.id}/assumptions")
+
+      # Verify the linking page loaded correctly
+      assert html =~ "Link Evidence"
+    end
+
+    test "handle_params for :threats action loads evidence with preloaded threats", %{
+      conn: conn,
+      workspace: workspace,
+      evidence: evidence
+    } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+
+      {:ok, _view, html} =
+        live(conn, ~p"/workspaces/#{workspace.id}/evidence/#{evidence.id}/threats")
+
+      # Verify the linking page loaded correctly
+      assert html =~ "Link Evidence"
+    end
+
+    test "handle_params for :mitigations action loads evidence with preloaded mitigations", %{
+      conn: conn,
+      workspace: workspace,
+      evidence: evidence
+    } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+
+      {:ok, _view, html} =
+        live(conn, ~p"/workspaces/#{workspace.id}/evidence/#{evidence.id}/mitigations")
+
+      # Verify the linking page loaded correctly
+      assert html =~ "Link Evidence"
+    end
+
+    test "handle_info EntityLinkerComponent saved message refreshes evidence list", %{
+      conn: conn,
+      workspace: workspace,
+      evidence: evidence
+    } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+
+      {:ok, view, _html} =
+        live(conn, ~p"/workspaces/#{workspace.id}/evidence/#{evidence.id}/assumptions")
+
+      # Simulate the EntityLinkerComponent sending a saved message
+      send(
+        view.pid,
+        {ValentineWeb.WorkspaceLive.Components.EntityLinkerComponent, {:saved, evidence}}
+      )
+
+      # Wait for the message to be processed
+      :timer.sleep(50)
+
+      # Should redirect to evidence index
+      assert_patched(view, ~p"/workspaces/#{workspace.id}/evidence")
+    end
+
+    test "workspace preloads all required associations", %{
+      conn: conn,
+      workspace: workspace
+    } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+
+      {:ok, _view, html} = live(conn, ~p"/workspaces/#{workspace.id}/evidence")
+
+      # Verify the page loaded successfully - this implicitly tests that 
+      # workspace associations were loaded correctly by the mount function
+      assert html =~ "Evidence"
+    end
+  end
+
+  defp create_workspace_with_entities(_) do
+    workspace = workspace_fixture()
+
+    # Create some entities to link to
+    _assumption = assumption_fixture(%{workspace_id: workspace.id})
+    _threat = threat_fixture(%{workspace_id: workspace.id})
+    _mitigation = mitigation_fixture(%{workspace_id: workspace.id})
+
+    # Reload workspace with associations
+    workspace =
+      Valentine.Composer.get_workspace!(workspace.id, [:assumptions, :threats, :mitigations])
+
+    %{workspace: workspace}
+  end
+
   defp create_workspace(_) do
     workspace = workspace_fixture()
     %{workspace: workspace}
