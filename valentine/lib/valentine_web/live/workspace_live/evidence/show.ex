@@ -2,8 +2,11 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
   use ValentineWeb, :live_view
   use PrimerLive
 
+  import ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers
+
   alias Valentine.Composer
   alias Valentine.Composer.Evidence
+  alias ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers
 
   @impl true
   def mount(%{"workspace_id" => workspace_id} = _params, _session, socket) do

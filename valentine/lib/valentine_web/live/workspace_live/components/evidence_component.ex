@@ -2,6 +2,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.EvidenceComponent do
   use ValentineWeb, :live_component
   use PrimerLive
 
+  import ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -110,10 +112,6 @@ defmodule ValentineWeb.WorkspaceLive.Components.EvidenceComponent do
 
   defp assoc_length(l) when is_list(l), do: length(l)
   defp assoc_length(_), do: 0
-
-  defp format_evidence_type(:json_data), do: "JSON Data"
-  defp format_evidence_type(:blob_store_link), do: "File Link"
-  defp format_evidence_type(type), do: to_string(type) |> String.capitalize()
 
   defp format_date(datetime) do
     Calendar.strftime(datetime, "%Y-%m-%d %H:%M")

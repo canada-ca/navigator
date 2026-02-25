@@ -83,7 +83,7 @@ defmodule Valentine.Composer.EvidenceTest do
       }
 
       assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(invalid_attrs)
-      assert "must be provided when evidence_type is json_data" in errors_on(changeset).content
+      assert "must be provided when evidence_type is JSON Content" in errors_on(changeset).content
     end
 
     test "create_evidence/1 with invalid blob_store_link type returns error changeset" do
@@ -99,7 +99,7 @@ defmodule Valentine.Composer.EvidenceTest do
 
       assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(invalid_attrs)
 
-      assert "must be provided when evidence_type is blob_store_link" in errors_on(changeset).blob_store_url
+      assert "must be provided when evidence_type is File Link" in errors_on(changeset).blob_store_url
     end
 
     test "create_evidence/1 with valid blob_store_link URLs with various schemes succeeds" do
@@ -247,6 +247,44 @@ defmodule Valentine.Composer.EvidenceTest do
 
       assert {:ok, %Evidence{} = evidence} = Composer.create_evidence(valid_attrs)
       assert evidence.nist_controls == ["AC-1", "SC-7.4", "AU-12", "IA-2.1"]
+    end
+
+    test "all evidence type enum values have corresponding format functions in EvidenceHelpers" do
+      # Get all enum values from the schema
+      enum_values = Ecto.Enum.values(Evidence, :evidence_type)
+
+      # Import the helper module
+      alias ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers
+
+      # Verify each enum value has a format function
+      for value <- enum_values do
+        # Should not raise an error
+        formatted = EvidenceHelpers.format_evidence_type(value)
+        # Should return a non-empty string
+        assert is_binary(formatted)
+        assert String.length(formatted) > 0
+      end
+    end
+
+    test "format_field_name/1 returns standardized name for content field" do
+      alias ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers
+
+      assert EvidenceHelpers.format_field_name(:content) == "JSON Content"
+    end
+
+    test "format_field_name/1 returns standardized name for blob_store_url field" do
+      alias ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers
+
+      assert EvidenceHelpers.format_field_name(:blob_store_url) == "File Link"
+    end
+
+    test "format_field_name/1 falls back to humanize for unknown fields" do
+      alias ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers
+
+      # Test with a generic field name
+      assert EvidenceHelpers.format_field_name(:name) == "Name"
+      assert EvidenceHelpers.format_field_name(:description) == "Description"
+      assert EvidenceHelpers.format_field_name(:workspace_id) == "Workspace"
     end
 
     test "create_evidence/1 without required fields returns error changeset" do

@@ -43,6 +43,7 @@
         icon="file"
         name={:evidence_type}
         values={Ecto.Enum.values(Valentine.Composer.Evidence, :evidence_type)}
+        labels={evidence_type_labels()}
         filters={@filters}
       />
       <%= if length(get_all_tags(@evidence)) > 0 do %>

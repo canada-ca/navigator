@@ -22,7 +22,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EvidenceComponentTest do
       html = render_component(EvidenceComponent, assigns)
       assert html =~ assigns.evidence.name
       assert html =~ assigns.evidence.description
-      assert html =~ "JSON Data"
+      assert html =~ "JSON Content"
       assert html =~ "##{assigns.evidence.numeric_id}"
     end
 
@@ -91,7 +91,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EvidenceComponentTest do
       evidence = Map.put(assigns.evidence, :evidence_type, :json_data)
       assigns = Map.put(assigns, :evidence, evidence)
       html = render_component(EvidenceComponent, assigns)
-      assert html =~ "JSON Data"
+      assert html =~ "JSON Content"
     end
 
     test "format_evidence_type for blob_store_link type", %{assigns: assigns} do

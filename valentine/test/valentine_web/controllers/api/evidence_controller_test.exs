@@ -394,7 +394,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
                }
              } = json_response(conn, 422)
 
-      assert error_message =~ "must be provided when evidence_type is json_data"
+      assert error_message =~ "must be provided when evidence_type is JSON Content"
     end
 
     test "returns validation errors for blob_store_link without blob_store_url", %{
@@ -416,7 +416,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
                }
              } = json_response(conn, 422)
 
-      assert error_message =~ "must be provided when evidence_type is blob_store_link"
+      assert error_message =~ "must be provided when evidence_type is File Link"
     end
 
     test "links evidence to entities based on NIST control overlap", %{
