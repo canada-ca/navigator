@@ -80,7 +80,7 @@ defmodule Valentine.Composer.Evidence do
     case evidence_type do
       :json_data ->
         if is_nil(content) do
-          add_error(changeset, :content, "must be provided when evidence_type is JSON Content")
+          add_error(changeset, :content, "must be provided for this evidence type")
         else
           changeset
           # Clear blob_store_url for json_data type
@@ -92,7 +92,7 @@ defmodule Valentine.Composer.Evidence do
           add_error(
             changeset,
             :blob_store_url,
-            "must be provided when evidence_type is File Link"
+            "must be provided for this evidence type"
           )
         else
           changeset

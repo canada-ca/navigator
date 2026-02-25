@@ -83,7 +83,7 @@ defmodule Valentine.Composer.EvidenceTest do
       }
 
       assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(invalid_attrs)
-      assert "must be provided when evidence_type is JSON Content" in errors_on(changeset).content
+      assert "must be provided for this evidence type" in errors_on(changeset).content
     end
 
     test "create_evidence/1 with invalid blob_store_link type returns error changeset" do
@@ -99,7 +99,7 @@ defmodule Valentine.Composer.EvidenceTest do
 
       assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(invalid_attrs)
 
-      assert "must be provided when evidence_type is File Link" in errors_on(changeset).blob_store_url
+      assert "must be provided for this evidence type" in errors_on(changeset).blob_store_url
     end
 
     test "create_evidence/1 with valid blob_store_link URLs with various schemes succeeds" do
