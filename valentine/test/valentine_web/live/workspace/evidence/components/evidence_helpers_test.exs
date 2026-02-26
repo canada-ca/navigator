@@ -21,7 +21,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpersTest do
 
   describe "format_field_name/1" do
     test "returns standardized name for content field" do
-      assert EvidenceHelpers.format_field_name(:content) == "JSON Content"
+      assert EvidenceHelpers.format_field_name(:content) == "JSON Content (OSCAL)"
     end
 
     test "returns standardized name for blob_store_url field" do

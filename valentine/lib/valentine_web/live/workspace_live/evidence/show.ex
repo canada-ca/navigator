@@ -36,7 +36,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
       workspace_id: socket.assigns.workspace_id,
       tags: [],
       nist_controls: [],
-      evidence_type: :json_data
+      evidence_type: :blob_store_link
     })
     |> assign(:content_raw, "")
   end
