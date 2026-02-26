@@ -21,9 +21,13 @@ defmodule ValentineWeb.WorkspaceLive.Components.EvidenceComponent do
           </.label>
         </div>
 
-        <p :if={@evidence.description} class="f5 color-fg-muted mb-2">
-          {@evidence.description}
-        </p>
+        <div :if={@evidence.description} class="f5 color-fg-muted mb-2">
+          <div class="markdown-body">
+            <ValentineWeb.WorkspaceLive.Components.MarkdownComponent.render text={
+              @evidence.description
+            } />
+          </div>
+        </div>
 
         <div class="d-flex flex-items-center mb-2">
           <span class="f6 color-fg-muted mr-3">

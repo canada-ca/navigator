@@ -27,17 +27,6 @@
         </div>
 
         <div class="mb-4">
-          <h3>{gettext("Description")}</h3>
-          <.textarea
-            id="evidence-description"
-            name="description"
-            rows="4"
-            is_full_width
-            value={@changes[:description]}
-          />
-        </div>
-
-        <div class="mb-4">
           <h3>{gettext("Evidence type")}</h3>
           <.select
             name="evidence_type"
@@ -87,6 +76,42 @@
           </ul>
         </.alert>
       <% end %>
+    </.box>
+
+    <.box class="p-4 mt-2">
+      <h3>{gettext("Description")}</h3>
+      <.live_component
+        module={ValentineWeb.WorkspaceLive.Components.TabNavComponent}
+        id="tabs-component-evidence-description"
+        tabs={[
+          %{label: gettext("Write"), id: "tab1"},
+          %{label: gettext("Preview"), id: "tab2"}
+        ]}
+      >
+        <:tab_content :let={tab}>
+          <%= case tab do %>
+            <% "tab1" -> %>
+              <form phx-change="update_field">
+                <.textarea
+                  name="description"
+                  class="mt-2"
+                  placeholder={gettext("Describe this evidence...")}
+                  input_id="evidence-description"
+                  is_full_width
+                  rows="7"
+                  value={@changes[:description]}
+                  caption={gettext("Markdown is supported")}
+                />
+              </form>
+            <% "tab2" -> %>
+              <div class="markdown-body">
+                <ValentineWeb.WorkspaceLive.Components.MarkdownComponent.render text={
+                  @changes[:description]
+                } />
+              </div>
+          <% end %>
+        </:tab_content>
+      </.live_component>
     </.box>
   </div>
   <div class="float-left col-3 pl-4">
