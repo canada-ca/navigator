@@ -77,13 +77,14 @@ defmodule Valentine.Composer.EvidenceTest do
       invalid_attrs = %{
         workspace_id: workspace.id,
         name: "Test Evidence",
+        description: "Test description",
         evidence_type: :json_data,
         # Missing content for json_data type
         blob_store_url: "https://example.com/doc.pdf"
       }
 
       assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(invalid_attrs)
-      assert "must be provided when evidence_type is json_data" in errors_on(changeset).content
+      assert "must be provided for this evidence type" in errors_on(changeset).content
     end
 
     test "create_evidence/1 with invalid blob_store_link type returns error changeset" do
@@ -92,6 +93,7 @@ defmodule Valentine.Composer.EvidenceTest do
       invalid_attrs = %{
         workspace_id: workspace.id,
         name: "Test Evidence",
+        description: "Test description",
         evidence_type: :blob_store_link,
         # Missing blob_store_url for blob_store_link type
         content: %{"data" => "some data"}
@@ -99,7 +101,314 @@ defmodule Valentine.Composer.EvidenceTest do
 
       assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(invalid_attrs)
 
-      assert "must be provided when evidence_type is blob_store_link" in errors_on(changeset).blob_store_url
+      assert "must be provided for this evidence type" in errors_on(changeset).blob_store_url
+    end
+
+    test "create_evidence/1 with valid blob_store_link URLs with various schemes succeeds" do
+      workspace = workspace_fixture()
+
+      valid_urls = [
+        "https://example.com/document.pdf",
+        "http://example.com/file.txt",
+        "s3://my-bucket/path/to/file.zip",
+        "gs://bucket/object",
+        "ftp://ftp.example.com/file.tar.gz"
+      ]
+
+      for url <- valid_urls do
+        attrs = %{
+          workspace_id: workspace.id,
+          name: "Evidence with #{URI.parse(url).scheme} URL",
+          description: "Test evidence with #{URI.parse(url).scheme} URL scheme",
+          evidence_type: :blob_store_link,
+          blob_store_url: url
+        }
+
+        assert {:ok, %Evidence{} = evidence} = Composer.create_evidence(attrs)
+        assert evidence.blob_store_url == url
+      end
+    end
+
+    test "create_evidence/1 with blob_store_link URL without scheme returns error" do
+      workspace = workspace_fixture()
+
+      invalid_urls = [
+        "example.com/document.pdf",
+        "//example.com/file",
+        "/absolute/path",
+        "relative/path"
+      ]
+
+      for url <- invalid_urls do
+        attrs = %{
+          workspace_id: workspace.id,
+          name: "Invalid Evidence",
+          description: "Test description",
+          evidence_type: :blob_store_link,
+          blob_store_url: url
+        }
+
+        assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(attrs)
+
+        assert "must be a valid URL with a scheme (e.g., https://example.com)" in errors_on(
+                 changeset
+               ).blob_store_url
+      end
+    end
+
+    test "create_evidence/1 with blob_store_link malformed URL returns error" do
+      workspace = workspace_fixture()
+
+      malformed_urls = [
+        "ht!tp://bad url with spaces",
+        "not a url at all",
+        "https://[invalid",
+        "just plain text"
+      ]
+
+      for url <- malformed_urls do
+        attrs = %{
+          workspace_id: workspace.id,
+          name: "Malformed Evidence",
+          description: "Test description",
+          evidence_type: :blob_store_link,
+          blob_store_url: url
+        }
+
+        assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(attrs)
+        errors = errors_on(changeset).blob_store_url
+        assert Enum.any?(errors, fn error -> String.contains?(error, "must be a valid URL") end)
+      end
+    end
+
+    test "create_evidence/1 with blob_store_link URL without host returns error" do
+      workspace = workspace_fixture()
+
+      urls_without_host = [
+        "https://",
+        "http://",
+        "s3://",
+        "ftp://"
+      ]
+
+      for url <- urls_without_host do
+        attrs = %{
+          workspace_id: workspace.id,
+          name: "Invalid Evidence",
+          description: "Test description",
+          evidence_type: :blob_store_link,
+          blob_store_url: url
+        }
+
+        assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(attrs)
+
+        assert "must include a host (e.g., https://example.com)" in errors_on(changeset).blob_store_url
+      end
+    end
+
+    test "create_evidence/1 with blob_store_link using disallowed schemes returns error" do
+      workspace = workspace_fixture()
+
+      dangerous_urls = [
+        "javascript:alert(1)",
+        "data:text/html,<script>alert(1)</script>",
+        "file:///etc/passwd",
+        "vbscript:msgbox(1)",
+        "about:blank"
+      ]
+
+      for url <- dangerous_urls do
+        attrs = %{
+          workspace_id: workspace.id,
+          name: "Dangerous Evidence",
+          description: "Test description",
+          evidence_type: :blob_store_link,
+          blob_store_url: url
+        }
+
+        assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(attrs)
+
+        # Some URLs fail parsing entirely, others fail scheme validation
+        # Both are acceptable rejections for security purposes
+        errors = errors_on(changeset).blob_store_url
+
+        assert Enum.any?(errors, fn error ->
+                 String.contains?(error, "must use an allowed URL scheme") or
+                   String.contains?(error, "must be a valid URL")
+               end)
+      end
+    end
+
+    test "create_evidence/1 with json_data type ignores blob_store_url validation" do
+      workspace = workspace_fixture()
+
+      # Even with an invalid URL, json_data evidence should succeed
+      # because blob_store_url is cleared for json_data type
+      attrs = %{
+        workspace_id: workspace.id,
+        name: "JSON Evidence",
+        description: "Test description",
+        evidence_type: :json_data,
+        content: %{"data" => "test content"},
+        blob_store_url: "not a valid url"
+      }
+
+      assert {:ok, %Evidence{} = evidence} = Composer.create_evidence(attrs)
+      assert evidence.evidence_type == :json_data
+      assert evidence.content == %{"data" => "test content"}
+      # blob_store_url should be cleared for json_data type
+      assert is_nil(evidence.blob_store_url)
+    end
+
+    test "create_evidence/1 with valid description_only creates evidence" do
+      workspace = workspace_fixture()
+
+      valid_attrs = %{
+        workspace_id: workspace.id,
+        name: "Description Only Evidence",
+        description: "This evidence only has a description, no attachments",
+        evidence_type: :description_only,
+        nist_controls: ["AC-2"],
+        tags: ["policy"]
+      }
+
+      assert {:ok, %Evidence{} = evidence} = Composer.create_evidence(valid_attrs)
+      assert evidence.name == "Description Only Evidence"
+      assert evidence.description == "This evidence only has a description, no attachments"
+      assert evidence.evidence_type == :description_only
+      assert evidence.content == nil
+      assert evidence.blob_store_url == nil
+      assert evidence.nist_controls == ["AC-2"]
+      assert evidence.tags == ["policy"]
+      assert evidence.numeric_id == 1
+    end
+
+    test "create_evidence/1 with description_only and attachment fields fails validation" do
+      workspace = workspace_fixture()
+
+      # Test with content field
+      invalid_attrs_content = %{
+        workspace_id: workspace.id,
+        name: "Invalid Evidence",
+        description: "Description",
+        evidence_type: :description_only,
+        content: %{"data" => "should not be here"}
+      }
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Composer.create_evidence(invalid_attrs_content)
+
+      assert "description_only evidence cannot have content or blob_store_url" in errors_on(
+               changeset
+             ).evidence_type
+
+      # Test with blob_store_url field
+      invalid_attrs_url = %{
+        workspace_id: workspace.id,
+        name: "Invalid Evidence",
+        description: "Description",
+        evidence_type: :description_only,
+        blob_store_url: "https://example.com/file.pdf"
+      }
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Composer.create_evidence(invalid_attrs_url)
+
+      assert "description_only evidence cannot have content or blob_store_url" in errors_on(
+               changeset
+             ).evidence_type
+    end
+
+    test "create_evidence/1 without description fails validation for all types" do
+      workspace = workspace_fixture()
+
+      # Test description_only without description
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Composer.create_evidence(%{
+                 workspace_id: workspace.id,
+                 name: "No Description",
+                 evidence_type: :description_only
+               })
+
+      assert "can't be blank" in errors_on(changeset).description
+
+      # Test json_data without description
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Composer.create_evidence(%{
+                 workspace_id: workspace.id,
+                 name: "No Description",
+                 evidence_type: :json_data,
+                 content: %{"data" => "test"}
+               })
+
+      assert "can't be blank" in errors_on(changeset).description
+
+      # Test blob_store_link without description
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Composer.create_evidence(%{
+                 workspace_id: workspace.id,
+                 name: "No Description",
+                 evidence_type: :blob_store_link,
+                 blob_store_url: "https://example.com/file.pdf"
+               })
+
+      assert "can't be blank" in errors_on(changeset).description
+    end
+
+    test "create_evidence/1 with existing types still works correctly" do
+      workspace = workspace_fixture()
+
+      # Test json_data still works
+      {:ok, json_evidence} =
+        Composer.create_evidence(%{
+          workspace_id: workspace.id,
+          name: "JSON Test",
+          description: "JSON description",
+          evidence_type: :json_data,
+          content: %{"data" => "test"}
+        })
+
+      assert json_evidence.evidence_type == :json_data
+      assert json_evidence.content == %{"data" => "test"}
+      assert json_evidence.blob_store_url == nil
+
+      # Test blob_store_link still works
+      {:ok, link_evidence} =
+        Composer.create_evidence(%{
+          workspace_id: workspace.id,
+          name: "Link Test",
+          description: "Link description",
+          evidence_type: :blob_store_link,
+          blob_store_url: "https://example.com/file.pdf"
+        })
+
+      assert link_evidence.evidence_type == :blob_store_link
+      assert link_evidence.blob_store_url == "https://example.com/file.pdf"
+      assert link_evidence.content == nil
+    end
+
+    test "update_evidence/2 with invalid blob_store_link URL returns error" do
+      workspace = workspace_fixture()
+
+      # Create valid evidence first
+      {:ok, evidence} =
+        Composer.create_evidence(%{
+          workspace_id: workspace.id,
+          name: "Valid Evidence",
+          description: "Test description",
+          evidence_type: :blob_store_link,
+          blob_store_url: "https://example.com/original.pdf"
+        })
+
+      # Try to update with invalid URL
+      invalid_update = %{blob_store_url: "example.com/no-scheme.pdf"}
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Composer.update_evidence(evidence, invalid_update)
+
+      assert "must be a valid URL with a scheme (e.g., https://example.com)" in errors_on(
+               changeset
+             ).blob_store_url
     end
 
     test "create_evidence/1 with invalid NIST controls returns error changeset" do
@@ -108,6 +417,7 @@ defmodule Valentine.Composer.EvidenceTest do
       invalid_attrs = %{
         workspace_id: workspace.id,
         name: "Test Evidence",
+        description: "Test description",
         evidence_type: :json_data,
         content: %{"data" => "test"},
         nist_controls: ["AC-1", "INVALID-ID", "SC-7.4"]
@@ -123,6 +433,7 @@ defmodule Valentine.Composer.EvidenceTest do
       valid_attrs = %{
         workspace_id: workspace.id,
         name: "Test Evidence",
+        description: "Test description",
         evidence_type: :json_data,
         content: %{"data" => "test"},
         nist_controls: ["AC-1", "SC-7.4", "AU-12", "IA-2.1"]
@@ -183,6 +494,7 @@ defmodule Valentine.Composer.EvidenceTest do
         Composer.create_evidence(%{
           workspace_id: workspace.id,
           name: "Evidence 1",
+          description: "Test description",
           evidence_type: :json_data,
           content: %{"data" => "test1"}
         })
@@ -191,6 +503,7 @@ defmodule Valentine.Composer.EvidenceTest do
         Composer.create_evidence(%{
           workspace_id: workspace.id,
           name: "Evidence 2",
+          description: "Test description",
           evidence_type: :json_data,
           content: %{"data" => "test2"}
         })
@@ -202,6 +515,7 @@ defmodule Valentine.Composer.EvidenceTest do
         Composer.create_evidence(%{
           workspace_id: other_workspace.id,
           name: "Evidence 3",
+          description: "Test description",
           evidence_type: :json_data,
           content: %{"data" => "test3"}
         })
@@ -411,6 +725,7 @@ defmodule Valentine.Composer.EvidenceTest do
       # Create evidence with matching NIST control
       evidence_attrs = %{
         workspace_id: workspace.id,
+        description: "Test description",
         name: "NIST Control Evidence",
         evidence_type: :json_data,
         content: %{"audit_findings" => "AC-1 controls verified"},
@@ -437,6 +752,7 @@ defmodule Valentine.Composer.EvidenceTest do
       # Create evidence with matching NIST control
       evidence_attrs = %{
         workspace_id: workspace.id,
+        description: "Test description",
         name: "Audit Evidence",
         evidence_type: :json_data,
         content: %{"findings" => "AU-12 logging verified"},
@@ -463,6 +779,7 @@ defmodule Valentine.Composer.EvidenceTest do
       # Create evidence with matching NIST control
       evidence_attrs = %{
         workspace_id: workspace.id,
+        description: "Test description",
         name: "Network Evidence",
         evidence_type: :json_data,
         content: %{"report" => "SC-7 network controls verified"},
@@ -504,6 +821,7 @@ defmodule Valentine.Composer.EvidenceTest do
       evidence_attrs = %{
         workspace_id: workspace.id,
         name: "Multi-Control Evidence",
+        description: "Test description",
         evidence_type: :json_data,
         content: %{"findings" => "AC-1 and AU-12 controls verified"},
         nist_controls: ["AC-1", "AU-12"]
@@ -540,6 +858,7 @@ defmodule Valentine.Composer.EvidenceTest do
       evidence_attrs = %{
         workspace_id: workspace1.id,
         name: "Isolated Evidence",
+        description: "Test description",
         evidence_type: :json_data,
         content: %{"findings" => "AC-1 controls verified"},
         nist_controls: ["AC-1"]
@@ -575,6 +894,7 @@ defmodule Valentine.Composer.EvidenceTest do
 
       evidence_attrs = %{
         workspace_id: workspace.id,
+        description: "Test description",
         name: "Precedence Test Evidence",
         evidence_type: :json_data,
         content: %{"data" => "test"},
@@ -609,6 +929,7 @@ defmodule Valentine.Composer.EvidenceTest do
       # Create evidence without NIST controls
       evidence_attrs = %{
         workspace_id: workspace.id,
+        description: "Test description",
         name: "Evidence Without NIST Controls",
         evidence_type: :json_data,
         content: %{"data" => "test"}
@@ -637,6 +958,7 @@ defmodule Valentine.Composer.EvidenceTest do
       # Create evidence with empty NIST controls
       evidence_attrs = %{
         workspace_id: workspace.id,
+        description: "Test description",
         name: "Evidence With Empty NIST Controls",
         evidence_type: :json_data,
         content: %{"data" => "test"},
@@ -675,6 +997,7 @@ defmodule Valentine.Composer.EvidenceTest do
       # Create evidence with specific NIST control
       evidence_attrs = %{
         workspace_id: workspace.id,
+        description: "Test description",
         name: "Selective Linking Evidence",
         evidence_type: :json_data,
         content: %{"findings" => "AC-1 controls verified"},
@@ -698,6 +1021,7 @@ defmodule Valentine.Composer.EvidenceTest do
       evidence_attrs = %{
         workspace_id: workspace.id,
         name: "Linked Evidence",
+        description: "Test description",
         evidence_type: :json_data,
         content: %{"data" => "test"}
       }
@@ -719,6 +1043,7 @@ defmodule Valentine.Composer.EvidenceTest do
       evidence_attrs = %{
         workspace_id: workspace.id,
         name: "Multi-Linked Evidence",
+        description: "Test description",
         evidence_type: :json_data,
         content: %{"data" => "test"}
       }
@@ -742,6 +1067,7 @@ defmodule Valentine.Composer.EvidenceTest do
       evidence_attrs = %{
         workspace_id: workspace.id,
         name: "Evidence with Invalid Links",
+        description: "Test description",
         evidence_type: :json_data,
         content: %{"data" => "test"}
       }
@@ -769,6 +1095,7 @@ defmodule Valentine.Composer.EvidenceTest do
       evidence_attrs = %{
         workspace_id: workspace1.id,
         name: "Evidence in Workspace 1",
+        description: "Test description",
         evidence_type: :json_data,
         content: %{"data" => "test"}
       }
@@ -787,6 +1114,7 @@ defmodule Valentine.Composer.EvidenceTest do
       evidence_attrs = %{
         workspace_id: workspace.id,
         name: "Orphaned Evidence",
+        description: "Test description",
         evidence_type: :json_data,
         content: %{"data" => "test"}
       }

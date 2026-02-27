@@ -3,6 +3,10 @@ defmodule Valentine.Composer.Evidence do
   import Ecto.Changeset
   import Ecto.Query
 
+  # Allowed URL schemes for blob_store_url validation
+  # Includes common web protocols and cloud storage schemes
+  @allowed_url_schemes ["http", "https", "s3", "gs", "ftp", "ftps"]
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   @derive {Jason.Encoder,
@@ -28,7 +32,7 @@ defmodule Valentine.Composer.Evidence do
     field :numeric_id, :integer
     field :name, :string
     field :description, :string
-    field :evidence_type, Ecto.Enum, values: [:json_data, :blob_store_link]
+    field :evidence_type, Ecto.Enum, values: [:description_only, :json_data, :blob_store_link]
     # For JSON data like OSCAL documents
     field :content, :map
     # For external file links (images, documents, etc.)
@@ -63,7 +67,7 @@ defmodule Valentine.Composer.Evidence do
       :nist_controls,
       :tags
     ])
-    |> validate_required([:workspace_id, :name, :evidence_type])
+    |> validate_required([:workspace_id, :name, :description, :evidence_type])
     |> validate_evidence_type_content()
     |> validate_nist_controls()
     |> set_numeric_id()
@@ -78,9 +82,23 @@ defmodule Valentine.Composer.Evidence do
     blob_store_url = get_field(changeset, :blob_store_url)
 
     case evidence_type do
+      :description_only ->
+        # Description-only evidence should not have attachment fields
+        if !is_nil(content) or (!is_nil(blob_store_url) and blob_store_url != "") do
+          add_error(
+            changeset,
+            :evidence_type,
+            "description_only evidence cannot have content or blob_store_url"
+          )
+        else
+          changeset
+          |> put_change(:content, nil)
+          |> put_change(:blob_store_url, nil)
+        end
+
       :json_data ->
         if is_nil(content) do
-          add_error(changeset, :content, "must be provided when evidence_type is json_data")
+          add_error(changeset, :content, "must be provided for this evidence type")
         else
           changeset
           # Clear blob_store_url for json_data type
@@ -92,16 +110,58 @@ defmodule Valentine.Composer.Evidence do
           add_error(
             changeset,
             :blob_store_url,
-            "must be provided when evidence_type is blob_store_link"
+            "must be provided for this evidence type"
           )
         else
           changeset
           # Clear content for blob_store_link type
           |> put_change(:content, nil)
+          |> validate_blob_store_url()
         end
 
       _ ->
         changeset
+    end
+  end
+
+  defp validate_blob_store_url(changeset) do
+    blob_store_url = get_field(changeset, :blob_store_url)
+
+    # Skip validation if URL is nil or empty (already validated by validate_evidence_type_content)
+    if is_nil(blob_store_url) or blob_store_url == "" do
+      changeset
+    else
+      case URI.new(blob_store_url) do
+        {:ok, %URI{scheme: scheme, host: host}} ->
+          cond do
+            is_nil(scheme) or scheme == "" ->
+              add_error(
+                changeset,
+                :blob_store_url,
+                "must be a valid URL with a scheme (e.g., https://example.com)"
+              )
+
+            scheme not in @allowed_url_schemes ->
+              add_error(
+                changeset,
+                :blob_store_url,
+                "must use an allowed URL scheme (http, https, s3, gs, ftp, ftps)"
+              )
+
+            is_nil(host) or host == "" ->
+              add_error(
+                changeset,
+                :blob_store_url,
+                "must include a host (e.g., https://example.com)"
+              )
+
+            true ->
+              changeset
+          end
+
+        {:error, _part} ->
+          add_error(changeset, :blob_store_url, "must be a valid URL")
+      end
     end
   end
 

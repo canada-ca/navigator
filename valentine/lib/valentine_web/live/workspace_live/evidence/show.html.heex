@@ -1,0 +1,237 @@
+<.subhead class="mb-3">
+  <%= if @evidence.id do %>
+    <%= if @evidence.numeric_id do %>
+      {gettext("Edit Evidence")} <span class="color-fg-muted">#{@evidence.numeric_id}</span>
+    <% else %>
+      {gettext("Edit Evidence")}
+    <% end %>
+  <% else %>
+    {gettext("New Evidence")}
+  <% end %>
+  <:actions>
+    <.link navigate={~p"/workspaces/#{@workspace_id}/evidence"}>
+      <.button>{gettext("Back")}</.button>
+    </.link>
+    <.button phx-click="save" is_primary>{gettext("Save")}</.button>
+  </:actions>
+</.subhead>
+
+<div class="clearfix">
+  <div class="float-left col-8">
+    <form id="evidence-form" phx-change="update_field">
+      <div class="mb-4">
+        <div class="form-group-header mb-2">
+          <h4 class="f4 text-normal mb-1">
+            {gettext("Name")} <span class="text-danger">*</span>
+          </h4>
+        </div>
+        <.text_input
+          id="evidence-name"
+          name="name"
+          is_full_width
+          value={@changes[:name]}
+          placeholder={gettext("Add a name")}
+        />
+      </div>
+
+      <div class="mb-5">
+        <div class="form-group-header mb-2">
+          <h4 class="f4 text-normal mb-1">
+            {gettext("Description")} <span class="text-danger">*</span>
+          </h4>
+        </div>
+        <.live_component
+          module={ValentineWeb.WorkspaceLive.Components.TabNavComponent}
+          id="tabs-component-evidence-description"
+          tabs={[
+            %{label: gettext("Write"), id: "tab1"},
+            %{label: gettext("Preview"), id: "tab2"}
+          ]}
+        >
+          <:tab_content :let={tab}>
+            <%= case tab do %>
+              <% "tab1" -> %>
+                <.textarea
+                  name="description"
+                  class="mt-2"
+                  placeholder={gettext("Describe this evidence...")}
+                  input_id="evidence-description"
+                  is_full_width
+                  rows="16"
+                  value={@changes[:description]}
+                  caption={gettext("Markdown is supported")}
+                />
+              <% "tab2" -> %>
+                <div class="markdown-body">
+                  <ValentineWeb.WorkspaceLive.Components.MarkdownComponent.render text={
+                    @changes[:description]
+                  } />
+                </div>
+            <% end %>
+          </:tab_content>
+        </.live_component>
+      </div>
+
+      <div class="mb-3">
+        <.box>
+          <div class="Box-header d-flex flex-justify-between flex-items-center">
+            <h4 class="f4 text-normal mb-1">
+              {gettext("Attach Evidence")}
+              <span class="color-fg-muted">({gettext("Optional")})</span>
+            </h4>
+            <%= if @changes[:evidence_type] != :description_only do %>
+              <.button
+                is_small
+                phx-click="clear_evidence_type"
+                class="color-fg-danger"
+              >
+                {gettext("Remove")}
+              </.button>
+            <% end %>
+          </div>
+
+          <div class="Box-body">
+            <%= if @changes[:evidence_type] == :description_only do %>
+              <%!-- Empty State --%>
+              <div class="d-flex" style="gap: 1rem;">
+                <.button
+                  class="flex-1 d-flex flex-column flex-items-center gap-2 py-3"
+                  phx-click="set_evidence_type"
+                  phx-value-type="blob_store_link"
+                >
+                  <.octicon name="link-external-16" />
+                  <span>{gettext("Link URL")}</span>
+                </.button>
+                <.button
+                  class="flex-1 d-flex flex-column flex-items-center gap-2 py-3"
+                  phx-click="set_evidence_type"
+                  phx-value-type="json_data"
+                >
+                  <.octicon name="code-16" />
+                  <span>{gettext("Paste JSON")}</span>
+                </.button>
+              </div>
+            <% end %>
+
+            <%= if @changes[:evidence_type] == :blob_store_link do %>
+              <div>
+                <.text_input
+                  id="evidence-blob-store-url"
+                  name="blob_store_url"
+                  is_full_width
+                  value={@changes[:blob_store_url]}
+                  placeholder={gettext("Ex: https://example.com/evidence.pdf")}
+                />
+              </div>
+            <% end %>
+
+            <%= if @changes[:evidence_type] == :json_data do %>
+              <%!-- JSON Display --%>
+              <div class="Box">
+                <div class="Box-body p-0">
+                  <.textarea
+                    id="evidence-content"
+                    name="content_raw"
+                    rows="10"
+                    is_full_width
+                    value={@content_raw}
+                    class="text-mono"
+                    style="border: 0; border-radius: 0;"
+                    placeholder={gettext("Paste JSON content here - {...}")}
+                  />
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </.box>
+      </div>
+    </form>
+
+    <%= if @errors do %>
+      <.alert state="error" class="mt-2">
+        <p><.octicon name="stop-16" /> {gettext("Error")}</p>
+        <ul class="ml-6">
+          <%= for {field, error} <- @errors do %>
+            <li>{"#{EvidenceHelpers.format_field_name(field)} #{elem(error, 0)}"}</li>
+          <% end %>
+        </ul>
+      </.alert>
+    <% end %>
+  </div>
+
+  <div class="float-left col-3 pl-4">
+    <.action_list_section_divider>
+      <:title><.octicon name="shield-16" />{gettext("NIST Controls")}</:title>
+    </.action_list_section_divider>
+    <form phx-change="set_tag_input" phx-submit="add_tag" class="clearfix">
+      <div class="float-left col-12 mt-2">
+        <.text_input
+          id="nist-control-input"
+          name="value"
+          placeholder={gettext("Add a control")}
+          value={@nist_control_input}
+          is_full_width
+        >
+          <:group_button>
+            <input type="hidden" name="field" value="nist_controls" />
+            <.button type="submit">{gettext("Add")}</.button>
+          </:group_button>
+        </.text_input>
+      </div>
+    </form>
+    <div class="clearfix mt-2">
+      <%= for control <- @changes[:nist_controls] || [] do %>
+        <.button_group class="mt-1 float-left mr-2">
+          <.button phx-click="view_control_modal" phx-value-nist_id={control}>
+            <span>{control}</span>
+          </.button>
+          <.button
+            is_icon_button
+            phx-click="remove_tag"
+            phx-value-field="nist_controls"
+            phx-value-tag={control}
+          >
+            <.octicon name="x-16" />
+          </.button>
+        </.button_group>
+      <% end %>
+    </div>
+    <.action_list_section_divider />
+    <.action_list_section_divider>
+      <:title><.octicon name="tag-16" />{gettext("Tags")}</:title>
+    </.action_list_section_divider>
+    <form phx-change="set_tag_input" phx-submit="add_tag" class="clearfix">
+      <div class="float-left col-12 mt-2">
+        <.text_input
+          id="evidence-tag-input"
+          name="value"
+          placeholder={gettext("Add a tag")}
+          value={@tag_input}
+          is_full_width
+        >
+          <:group_button>
+            <input type="hidden" name="field" value="tags" />
+            <.button type="submit">{gettext("Add")}</.button>
+          </:group_button>
+        </.text_input>
+      </div>
+    </form>
+    <div class="clearfix mt-2">
+      <%= for tag <- @changes[:tags] || [] do %>
+        <.button_group class="mt-1 float-left mr-2">
+          <.button>
+            <span>{tag}</span>
+          </.button>
+          <.button
+            is_icon_button
+            phx-click="remove_tag"
+            phx-value-field="tags"
+            phx-value-tag={tag}
+          >
+            <.octicon name="x-16" />
+          </.button>
+        </.button_group>
+      <% end %>
+    </div>
+  </div>
+</div>
