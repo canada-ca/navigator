@@ -36,7 +36,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
       workspace_id: socket.assigns.workspace_id,
       tags: [],
       nist_controls: [],
-      evidence_type: :blob_store_link
+      evidence_type: :description_only
     })
     |> assign(:content_raw, "")
   end
@@ -128,6 +128,28 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
   end
 
   @impl true
+  def handle_event("set_evidence_type", %{"type" => type}, socket) do
+    evidence_type = String.to_existing_atom(type)
+
+    {:noreply,
+     assign(socket, :changes, Map.put(socket.assigns.changes, :evidence_type, evidence_type))}
+  end
+
+  @impl true
+  def handle_event("clear_evidence_type", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(
+       :changes,
+       socket.assigns.changes
+       |> Map.put(:evidence_type, :description_only)
+       |> Map.put(:blob_store_url, nil)
+       |> Map.put(:content, nil)
+     )
+     |> assign(:content_raw, "")}
+  end
+
+  @impl true
   def handle_event("save", _params, socket) do
     if socket.assigns.evidence.id do
       update_existing_evidence(socket)
@@ -209,6 +231,9 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
 
       :blob_store_link ->
         {:ok, Map.put(attrs, :content, nil)}
+
+      :description_only ->
+        {:ok, attrs |> Map.put(:content, nil) |> Map.put(:blob_store_url, nil)}
 
       _ ->
         {:ok, attrs}

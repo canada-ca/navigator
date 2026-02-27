@@ -9,6 +9,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers do
 
   # Module attributes defining standardized display labels
   @evidence_type_labels %{
+    description_only: "Description Only",
     json_data: "JSON Content (OSCAL)",
     blob_store_link: "File Link"
   }

@@ -28,7 +28,7 @@ defmodule Valentine.Composer.Evidence do
     field :numeric_id, :integer
     field :name, :string
     field :description, :string
-    field :evidence_type, Ecto.Enum, values: [:json_data, :blob_store_link]
+    field :evidence_type, Ecto.Enum, values: [:description_only, :json_data, :blob_store_link]
     # For JSON data like OSCAL documents
     field :content, :map
     # For external file links (images, documents, etc.)
@@ -63,7 +63,7 @@ defmodule Valentine.Composer.Evidence do
       :nist_controls,
       :tags
     ])
-    |> validate_required([:workspace_id, :name, :evidence_type])
+    |> validate_required([:workspace_id, :name, :description, :evidence_type])
     |> validate_evidence_type_content()
     |> validate_nist_controls()
     |> set_numeric_id()
@@ -78,6 +78,20 @@ defmodule Valentine.Composer.Evidence do
     blob_store_url = get_field(changeset, :blob_store_url)
 
     case evidence_type do
+      :description_only ->
+        # Description-only evidence should not have attachment fields
+        if !is_nil(content) or (!is_nil(blob_store_url) and blob_store_url != "") do
+          add_error(
+            changeset,
+            :evidence_type,
+            "description_only evidence cannot have content or blob_store_url"
+          )
+        else
+          changeset
+          |> put_change(:content, nil)
+          |> put_change(:blob_store_url, nil)
+        end
+
       :json_data ->
         if is_nil(content) do
           add_error(changeset, :content, "must be provided for this evidence type")
