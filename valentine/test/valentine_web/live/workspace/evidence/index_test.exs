@@ -119,8 +119,8 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.IndexTest do
         {ValentineWeb.WorkspaceLive.Components.EntityLinkerComponent, {:saved, evidence}}
       )
 
-      # Wait for the message to be processed
-      :timer.sleep(50)
+      # Synchronously process the message by rendering
+      render(view)
 
       # Should redirect to evidence index
       assert_patched(view, ~p"/workspaces/#{workspace.id}/evidence")
