@@ -2,8 +2,6 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  import ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers
-
   alias Valentine.Composer
   alias Valentine.Composer.Evidence
   alias ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers

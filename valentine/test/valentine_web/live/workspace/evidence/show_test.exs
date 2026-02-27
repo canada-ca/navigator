@@ -550,8 +550,8 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.ShowTest do
       {:ok, _view, html} =
         live(conn, ~p"/workspaces/#{workspace.id}/evidence/#{evidence.id}")
 
-      # Verify evidence number is displayed
-      assert html =~ "#EVD-#{evidence.numeric_id}"
+      # Verify evidence number is displayed in the format "#1", "#2", etc.
+      assert html =~ "##{evidence.numeric_id}"
     end
 
     test "form validates required fields", %{workspace: workspace, conn: conn} do

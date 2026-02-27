@@ -81,7 +81,7 @@
             </h4>
             <%= if @changes[:evidence_type] != :description_only do %>
               <.button
-                size="sm"
+                is_small
                 phx-click="clear_evidence_type"
                 class="color-fg-danger"
               >

@@ -820,7 +820,6 @@ defmodule Valentine.Composer.EvidenceTest do
       # Create evidence with NIST controls that overlap with multiple entities
       evidence_attrs = %{
         workspace_id: workspace.id,
-        description: "Test description",
         name: "Multi-Control Evidence",
         description: "Test description",
         evidence_type: :json_data,
@@ -858,7 +857,6 @@ defmodule Valentine.Composer.EvidenceTest do
       # Create evidence in workspace1 with NIST control
       evidence_attrs = %{
         workspace_id: workspace1.id,
-        description: "Test description",
         name: "Isolated Evidence",
         description: "Test description",
         evidence_type: :json_data,
@@ -1022,7 +1020,6 @@ defmodule Valentine.Composer.EvidenceTest do
 
       evidence_attrs = %{
         workspace_id: workspace.id,
-        description: "Test description",
         name: "Linked Evidence",
         description: "Test description",
         evidence_type: :json_data,
@@ -1045,7 +1042,6 @@ defmodule Valentine.Composer.EvidenceTest do
 
       evidence_attrs = %{
         workspace_id: workspace.id,
-        description: "Test description",
         name: "Multi-Linked Evidence",
         description: "Test description",
         evidence_type: :json_data,
@@ -1070,7 +1066,6 @@ defmodule Valentine.Composer.EvidenceTest do
 
       evidence_attrs = %{
         workspace_id: workspace.id,
-        description: "Test description",
         name: "Evidence with Invalid Links",
         description: "Test description",
         evidence_type: :json_data,
@@ -1099,7 +1094,6 @@ defmodule Valentine.Composer.EvidenceTest do
 
       evidence_attrs = %{
         workspace_id: workspace1.id,
-        description: "Test description",
         name: "Evidence in Workspace 1",
         description: "Test description",
         evidence_type: :json_data,
@@ -1119,7 +1113,6 @@ defmodule Valentine.Composer.EvidenceTest do
 
       evidence_attrs = %{
         workspace_id: workspace.id,
-        description: "Test description",
         name: "Orphaned Evidence",
         description: "Test description",
         evidence_type: :json_data,
