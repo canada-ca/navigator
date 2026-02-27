@@ -181,6 +181,64 @@ defmodule Valentine.Composer.EvidenceTest do
       end
     end
 
+    test "create_evidence/1 with blob_store_link URL without host returns error" do
+      workspace = workspace_fixture()
+
+      urls_without_host = [
+        "https://",
+        "http://",
+        "s3://",
+        "ftp://"
+      ]
+
+      for url <- urls_without_host do
+        attrs = %{
+          workspace_id: workspace.id,
+          name: "Invalid Evidence",
+          description: "Test description",
+          evidence_type: :blob_store_link,
+          blob_store_url: url
+        }
+
+        assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(attrs)
+
+        assert "must include a host (e.g., https://example.com)" in errors_on(changeset).blob_store_url
+      end
+    end
+
+    test "create_evidence/1 with blob_store_link using disallowed schemes returns error" do
+      workspace = workspace_fixture()
+
+      dangerous_urls = [
+        "javascript:alert(1)",
+        "data:text/html,<script>alert(1)</script>",
+        "file:///etc/passwd",
+        "vbscript:msgbox(1)",
+        "about:blank"
+      ]
+
+      for url <- dangerous_urls do
+        attrs = %{
+          workspace_id: workspace.id,
+          name: "Dangerous Evidence",
+          description: "Test description",
+          evidence_type: :blob_store_link,
+          blob_store_url: url
+        }
+
+        assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(attrs)
+
+        # Some URLs fail parsing entirely, others fail scheme validation
+        # Both are acceptable rejections for security purposes
+        errors = errors_on(changeset).blob_store_url
+
+        assert Enum.any?(errors, fn error ->
+                 String.contains?(error, "must use an allowed URL scheme") or
+                   String.contains?(error, "must be a valid URL")
+               end)
+      end
+    end
+
     test "create_evidence/1 with json_data type ignores blob_store_url validation" do
       workspace = workspace_fixture()
 

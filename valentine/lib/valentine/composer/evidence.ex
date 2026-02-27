@@ -3,6 +3,10 @@ defmodule Valentine.Composer.Evidence do
   import Ecto.Changeset
   import Ecto.Query
 
+  # Allowed URL schemes for blob_store_url validation
+  # Includes common web protocols and cloud storage schemes
+  @allowed_url_schemes ["http", "https", "s3", "gs", "ftp", "ftps"]
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   @derive {Jason.Encoder,
@@ -128,15 +132,31 @@ defmodule Valentine.Composer.Evidence do
       changeset
     else
       case URI.new(blob_store_url) do
-        {:ok, uri} ->
-          if is_nil(uri.scheme) do
-            add_error(
-              changeset,
-              :blob_store_url,
-              "must be a valid URL with a scheme (e.g., https://example.com)"
-            )
-          else
-            changeset
+        {:ok, %URI{scheme: scheme, host: host}} ->
+          cond do
+            is_nil(scheme) or scheme == "" ->
+              add_error(
+                changeset,
+                :blob_store_url,
+                "must be a valid URL with a scheme (e.g., https://example.com)"
+              )
+
+            scheme not in @allowed_url_schemes ->
+              add_error(
+                changeset,
+                :blob_store_url,
+                "must use an allowed URL scheme (http, https, s3, gs, ftp, ftps)"
+              )
+
+            is_nil(host) or host == "" ->
+              add_error(
+                changeset,
+                :blob_store_url,
+                "must include a host (e.g., https://example.com)"
+              )
+
+            true ->
+              changeset
           end
 
         {:error, _part} ->

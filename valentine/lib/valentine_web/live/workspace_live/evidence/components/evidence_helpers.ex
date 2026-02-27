@@ -25,10 +25,13 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers do
   ## Examples
 
       iex> format_evidence_type(:json_data)
-      "JSON Content"
+      "JSON Content (OSCAL)"
 
       iex> format_evidence_type(:blob_store_link)
       "File Link"
+
+      iex> format_evidence_type(:description_only)
+      "Description Only"
 
   """
   def format_evidence_type(type) when is_atom(type) do
@@ -44,7 +47,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers do
   ## Examples
 
       iex> format_field_name(:content)
-      "JSON Content"
+      "JSON Content (OSCAL)"
 
       iex> format_field_name(:blob_store_url)
       "File Link"
@@ -71,7 +74,11 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers do
   ## Examples
 
       iex> evidence_type_labels()
-      %{json_data: "JSON Content", blob_store_link: "File Link"}
+      %{
+        description_only: "Description Only",
+        json_data: "JSON Content (OSCAL)",
+        blob_store_link: "File Link"
+      }
 
   """
   def evidence_type_labels do

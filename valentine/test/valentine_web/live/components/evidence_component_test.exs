@@ -31,9 +31,9 @@ defmodule ValentineWeb.WorkspaceLive.Components.EvidenceComponentTest do
       assigns = Map.put(assigns, :evidence, evidence)
       html = render_component(EvidenceComponent, assigns)
       assert html =~ evidence.name
-      # Check that description is not rendered (if it exists, it would appear in the HTML)
-      # More specific check than looking for any <p tag
-      refute html =~ ~r/<div[^>]*class="[^"]*description/
+      # The markdown-body wrapper only appears when description is present
+      # So its absence confirms description is not rendered
+      refute html =~ "markdown-body"
     end
 
     test "displays updated timestamp when modified", %{assigns: assigns} do
