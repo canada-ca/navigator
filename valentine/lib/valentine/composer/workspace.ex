@@ -84,8 +84,8 @@ defmodule Valentine.Composer.Workspace do
       iex> get_evidence_by_controls(evidence)
       %{
       ...>   "AC-1" => [
-      ...>     %Valentine.Composer.Evidence{id: 1},
-      ...>     %Valentine.Composer.Evidence{id: 2}
+      ...>     %Valentine.Composer.Evidence{id: 2},
+      ...>     %Valentine.Composer.Evidence{id: 1}
       ...>   ],
       ...>   "SC-7" => [
       ...>     %Valentine.Composer.Evidence{id: 1}

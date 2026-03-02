@@ -232,7 +232,7 @@
                     <div class="mt-2">
                       <details>
                         <summary class="">
-                          <%= case String.to_existing_atom(tab) do %>
+                          <%= case tab_atom do %>
                             <% :out_of_scope -> %>
                               {gettext("Covered by assumption")}:
                             <% :in_scope -> %>
