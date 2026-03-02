@@ -68,4 +68,39 @@ defmodule Valentine.Composer.Workspace do
       end)
     end)
   end
+
+  @doc """
+  Groups evidence by their NIST control IDs.
+
+  Returns a map where keys are NIST control IDs (e.g., "AC-1") and values
+  are lists of evidence that have that control ID.
+
+  ## Examples
+
+      iex> evidence = [
+      ...>   %Valentine.Composer.Evidence{id: 1, nist_controls: ["AC-1", "SC-7"]},
+      ...>   %Valentine.Composer.Evidence{id: 2, nist_controls: ["AC-1"]}
+      ...> ]
+      iex> get_evidence_by_controls(evidence)
+      %{
+      ...>   "AC-1" => [
+      ...>     %Valentine.Composer.Evidence{id: 2},
+      ...>     %Valentine.Composer.Evidence{id: 1}
+      ...>   ],
+      ...>   "SC-7" => [
+      ...>     %Valentine.Composer.Evidence{id: 1}
+      ...>   ]
+      ...> }
+  """
+  def get_evidence_by_controls(evidence_collection) do
+    evidence_collection
+    |> Enum.filter(&(&1.nist_controls != nil))
+    |> Enum.reduce(%{}, fn evidence, acc ->
+      evidence.nist_controls
+      |> Enum.filter(&Regex.match?(@nist_id_regex, &1))
+      |> Enum.reduce(acc, fn control_id, acc ->
+        Map.update(acc, control_id, [evidence], &[evidence | &1])
+      end)
+    end)
+  end
 end
