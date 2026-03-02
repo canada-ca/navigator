@@ -100,6 +100,18 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponent do
           {&Valentine.Composer.add_mitigation_to_threat/2,
            &Valentine.Composer.remove_mitigation_from_threat/2}
 
+        {:evidence, :assumptions} ->
+          {&Valentine.Composer.add_assumption_to_evidence/2,
+           &Valentine.Composer.remove_assumption_from_evidence/2}
+
+        {:evidence, :threats} ->
+          {&Valentine.Composer.add_threat_to_evidence/2,
+           &Valentine.Composer.remove_threat_from_evidence/2}
+
+        {:evidence, :mitigations} ->
+          {&Valentine.Composer.add_mitigation_to_evidence/2,
+           &Valentine.Composer.remove_mitigation_from_evidence/2}
+
         {_, _} ->
           {nil, nil}
       end
@@ -148,6 +160,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponent do
 
   defp entity_content(%Valentine.Composer.Threat{} = threat),
     do: Valentine.Composer.Threat.show_statement(threat)
+
+  defp entity_content(%Valentine.Composer.Evidence{} = evidence), do: evidence.name
 
   defp entity_content(entity), do: entity.content
 end

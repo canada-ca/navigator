@@ -1366,4 +1366,199 @@ defmodule Valentine.ComposerTest do
       assert %Ecto.Changeset{} = Composer.change_api_key(api_key)
     end
   end
+
+  describe "evidence entity linking" do
+    import Valentine.ComposerFixtures
+
+    setup do
+      workspace = workspace_fixture()
+      evidence = evidence_fixture(%{workspace_id: workspace.id})
+      assumption = assumption_fixture(%{workspace_id: workspace.id})
+      threat = threat_fixture(%{workspace_id: workspace.id})
+      mitigation = mitigation_fixture(%{workspace_id: workspace.id})
+
+      %{
+        workspace: workspace,
+        evidence: evidence,
+        assumption: assumption,
+        threat: threat,
+        mitigation: mitigation
+      }
+    end
+
+    test "add_assumption_to_evidence/2 successfully links", %{
+      evidence: evidence,
+      assumption: assumption
+    } do
+      assert {:ok, updated_evidence} = Composer.add_assumption_to_evidence(evidence, assumption)
+      assert Enum.any?(updated_evidence.assumptions, &(&1.id == assumption.id))
+    end
+
+    test "add_assumption_to_evidence/2 returns evidence with preloaded assumptions", %{
+      evidence: evidence,
+      assumption: assumption
+    } do
+      {:ok, updated_evidence} = Composer.add_assumption_to_evidence(evidence, assumption)
+      assert is_list(updated_evidence.assumptions)
+      assert Enum.count(updated_evidence.assumptions) == 1
+    end
+
+    test "add_assumption_to_evidence/2 handles duplicates with on_conflict", %{
+      evidence: evidence,
+      assumption: assumption
+    } do
+      # Add once
+      {:ok, _} = Composer.add_assumption_to_evidence(evidence, assumption)
+      # Add again - should not error
+      {:ok, updated_evidence} = Composer.add_assumption_to_evidence(evidence, assumption)
+      # Should still only have one
+      assert Enum.count(updated_evidence.assumptions) == 1
+    end
+
+    test "remove_assumption_from_evidence/2 unlinks assumption", %{
+      evidence: evidence,
+      assumption: assumption
+    } do
+      # First link
+      {:ok, _} = Composer.add_assumption_to_evidence(evidence, assumption)
+      # Then unlink
+      {:ok, updated_evidence} = Composer.remove_assumption_from_evidence(evidence, assumption)
+      refute Enum.any?(updated_evidence.assumptions, &(&1.id == assumption.id))
+    end
+
+    test "remove_assumption_from_evidence/2 returns updated evidence", %{
+      evidence: evidence,
+      assumption: assumption
+    } do
+      {:ok, _} = Composer.add_assumption_to_evidence(evidence, assumption)
+      {:ok, updated_evidence} = Composer.remove_assumption_from_evidence(evidence, assumption)
+      assert is_list(updated_evidence.assumptions)
+      assert Enum.empty?(updated_evidence.assumptions)
+    end
+
+    test "remove_assumption_from_evidence/2 handles non-existent links", %{
+      evidence: evidence,
+      assumption: assumption
+    } do
+      # Try to remove a link that doesn't exist - should not error
+      {:ok, updated_evidence} = Composer.remove_assumption_from_evidence(evidence, assumption)
+      assert Enum.empty?(updated_evidence.assumptions)
+    end
+
+    test "add_threat_to_evidence/2 successfully links", %{evidence: evidence, threat: threat} do
+      assert {:ok, updated_evidence} = Composer.add_threat_to_evidence(evidence, threat)
+      assert Enum.any?(updated_evidence.threats, &(&1.id == threat.id))
+    end
+
+    test "add_threat_to_evidence/2 returns evidence with preloaded threats", %{
+      evidence: evidence,
+      threat: threat
+    } do
+      {:ok, updated_evidence} = Composer.add_threat_to_evidence(evidence, threat)
+      assert is_list(updated_evidence.threats)
+      assert Enum.count(updated_evidence.threats) == 1
+    end
+
+    test "add_threat_to_evidence/2 handles duplicates with on_conflict", %{
+      evidence: evidence,
+      threat: threat
+    } do
+      {:ok, _} = Composer.add_threat_to_evidence(evidence, threat)
+      {:ok, updated_evidence} = Composer.add_threat_to_evidence(evidence, threat)
+      assert Enum.count(updated_evidence.threats) == 1
+    end
+
+    test "remove_threat_from_evidence/2 unlinks threat", %{evidence: evidence, threat: threat} do
+      {:ok, _} = Composer.add_threat_to_evidence(evidence, threat)
+      {:ok, updated_evidence} = Composer.remove_threat_from_evidence(evidence, threat)
+      refute Enum.any?(updated_evidence.threats, &(&1.id == threat.id))
+    end
+
+    test "remove_threat_from_evidence/2 returns updated evidence", %{
+      evidence: evidence,
+      threat: threat
+    } do
+      {:ok, _} = Composer.add_threat_to_evidence(evidence, threat)
+      {:ok, updated_evidence} = Composer.remove_threat_from_evidence(evidence, threat)
+      assert is_list(updated_evidence.threats)
+      assert Enum.empty?(updated_evidence.threats)
+    end
+
+    test "remove_threat_from_evidence/2 handles non-existent links", %{
+      evidence: evidence,
+      threat: threat
+    } do
+      {:ok, updated_evidence} = Composer.remove_threat_from_evidence(evidence, threat)
+      assert Enum.empty?(updated_evidence.threats)
+    end
+
+    test "add_mitigation_to_evidence/2 successfully links", %{
+      evidence: evidence,
+      mitigation: mitigation
+    } do
+      assert {:ok, updated_evidence} = Composer.add_mitigation_to_evidence(evidence, mitigation)
+      assert Enum.any?(updated_evidence.mitigations, &(&1.id == mitigation.id))
+    end
+
+    test "add_mitigation_to_evidence/2 returns evidence with preloaded mitigations", %{
+      evidence: evidence,
+      mitigation: mitigation
+    } do
+      {:ok, updated_evidence} = Composer.add_mitigation_to_evidence(evidence, mitigation)
+      assert is_list(updated_evidence.mitigations)
+      assert Enum.count(updated_evidence.mitigations) == 1
+    end
+
+    test "add_mitigation_to_evidence/2 handles duplicates with on_conflict", %{
+      evidence: evidence,
+      mitigation: mitigation
+    } do
+      {:ok, _} = Composer.add_mitigation_to_evidence(evidence, mitigation)
+      {:ok, updated_evidence} = Composer.add_mitigation_to_evidence(evidence, mitigation)
+      assert Enum.count(updated_evidence.mitigations) == 1
+    end
+
+    test "remove_mitigation_from_evidence/2 unlinks mitigation", %{
+      evidence: evidence,
+      mitigation: mitigation
+    } do
+      {:ok, _} = Composer.add_mitigation_to_evidence(evidence, mitigation)
+      {:ok, updated_evidence} = Composer.remove_mitigation_from_evidence(evidence, mitigation)
+      refute Enum.any?(updated_evidence.mitigations, &(&1.id == mitigation.id))
+    end
+
+    test "remove_mitigation_from_evidence/2 returns updated evidence", %{
+      evidence: evidence,
+      mitigation: mitigation
+    } do
+      {:ok, _} = Composer.add_mitigation_to_evidence(evidence, mitigation)
+      {:ok, updated_evidence} = Composer.remove_mitigation_from_evidence(evidence, mitigation)
+      assert is_list(updated_evidence.mitigations)
+      assert Enum.empty?(updated_evidence.mitigations)
+    end
+
+    test "remove_mitigation_from_evidence/2 handles non-existent links", %{
+      evidence: evidence,
+      mitigation: mitigation
+    } do
+      {:ok, updated_evidence} = Composer.remove_mitigation_from_evidence(evidence, mitigation)
+      assert Enum.empty?(updated_evidence.mitigations)
+    end
+
+    test "get_evidence!/2 with preload list loads associations", %{evidence: evidence} do
+      loaded_evidence =
+        Composer.get_evidence!(evidence.id, [:assumptions, :threats, :mitigations])
+
+      assert is_list(loaded_evidence.assumptions)
+      assert is_list(loaded_evidence.threats)
+      assert is_list(loaded_evidence.mitigations)
+    end
+
+    test "get_evidence!/2 with nil preload returns basic evidence", %{evidence: evidence} do
+      loaded_evidence = Composer.get_evidence!(evidence.id, nil)
+      assert loaded_evidence.id == evidence.id
+      # Associations should not be loaded
+      assert %Ecto.Association.NotLoaded{} = loaded_evidence.assumptions
+    end
+  end
 end

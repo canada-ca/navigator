@@ -47,7 +47,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.FilterComponent do
               phx-target={@myself}
               phx-value-checked={value}
             >
-              {Gettext.gettext(ValentineWeb.Gettext, humanize(value))}
+              {Gettext.gettext(ValentineWeb.Gettext, display_label(assigns, value))}
             </.action_list_item>
           <% end %>
         </.action_list>
@@ -111,6 +111,13 @@ defmodule ValentineWeb.WorkspaceLive.Components.FilterComponent do
 
     send(self(), {:update_filter, filters})
     {:noreply, assign(socket, filters: filters)}
+  end
+
+  defp display_label(assigns, value) do
+    case Map.get(assigns, :labels) do
+      nil -> humanize(value)
+      labels when is_map(labels) -> Map.get(labels, value, humanize(value))
+    end
   end
 
   defp humanize(value) when is_atom(value) do

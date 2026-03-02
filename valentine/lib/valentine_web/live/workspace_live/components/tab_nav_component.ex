@@ -27,6 +27,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.TabNavComponent do
           phx-value-item={id}
           phx-click="set_tab"
           phx-target={@myself}
+          type="button"
         >
           {label}
         </:item>
