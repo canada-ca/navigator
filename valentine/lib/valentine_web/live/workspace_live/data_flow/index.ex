@@ -279,7 +279,6 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
   @impl true
   def handle_info({:update_metadata, params}, socket) do
     handle_event("update_metadata", params, socket)
-    {:noreply, socket}
   end
 
   defp broadcast(topic, payload) do

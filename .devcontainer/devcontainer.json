@@ -20,7 +20,7 @@
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {
       "version": "latest",
-      "moby": true
+      "moby": false
     },
     "ghcr.io/kreemer/features/chrometesting:1": {},
     "ghcr.io/devcontainers/features/node:1": {}
