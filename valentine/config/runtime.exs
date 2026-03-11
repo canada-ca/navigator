@@ -20,11 +20,20 @@ if System.get_env("PHX_SERVER") do
   config :valentine, ValentineWeb.Endpoint, server: true
 end
 
-# Configure langchain
-config :langchain, openai_key: System.get_env("OPENAI_API_KEY")
-config :langchain, azure_openai_endpoint: System.get_env("AZURE_OPENAI_ENDPOINT")
-config :langchain, azure_openai_key: System.get_env("AZURE_OPENAI_KEY")
-config :langchain, model: System.get_env("OPENAI_MODEL", "gpt-4o-mini")
+# Configure req_llm
+config :req_llm, openai_api_key: System.get_env("OPENAI_API_KEY")
+config :req_llm, azure_openai_api_key: System.get_env("AZURE_OPENAI_KEY")
+config :req_llm, azure_openai_endpoint: System.get_env("AZURE_OPENAI_ENDPOINT")
+
+config :req_llm,
+  azure: [
+    api_key: System.get_env("AZURE_OPENAI_KEY"),
+    base_url: System.get_env("AZURE_OPENAI_BASE_URL"),
+    deployment: System.get_env("AZURE_OPENAI_DEPLOYMENT"),
+    api_version: System.get_env("AZURE_OPENAI_API_VERSION")
+  ]
+
+config :req_llm, model: System.get_env("OPENAI_MODEL", "gpt-4o-mini")
 
 config :ueberauth, Ueberauth.Strategy.Cognito,
   auth_domain: System.get_env("COGNITO_DOMAIN"),

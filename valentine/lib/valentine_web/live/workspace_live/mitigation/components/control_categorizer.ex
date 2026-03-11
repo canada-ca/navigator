@@ -2,11 +2,13 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.ControlCategorizer do
   use ValentineWeb, :live_component
   use PrimerLive
 
+  require Logger
+
+  alias Valentine.AIProvider
+  alias Valentine.AIResponseNormalizer
   alias Phoenix.LiveView.AsyncResult
 
-  alias LangChain.Chains.LLMChain
-  alias LangChain.ChatModels.ChatOpenAI
-  alias LangChain.Message
+  import ReqLLM.Context
 
   @impl true
   def mount(socket) do
@@ -110,9 +112,12 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.ControlCategorizer do
   def update(%{chat_complete: data}, socket) do
     case Jason.decode(data.content) do
       {:ok, json} ->
-        # Sort controls
+        controls =
+          json["controls"]
+          |> AIResponseNormalizer.normalize_controls()
+          |> Enum.sort_by(& &1["control"])
 
-        {:ok, socket |> assign(:suggestion, Enum.sort_by(json["controls"], & &1["control"]))}
+        {:ok, socket |> assign(:suggestion, controls)}
 
       _ ->
         {:ok, socket |> assign(:error, "Error decoding response")}
@@ -126,116 +131,85 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.ControlCategorizer do
 
   @impl true
   def update(assigns, socket) do
-    chain =
-      %{
-        llm:
-          ChatOpenAI.new!(
-            Map.merge(
-              %{
-                json_response: true,
-                json_schema: json_schema(),
-                callbacks: [llm_handler(self(), socket.assigns.myself)]
-              },
-              llm_params()
-            )
-          ),
-        callbacks: [llm_handler(self(), socket.assigns.myself)]
-      }
-      |> LLMChain.new!()
-      |> LLMChain.add_messages([
-        Message.new_system!(system_prompt()),
-        Message.new_user!(user_prompt(assigns.mitigation))
-      ])
+    lc_pid = self()
+    myself = socket.assigns.myself
 
     {:ok,
      socket
      |> assign(assigns)
      |> start_async(:running_llm, fn ->
-       case LLMChain.run(chain) do
-         {:error, %LLMChain{} = _chain, reason} ->
-           {:error, reason}
+       try do
+         model_spec = llm_model_spec()
 
-         _ ->
-           :ok
+         context =
+           ReqLLM.Context.new([system(system_prompt()), user(user_prompt(assigns.mitigation))])
+
+         opts = llm_opts()
+
+         obj = ReqLLM.generate_object!(model_spec, context, json_schema(), opts)
+
+         content = Jason.encode!(obj)
+         send_update(lc_pid, myself, chat_complete: %{content: content})
+         :ok
+       rescue
+         e ->
+           Logger.error("[ControlCategorizer] Error during control categorization", %{
+             error: inspect(e),
+             message: Exception.message(e),
+             stacktrace: __STACKTRACE__
+           })
+
+           {:error, Exception.message(e)}
        end
      end)}
   end
 
   defp json_schema() do
     %{
-      name: "mitigiation_category_repsonse",
-      strict: true,
-      schema: %{
-        type: "object",
-        properties: %{
-          controls: %{
-            type: "array",
-            description: "A list of up to five NIST controls and their rational",
-            items: %{
-              type: "object",
-              description: "The control and rational",
-              properties: %{
-                control: %{
-                  type: "string",
-                  description: "The control ID, e.g. AC-1, AC-2, SA-11.1 etc."
-                },
-                name: %{
-                  type: "string",
-                  description:
-                    "The name of the control, eg. for AC-2.1 it would be 'Account Management | Automated System Account Management'"
-                },
-                rational: %{
-                  type: "string",
-                  description: "A rational why this control applies to the mitigation"
-                }
+      "type" => "object",
+      "properties" => %{
+        "controls" => %{
+          "type" => "array",
+          "description" =>
+            "A list of up to five NIST controls and their rationales. Always return a JSON array, even when there is only one control.",
+          "items" => %{
+            "type" => "object",
+            "description" => "The control and rational",
+            "properties" => %{
+              "control" => %{
+                "type" => "string",
+                "description" => "The control ID as a string, e.g. AC-1, AC-2, SA-11.1 etc."
               },
-              required: [
-                "control",
-                "name",
-                "rational"
-              ],
-              additionalProperties: false
-            }
+              "name" => %{
+                "type" => "string",
+                "description" =>
+                  "The name of the control as a string, eg. for AC-2.1 it would be 'Account Management | Automated System Account Management'"
+              },
+              "rational" => %{
+                "type" => "string",
+                "description" =>
+                  "A short rationale string explaining why this control applies to the mitigation"
+              }
+            },
+            "required" => [
+              "control",
+              "name",
+              "rational"
+            ],
+            "additionalProperties" => false
           }
-        },
-        required: [
-          "controls"
-        ],
-        additionalProperties: false
-      }
+        }
+      },
+      "required" => [
+        "controls"
+      ],
+      "additionalProperties" => false
     }
   end
 
-  defp llm_handler(lc_pid, myself) do
-    %{
-      on_message_processed: fn _chain, %Message{} = data ->
-        send_update(lc_pid, myself, chat_complete: data)
-      end,
-      on_llm_token_usage: fn _model, usage ->
-        send_update(lc_pid, myself, usage_update: usage)
-      end
-    }
-  end
+  defp llm_model_spec(), do: AIProvider.model_spec("ControlCategorizer")
 
-  defp llm_params() do
-    cond do
-      Application.get_env(:langchain, :openai_key) ->
-        %{
-          model: Application.get_env(:langchain, :model),
-          max_completion_tokens: 100_000
-        }
-
-      Application.get_env(:langchain, :azure_openai_endpoint) ->
-        %{
-          endpoint: Application.get_env(:langchain, :azure_openai_endpoint),
-          api_key: Application.get_env(:langchain, :azure_openai_key),
-          max_completion_tokens: 100_000
-        }
-
-      true ->
-        %{}
-    end
-  end
+  defp llm_opts(), do: AIProvider.request_opts("ControlCategorizer")
 
   defp system_prompt() do
     """
@@ -266,16 +240,14 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.ControlCategorizer do
     base = gettext("Mistakes are possible. Review output carefully before use.")
 
     if usage do
-      # In cost $0.150 / 1M input tokens
-      # Out cost $0.600 / 1M output tokens
-
-      # Cost rounded to cents
-      cost = Float.round(usage.input * 0.00000015 + usage.output * 0.0000006, 2)
+      input = usage[:input_tokens] || 0
+      output = usage[:output_tokens] || 0
+      cost = usage[:total_cost] || Float.round(input * 0.00000015 + output * 0.0000006, 2)
 
       base <>
         gettext(" Current token usage: (In: %{in}, Out: %{out}, Cost: $%{cost})",
-          in: usage.input,
-          out: usage.output,
+          in: input,
+          out: output,
           cost: cost
         )
     else

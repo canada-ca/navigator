@@ -9,7 +9,8 @@ defmodule Valentine.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      listeners: [Phoenix.CodeReloader]
     ]
   end
 
@@ -53,7 +54,7 @@ defmodule Valentine.MixProject do
       {:mock, "~> 0.3.0", only: :test},
       {:primer_live, "~> 0.9"},
       {:mdex, "~> 0.2"},
-      {:langchain, github: "brainlid/langchain", ref: "315e787c7f4e52c014b52bda0142aa631d3dd28f"},
+      {:req_llm, "~> 1.6"},
       {:cachex, "~> 4.0"},
       {:csv, "~> 3.2"},
       {:ueberauth_google, "~> 0.10"},

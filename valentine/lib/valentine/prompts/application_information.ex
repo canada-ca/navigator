@@ -1,6 +1,4 @@
 defmodule Valentine.Prompts.ApplicationInformation do
-  def get_skills(_), do: []
-
   def system_prompt(workspace_id, _action) do
     workspace =
       Valentine.Composer.get_workspace!(workspace_id, [
@@ -20,40 +18,6 @@ defmodule Valentine.Prompts.ApplicationInformation do
     3. Generated content must be well-structured with clear sections
     4. Provide clear explanations for recommended actions
     5. Consider security implications of suggested changes
-
-    SKILLS:
-    1. INSERT new application information (This ALWAYS requires a workspace_id attribute in the data and delta instructions)
-    2. UPDATE existing application information (This ALWAYS requires a workspace_id attribute in the data and delta instructions)
-
-    ADDITIONAL SKILL INFORMATION:
-    To execute skills, you must provide instruction to edit the application information using the following format for deltas operations defined by Quill.js in the data section of the skill as JSON. Below is an example of operations
-
-    ```
-    // Existing content
-    // {
-    //   ops: [
-    //     { insert: 'Gandalf', attributes: { bold: true } },
-    //     { insert: ' the ' },
-    //     { insert: 'Grey', attributes: { color: '#cccccc' } }
-    //   ]
-    // }
-
-    {
-    ops: [
-    // Unbold and italicize "Gandalf"
-    { retain: 7, attributes: { bold: null, italic: true } },
-
-    // Keep " the " as is
-    { retain: 5 },
-
-    // Insert "White" formatted with color #fff
-    { insert: 'White', attributes: { color: '#fff' } },
-
-    // Delete "Grey"
-    { delete: 4 }
-    ]
-    }
-    ```
 
     You are an expert threat modelling assistant focused on helping users document and understand their applications.
     """

@@ -27,7 +27,7 @@ defmodule Valentine.Prompts.PromptRegistryTest do
                }
     end
 
-    test "returns Workspace schema" do
+    test "returns the base schema for workspace chat" do
       assert PromptRegistry.get_schema(
                "Index",
                "some_action"
@@ -36,38 +36,12 @@ defmodule Valentine.Prompts.PromptRegistryTest do
                  name: "chat_reponse",
                  schema: %{
                    type: "object",
-                   required: ["content", "skills"],
+                   required: ["content"],
                    additionalProperties: false,
                    properties: %{
                      content: %{
                        type: "string",
                        description: "The main response text that will be shown to the user"
-                     },
-                     skills: %{
-                       type: "array",
-                       description: "Array of actionable skills that can be performed",
-                       items: %{
-                         type: "object",
-                         required: ["id", "type", "description", "data"],
-                         additionalProperties: false,
-                         properties: %{
-                           data: %{
-                             type: "string",
-                             description:
-                               "Optional data to send with the skill as a JSON string ex: if a name is required for an action, send it here '{'name':'John Doe'}'. If something is to be analyzed, include the ID here."
-                           },
-                           id: %{type: "string", description: "Unique identifier for this skill"},
-                           type: %{
-                             type: "string",
-                             enum: ["create"],
-                             description: "The type of action this skill represents"
-                           },
-                           description: %{
-                             type: "string",
-                             description: "Human readable description of what this skill will do"
-                           }
-                         }
-                       }
                      }
                    }
                  },
@@ -83,7 +57,7 @@ defmodule Valentine.Prompts.PromptRegistryTest do
                "some_action",
                "some_workspace_id"
              ) =~
-               "PLEASE RESPOND WITH JSON"
+               "Respond with clear, direct prose only."
     end
 
     test "returns ApplicationInformation prompt" do

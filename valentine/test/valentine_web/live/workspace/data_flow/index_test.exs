@@ -38,7 +38,6 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.IndexTest do
         )
 
       assert socket.assigns.dfd == dfd
-      assert socket.assigns.selected_elements == %{"nodes" => %{}, "edges" => %{}}
       assert socket.assigns.workspace_id == workspace_id
     end
   end
@@ -262,16 +261,42 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.IndexTest do
     end
 
     test "receives update_metadata from a component and forwards it to handle_event", %{
-      socket: socket
+      socket: socket,
+      workspace_id: workspace_id
     } do
+      node = Valentine.Composer.DataFlowDiagram.add_node(workspace_id, %{"type" => "process"})
+
       {:noreply, socket} =
         ValentineWeb.WorkspaceLive.DataFlow.Index.handle_info(
-          {:update_metadata, %{"id" => "id", "field" => "field"}},
+          {:update_metadata,
+           %{
+             "id" => node["data"]["id"],
+             "field" => "linked_threats",
+             "value" => ["threat-1"]
+           }},
           socket
         )
 
-      # Or true == true :(
-      assert socket == socket
+      assert socket.assigns.saved == false
+      assert socket.assigns.touched == true
+
+      assert socket.private == %{
+               live_temp: %{
+                 push_events: [
+                   [
+                     "updateGraph",
+                     %{
+                       event: "update_metadata",
+                       payload: %{
+                         "field" => "linked_threats",
+                         "id" => node["data"]["id"],
+                         "value" => ["threat-1"]
+                       }
+                     }
+                   ]
+                 ]
+               }
+             }
     end
   end
 end

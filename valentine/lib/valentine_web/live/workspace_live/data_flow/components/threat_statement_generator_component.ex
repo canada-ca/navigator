@@ -2,15 +2,16 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementGenerato
   use ValentineWeb, :live_component
   use PrimerLive
 
+  require Logger
+
+  alias Valentine.AIProvider
+  alias Valentine.AIResponseNormalizer
   alias Valentine.Composer
   alias Valentine.Composer.DataFlowDiagram
-  alias Valentine.Composer.Threat
 
   alias Phoenix.LiveView.AsyncResult
 
-  alias LangChain.Chains.LLMChain
-  alias LangChain.ChatModels.ChatOpenAI
-  alias LangChain.Message
+  import ReqLLM.Context
 
   @impl true
   def mount(socket) do
@@ -122,18 +123,7 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementGenerato
   def update(%{chat_complete: data}, socket) do
     case Jason.decode(data.content) do
       {:ok, json} ->
-        alias Valentine.Composer.Threat
-
-        threat =
-          %Threat{
-            threat_source: json["threat_source"],
-            prerequisites: json["prerequisites"],
-            threat_action: json["threat_action"],
-            threat_impact: json["threat_impact"],
-            impacted_goal: json["impacted_goal"],
-            impacted_assets: json["impacted_assets"],
-            stride: json["stride"] |> Enum.map(&String.to_existing_atom/1)
-          }
+        threat = AIResponseNormalizer.threat_from_json(json)
 
         {:ok, socket |> assign(:threat, threat)}
 
@@ -149,145 +139,115 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementGenerato
 
   @impl true
   def update(assigns, socket) do
-    chain =
-      %{
-        llm:
-          ChatOpenAI.new!(
-            Map.merge(
-              %{
-                json_response: true,
-                json_schema: json_schema(),
-                callbacks: [llm_handler(self(), socket.assigns.myself)]
-              },
-              llm_params()
-            )
-          ),
-        callbacks: [llm_handler(self(), socket.assigns.myself)]
-      }
-      |> LLMChain.new!()
-      |> LLMChain.add_messages([
-        Message.new_system!(system_prompt()),
-        Message.new_user!(user_prompt(assigns.element_id, assigns.workspace_id))
-      ])
+    lc_pid = self()
+    myself = socket.assigns.myself
 
     {:ok,
      socket
      |> assign(assigns)
      |> start_async(:running_llm, fn ->
-       case LLMChain.run(chain) do
-         {:error, %LLMChain{} = _chain, reason} ->
-           {:error, reason}
+       try do
+         model_spec = llm_model_spec()
 
-         _ ->
-           :ok
+         context =
+           ReqLLM.Context.new([
+             system(system_prompt()),
+             user(user_prompt(assigns.element_id, assigns.workspace_id))
+           ])
+
+         opts = llm_opts()
+
+         obj = ReqLLM.generate_object!(model_spec, context, json_schema(), opts)
+
+         content = Jason.encode!(obj)
+         send_update(lc_pid, myself, chat_complete: %{content: content})
+         :ok
+       rescue
+         e ->
+           Logger.error("[ThreatStatementGenerator] Error during threat generation", %{
+             error: inspect(e),
+             message: Exception.message(e),
+             stacktrace: __STACKTRACE__
+           })
+
+           {:error, Exception.message(e)}
        end
      end)}
   end
 
   defp json_schema() do
     %{
-      name: "threat_generator_response",
-      strict: true,
-      schema: %{
-        type: "object",
-        properties: %{
-          threat_source: %{
-            type: "string",
-            description:
-              "The entity taking action. This field is part of a sentence, do not capitalize the first letter or end with punctuation."
-          },
-          prerequisites: %{
-            type: "string",
-            description:
-              "Conditions or requirements that must be met for a threat source's action to be viable. This field is part of a sentence, do not capitalize the first letter or end with punctuation."
-          },
-          threat_action: %{
-            type: "string",
-            description:
-              "The action being performed by the threat source. This field is part of a sentence, do not capitalize the first letter or end with punctuation."
-          },
-          threat_impact: %{
-            type: "string",
-            description:
-              "The direct impact of a successful threat action. This field is part of a sentence, do not capitalize the first letter or end with punctuation."
-          },
-          impacted_goal: %{
-            type: ["array", "null"],
-            description:
-              "The goal that is negatively impacted by the threat action. This field is part of a sentence, do not capitalize the first letter or end with punctuation.",
-            items: %{
-              type: "string"
-            }
-          },
-          impacted_assets: %{
-            type: "array",
-            description:
-              "The assets affected by a successful threat action. This field is part of a sentence, do not capitalize the first letter or end with punctuation.",
-            items: %{
-              type: "string"
-            }
-          },
-          stride: %{
-            type: "array",
-            description:
-              "The STRIDE model is a model used to identify different types of threats in a system. STRIDE stands for Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, and Elevation of privilege. Select the STRIDE categories that apply to the threat statement.",
-            items: %{
-              type: "string",
-              enum: [
-                "spoofing",
-                "tampering",
-                "repudiation",
-                "information_disclosure",
-                "denial_of_service",
-                "elevation_of_privilege"
-              ]
-            }
+      "type" => "object",
+      "properties" => %{
+        "threat_source" => %{
+          "type" => "string",
+          "description" =>
+            "The entity taking action. This field is part of a sentence, do not capitalize the first letter or end with punctuation."
+        },
+        "prerequisites" => %{
+          "type" => "string",
+          "description" =>
+            "Conditions or requirements that must be met for a threat source's action to be viable. This field is part of a sentence, do not capitalize the first letter or end with punctuation."
+        },
+        "threat_action" => %{
+          "type" => "string",
+          "description" =>
+            "The action being performed by the threat source. This field is part of a sentence, do not capitalize the first letter or end with punctuation."
+        },
+        "threat_impact" => %{
+          "type" => "string",
+          "description" =>
+            "The direct impact of a successful threat action. This field is part of a sentence, do not capitalize the first letter or end with punctuation."
+        },
+        "impacted_goal" => %{
+          "type" => ["array", "null"],
+          "description" =>
+            "The goals that are negatively impacted by the threat action. Always return a JSON array of strings, even when there is only one goal. Each item is part of a sentence, so do not capitalize the first letter or end with punctuation.",
+          "items" => %{
+            "type" => "string"
           }
         },
-        required: [
-          "threat_source",
-          "prerequisites",
-          "threat_action",
-          "threat_impact",
-          "impacted_goal",
-          "impacted_assets",
-          "stride"
-        ],
-        additionalProperties: false
-      }
+        "impacted_assets" => %{
+          "type" => "array",
+          "description" =>
+            "The assets affected by a successful threat action. Always return a JSON array of strings, even when there is only one asset. Each item is part of a sentence, so do not capitalize the first letter or end with punctuation.",
+          "items" => %{
+            "type" => "string"
+          }
+        },
+        "stride" => %{
+          "type" => "array",
+          "description" =>
+            "The STRIDE model is a model used to identify different types of threats in a system. STRIDE stands for Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, and Elevation of privilege. Always return a JSON array of one or more applicable STRIDE category strings.",
+          "items" => %{
+            "type" => "string",
+            "enum" => [
+              "spoofing",
+              "tampering",
+              "repudiation",
+              "information_disclosure",
+              "denial_of_service",
+              "elevation_of_privilege"
+            ]
+          }
+        }
+      },
+      "required" => [
+        "threat_source",
+        "prerequisites",
+        "threat_action",
+        "threat_impact",
+        "impacted_goal",
+        "impacted_assets",
+        "stride"
+      ],
+      "additionalProperties" => false
     }
   end
 
-  defp llm_handler(lc_pid, myself) do
-    %{
-      on_message_processed: fn _chain, %Message{} = data ->
-        send_update(lc_pid, myself, chat_complete: data)
-      end,
-      on_llm_token_usage: fn _model, usage ->
-        send_update(lc_pid, myself, usage_update: usage)
-      end
-    }
-  end
+  defp llm_model_spec(), do: AIProvider.model_spec("ThreatStatementGenerator")
 
-  defp llm_params() do
-    cond do
-      Application.get_env(:langchain, :openai_key) ->
-        %{
-          model: Application.get_env(:langchain, :model),
-          max_completion_tokens: 100_000
-        }
-
-      Application.get_env(:langchain, :azure_openai_endpoint) ->
-        %{
-          endpoint: Application.get_env(:langchain, :azure_openai_endpoint),
-          api_key: Application.get_env(:langchain, :azure_openai_key),
-          max_completion_tokens: 100_000
-        }
-
-      true ->
-        %{}
-    end
-  end
+  defp llm_opts(), do: AIProvider.request_opts("ThreatStatementGenerator")
 
   defp system_prompt() do
     """
@@ -470,16 +430,14 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementGenerato
     base = gettext("Mistakes are possible. Review output carefully before use.")
 
     if usage do
-      # In cost $0.150 / 1M input tokens
-      # Out cost $0.600 / 1M output tokens
-
-      # Cost rounded to cents
-      cost = Float.round(usage.input * 0.00000015 + usage.output * 0.0000006, 2)
+      input = usage[:input_tokens] || 0
+      output = usage[:output_tokens] || 0
+      cost = usage[:total_cost] || Float.round(input * 0.00000015 + output * 0.0000006, 2)
 
       base <>
         gettext(" Current token usage: (In: %{in}, Out: %{out}, Cost: $%{cost})",
-          in: usage.input,
-          out: usage.output,
+          in: input,
+          out: output,
           cost: cost
         )
     else

@@ -52,7 +52,7 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementGenerato
 
     test "displays a usage warning", %{assigns: assigns} do
       assigns =
-        Map.put(assigns, :usage, %LangChain.TokenUsage{input: 1_000_000, output: 1_000_000})
+        Map.put(assigns, :usage, %{input_tokens: 1_000_000, output_tokens: 1_000_000})
 
       html = render_component(ThreatStatementGeneratorComponent, assigns)
 
@@ -167,6 +167,28 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementGenerato
              }
     end
 
+    test "normalizes scalar impacted_goal and stride values", %{socket: socket} do
+      data = %{
+        content:
+          Jason.encode!(%{
+            "threat_source" => "threat_source",
+            "prerequisites" => "prerequisites",
+            "threat_action" => "threat_action",
+            "threat_impact" => "threat_impact",
+            "impacted_goal" => "integrity",
+            "impacted_assets" => "private repositories",
+            "stride" => "tampering"
+          })
+      }
+
+      {:ok, updated_socket} =
+        ThreatStatementGeneratorComponent.update(%{chat_complete: data}, socket)
+
+      assert updated_socket.assigns.threat.impacted_goal == ["integrity"]
+      assert updated_socket.assigns.threat.impacted_assets == ["private repositories"]
+      assert updated_socket.assigns.threat.stride == [:tampering]
+    end
+
     test "returns an error if the chat_complete data is not valid JSON", %{socket: socket} do
       data = %{
         content: "invalid_json"
@@ -179,7 +201,7 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementGenerato
     end
 
     test "updates the socket with the usage_update data", %{socket: socket} do
-      usage = %LangChain.TokenUsage{}
+      usage = %{input_tokens: 0, output_tokens: 0}
 
       {:ok, updated_socket} =
         ThreatStatementGeneratorComponent.update(%{usage_update: usage}, socket)

@@ -2,19 +2,19 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
   use ValentineWeb, :live_component
   use PrimerLive
 
+  require Logger
+
+  alias Valentine.AIProvider
   alias Valentine.Prompts.PromptRegistry
   alias Phoenix.LiveView.AsyncResult
 
-  alias LangChain.Chains.LLMChain
-  alias LangChain.ChatModels.ChatOpenAI
-  alias LangChain.Message
-  alias LangChain.MessageDelta
+  import ReqLLM.Context
 
   def mount(socket) do
     {:ok,
      socket
-     |> assign(:chain, build_chain(%{cid: socket.assigns.myself}))
-     |> assign(:skills, [])
+     |> assign(:messages, [])
+     |> assign(:delta, nil)
      |> assign(:usage, nil)
      |> assign(:async_result, AsyncResult.loading())}
   end
@@ -23,10 +23,10 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
     ~H"""
     <div class="chat_pane">
       <div class="chat_messages" phx-hook="ChatScroll" id="chat-messages">
-        <%= if length(@chain.messages) > 0 do %>
+        <%= if length(@messages) > 0 || @delta do %>
           <ul>
             <li
-              :for={message <- @chain.messages}
+              :for={message <- @messages}
               :if={message.role != :system}
               class="chat_message"
               data-role={message.role}
@@ -34,9 +34,9 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
               <div class="chat_message_role">{role(message.role)}</div>
               {format_msg(message.content, message.role)}
             </li>
-            <li :if={@chain.delta} class="chat_message" data-role={@chain.delta.role}>
-              <div class="chat_message_role">{role(@chain.delta.role)}</div>
-              {format_msg(@chain.delta.content, @chain.delta.role)}
+            <li :if={@delta && @delta != ""} class="chat_message" data-role={:assistant}>
+              <div class="chat_message_role">{role(:assistant)}</div>
+              {format_msg(@delta, :assistant)}
             </li>
           </ul>
         <% else %>
@@ -46,18 +46,6 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
             <p>{tag_line(@active_module, @active_action)}</p>
           </.blankslate>
         <% end %>
-      </div>
-      <div :if={@skills && length(@skills) > 0} class="skills">
-        <div :for={skill <- @skills} class="skill">
-          <.button
-            type="button"
-            phx-click="execute_skill"
-            phx-value-id={skill["id"]}
-            phx-target={@myself}
-          >
-            {skill["description"]}
-          </.button>
-        </div>
       </div>
       <div class="chat_input_container">
         <.textarea
@@ -75,45 +63,40 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
   end
 
   def update(%{chat_complete: data}, socket) do
-    skills =
-      case Jason.decode!(data.content) do
-        %{"skills" => skills} -> skills
-        _ -> []
-      end
-
-    {:ok,
-     socket
-     |> assign(:skills, skills)}
-  end
-
-  def update(%{chat_response: data}, socket) do
-    chain =
-      socket.assigns.chain
-      |> LLMChain.apply_delta(data)
+    completed_message = %{role: :assistant, content: data.content}
+    messages = socket.assigns.messages ++ [completed_message]
 
     %{workspace_id: workspace_id, current_user: user_id} = socket.assigns
 
-    Valentine.Cache.put({workspace_id, user_id, :chatbot_history}, chain.messages,
+    Valentine.Cache.put({workspace_id, user_id, :chatbot_history}, messages,
       expire: :timer.hours(24)
     )
 
     {:ok,
      socket
-     |> assign(chain: chain)}
+     |> assign(:messages, messages)
+     |> assign(:delta, nil)}
   end
 
-  def update(%{skill_result: %{id: id, status: status, msg: msg}}, socket) do
-    chain =
-      socket.assigns.chain
-      |> LLMChain.add_messages([
-        Message.new_system!(
-          "The user clicked the button with id: #{id} and the result was: #{status} - #{msg}"
-        )
-      ])
+  def update(%{chat_response: chunk}, socket) do
+    delta = (socket.assigns.delta || "") <> chunk
 
     {:ok,
      socket
-     |> assign(chain: chain)}
+     |> assign(:delta, delta)}
+  end
+
+  def update(%{skill_result: %{id: id, status: status, msg: msg}}, socket) do
+    new_msg = %{
+      role: :system,
+      content: "The user clicked the button with id: #{id} and the result was: #{status} - #{msg}"
+    }
+
+    messages = socket.assigns.messages ++ [new_msg]
+
+    {:ok,
+     socket
+     |> assign(:messages, messages)}
   end
 
   def update(%{usage_update: usage}, socket) do
@@ -128,22 +111,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
 
     {:ok,
      socket
-     |> assign(
-       :chain,
-       build_chain(%{
-         stream: true,
-         stream_options: %{include_usage: true},
-         json_response: true,
-         json_schema:
-           PromptRegistry.get_schema(
-             assigns.active_module,
-             assigns.active_action
-           ),
-         callbacks: [llm_handler(self(), socket.assigns.myself)],
-         cid: socket.assigns.myself
-       })
-       |> LLMChain.add_messages(cached_messages)
-     )
+     |> assign(:messages, cached_messages)
+     |> assign(:delta, nil)
      |> assign(assigns)}
   end
 
@@ -162,26 +131,12 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
   def handle_event("chat_submit", %{"value" => "/clear"}, socket) do
     %{workspace_id: workspace_id, current_user: user_id} = socket.assigns
 
-    chain =
-      build_chain(%{
-        stream: true,
-        stream_options: %{include_usage: true},
-        json_response: true,
-        json_schema:
-          PromptRegistry.get_schema(
-            socket.assigns.active_module,
-            socket.assigns.active_action
-          ),
-        callbacks: [llm_handler(self(), socket.assigns.myself)],
-        cid: socket.assigns.myself
-      })
-
-    # Clear from cache (store empty messages list)
     Valentine.Cache.put({workspace_id, user_id, :chatbot_history}, [], expire: :timer.hours(24))
 
     {:noreply,
      socket
-     |> assign(chain: chain)}
+     |> assign(:messages, [])
+     |> assign(:delta, nil)}
   end
 
   def handle_event("chat_submit", %{"value" => value}, socket) do
@@ -192,101 +147,124 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
       active_action: active_action
     } = socket.assigns
 
-    chain =
-      socket.assigns.chain
-      |> LLMChain.add_messages([
-        Message.new_system!(
-          PromptRegistry.get_system_prompt(active_module, active_action, workspace_id)
-        ),
-        Message.new_user!(value)
-      ])
+    system_message = %{
+      role: :system,
+      content: PromptRegistry.get_system_prompt(active_module, active_action, workspace_id)
+    }
 
-    Valentine.Cache.put({workspace_id, user_id, :chatbot_history}, chain.messages,
+    messages =
+      socket.assigns.messages
+      |> with_system_message(system_message)
+      |> Kernel.++([%{role: :user, content: value}])
+
+    Valentine.Cache.put({workspace_id, user_id, :chatbot_history}, messages,
       expire: :timer.hours(24)
     )
 
     {:noreply,
      socket
-     |> assign(chain: chain)
+     |> assign(:messages, messages)
      |> run_chain()}
   end
 
-  def handle_event("execute_skill", %{"id" => skill_id}, socket) do
-    skill = socket.assigns.skills |> Enum.find(&(&1["id"] == skill_id))
-
-    socket = socket |> assign(:skills, [])
-
-    if skill do
-      send(self(), {:execute_skill, skill})
-      {:noreply, socket}
-    else
-      {:noreply, socket |> put_flash!(:error, "Skill not found")}
-    end
-  end
-
   def run_chain(socket) do
-    chain = socket.assigns.chain
+    lc_pid = self()
+    myself = socket.assigns.myself
+    messages = socket.assigns.messages
 
     socket
     |> assign(:async_result, AsyncResult.loading())
     |> start_async(:running_llm, fn ->
-      case LLMChain.run(chain) do
-        {:error, %LLMChain{} = _chain, reason} ->
-          {:error, reason}
+      try do
+        model_spec = llm_model_spec()
+        context = build_context(messages)
+        opts = llm_opts()
 
-        _ ->
-          :ok
+        result = ReqLLM.generate_text(model_spec, context, opts)
+
+        case result do
+          {:ok, response} ->
+            content = chat_completion_content(response)
+            send_update(lc_pid, myself, chat_complete: %{content: content})
+
+            usage = ReqLLM.Response.usage(response)
+
+            if usage do
+              send_update(lc_pid, myself, usage_update: usage)
+            end
+
+            :ok
+
+          {:error, reason} ->
+            Logger.error(
+              "[ChatComponent] ReqLLM.generate_text failed reason=#{inspect(reason)} model_spec=#{inspect(model_spec)} opts=#{inspect(Keyword.drop(opts, [:api_key]))}"
+            )
+
+            {:error, reason}
+        end
+      rescue
+        e ->
+          Logger.error("[ChatComponent] Unexpected error in run_chain", %{
+            error: inspect(e),
+            stacktrace: __STACKTRACE__
+          })
+
+          {:error, Exception.message(e)}
       end
     end)
   end
 
-  defp build_chain(params) do
-    %{
-      llm: ChatOpenAI.new!(Map.merge(params, llm_params())),
-      callbacks: [llm_handler(self(), params.cid)]
-    }
-    |> LLMChain.new!()
+  defp build_context(messages) do
+    msgs =
+      messages
+      |> normalize_context_messages()
+      |> Enum.map(fn %{role: role, content: content} ->
+        case role do
+          :system -> system(content)
+          :user -> user(content)
+          :assistant -> assistant(content)
+          _ -> user(content)
+        end
+      end)
+
+    ReqLLM.Context.new(msgs)
   end
 
-  defp extract(input) do
-    case :binary.match(input, "\"content\":\"") do
-      {pos, len} ->
-        start_pos = pos + len
-        content_portion = binary_part(input, start_pos, byte_size(input) - start_pos)
-        extract_until_unescaped_quote(content_portion)
+  defp chat_completion_content(response) do
+    ReqLLM.Response.text(response) || ""
+  end
 
-      :nomatch ->
-        ""
+  defp with_system_message(messages, system_message) do
+    non_system_messages = Enum.reject(messages, &(&1.role == :system))
+    [system_message | non_system_messages]
+  end
+
+  defp normalize_context_messages(messages) do
+    {system_messages, non_system_messages} = Enum.split_with(messages, &(&1.role == :system))
+
+    case system_messages do
+      [] ->
+        non_system_messages
+
+      [first | rest] ->
+        extra_system_messages =
+          Enum.map(rest, fn message ->
+            %{role: :user, content: "Context event: #{message.content}"}
+          end)
+
+        [first | non_system_messages ++ extra_system_messages]
     end
-  end
-
-  defp extract_until_unescaped_quote(<<>>) do
-    ""
-  end
-
-  defp extract_until_unescaped_quote(<<"\\\"", rest::binary>>) do
-    "\\\"" <> extract_until_unescaped_quote(rest)
-  end
-
-  defp extract_until_unescaped_quote(<<"\"", _rest::binary>>) do
-    ""
-  end
-
-  defp extract_until_unescaped_quote(<<char::utf8, rest::binary>>) do
-    <<char::utf8>> <> extract_until_unescaped_quote(rest)
   end
 
   defp get_caption(usage) do
     base = "Mistakes are possible. Review output carefully before use."
 
     if usage do
-      # In cost $0.150 / 1M input tokens
-      # Out cost $0.600 / 1M output tokens
+      input = usage[:input_tokens] || 0
+      output = usage[:output_tokens] || 0
+      cost = usage[:total_cost] || Float.round(input * 0.00000015 + output * 0.0000006, 2)
 
-      # Cost rounded to cents
-      cost = Float.round(usage.input * 0.00000015 + usage.output * 0.0000006, 2)
-
-      base <> " Current token usage: (In: #{usage.input}, Out: #{usage.output}, Cost: $#{cost})"
+      base <> " Current token usage: (In: #{input}, Out: #{output}, Cost: $#{cost})"
     else
       base
     end
@@ -300,45 +278,13 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
         content |> MDEx.to_html!() |> Phoenix.HTML.raw()
 
       _ ->
-        content
-        |> extract()
-        |> Phoenix.HTML.raw()
+        content |> MDEx.to_html!() |> Phoenix.HTML.raw()
     end
   end
 
-  defp llm_handler(lc_pid, myself) do
-    %{
-      on_llm_new_delta: fn _model, %MessageDelta{} = data ->
-        send_update(lc_pid, myself, chat_response: data)
-      end,
-      on_message_processed: fn _chain, %Message{} = data ->
-        send_update(lc_pid, myself, chat_complete: data)
-      end,
-      on_llm_token_usage: fn _model, usage ->
-        send_update(lc_pid, myself, usage_update: usage)
-      end
-    }
-  end
+  defp llm_model_spec(), do: AIProvider.model_spec("ChatComponent")
 
-  defp llm_params() do
-    cond do
-      Application.get_env(:langchain, :openai_key) ->
-        %{
-          model: Application.get_env(:langchain, :model),
-          max_completion_tokens: 100_000
-        }
-
-      Application.get_env(:langchain, :azure_openai_endpoint) ->
-        %{
-          endpoint: Application.get_env(:langchain, :azure_openai_endpoint),
-          api_key: Application.get_env(:langchain, :azure_openai_key),
-          max_completion_tokens: 100_000
-        }
-
-      true ->
-        %{}
-    end
-  end
+  defp llm_opts(), do: AIProvider.request_opts("ChatComponent")
 
   defp tag_line(module, action) do
     PromptRegistry.get_tag_line(module, action)
