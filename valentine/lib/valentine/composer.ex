@@ -19,6 +19,7 @@ defmodule Valentine.Composer do
   alias Valentine.Composer.User
   alias Valentine.Composer.ApiKey
   alias Valentine.Composer.BrainstormItem
+  alias Valentine.Composer.RepoAnalysisAgent
 
   alias Valentine.Composer.AssumptionThreat
   alias Valentine.Composer.AssumptionMitigation
@@ -162,6 +163,80 @@ defmodule Valentine.Composer do
   """
   def delete_workspace(%Workspace{} = workspace) do
     Repo.delete(workspace)
+  end
+
+  @doc """
+  Returns the list of repo analysis agents for a specific owner.
+  """
+  def list_repo_analysis_agents_by_owner(owner) do
+    from(agent in RepoAnalysisAgent,
+      where: agent.owner == ^owner,
+      preload: [:workspace],
+      order_by: [desc: agent.inserted_at]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns the list of repo analysis agents for a specific workspace.
+  """
+  def list_repo_analysis_agents_by_workspace(workspace_id) do
+    from(agent in RepoAnalysisAgent,
+      where: agent.workspace_id == ^workspace_id,
+      order_by: [desc: agent.inserted_at]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single repo analysis agent.
+  """
+  def get_repo_analysis_agent!(id, preload \\ [:workspace]) do
+    Repo.get!(RepoAnalysisAgent, id)
+    |> Repo.preload(preload)
+  end
+
+  @doc """
+  Gets a single repo analysis agent for an owner.
+  """
+  def get_repo_analysis_agent_for_owner(id, owner, preload \\ [:workspace]) do
+    from(agent in RepoAnalysisAgent,
+      where: agent.id == ^id and agent.owner == ^owner,
+      preload: ^preload
+    )
+    |> Repo.one()
+  end
+
+  @doc """
+  Creates a repo analysis agent record.
+  """
+  def create_repo_analysis_agent(attrs \\ %{}) do
+    %RepoAnalysisAgent{}
+    |> RepoAnalysisAgent.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a repo analysis agent record.
+  """
+  def update_repo_analysis_agent(%RepoAnalysisAgent{} = repo_analysis_agent, attrs) do
+    repo_analysis_agent
+    |> RepoAnalysisAgent.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Marks a repo analysis agent as cancellation requested.
+  """
+  def request_repo_analysis_agent_cancel(%RepoAnalysisAgent{} = repo_analysis_agent) do
+    update_repo_analysis_agent(repo_analysis_agent, %{cancel_requested_at: DateTime.utc_now()})
+  end
+
+  @doc """
+  Returns an Ecto changeset for repo analysis agent changes.
+  """
+  def change_repo_analysis_agent(%RepoAnalysisAgent{} = repo_analysis_agent, attrs \\ %{}) do
+    RepoAnalysisAgent.changeset(repo_analysis_agent, attrs)
   end
 
   @doc """

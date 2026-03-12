@@ -101,5 +101,22 @@ defmodule ValentineWeb.WorkspaceLive.IndexViewTest do
 
       assert_patch(index_live, ~p"/workspaces/import")
     end
+
+    test "navigates to GitHub import", %{conn: conn} do
+      {:ok, index_live, _html} = live(conn, ~p"/workspaces")
+
+      assert index_live
+             |> element("#import-github-workspace-btn")
+             |> render_click() =~
+               "Import from GitHub"
+
+      assert_patch(index_live, ~p"/workspaces/import/github")
+    end
+
+    test "shows My Agents entry", %{conn: conn} do
+      {:ok, _index_live, html} = live(conn, ~p"/workspaces")
+
+      assert html =~ "My Agents"
+    end
   end
 end

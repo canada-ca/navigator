@@ -7,6 +7,21 @@
 # General application configuration
 import Config
 
+config :valentine, Valentine.Jido,
+  max_tasks: 100,
+  agent_pools: []
+
+config :valentine, :repo_analysis,
+  clone_timeout_ms: 120_000,
+  heartbeat_timeout_ms: 300_000,
+  max_repo_files: 2_000,
+  max_selected_files: 40,
+  max_file_bytes: 20_000,
+  max_prompt_bytes: 120_000,
+  recovery_interval_ms: 60_000,
+  start_recovery: true,
+  working_dir: Path.expand("../tmp/repo_analysis", __DIR__)
+
 config :valentine,
   ecto_repos: [Valentine.Repo],
   generators: [timestamp_type: :utc_datetime]

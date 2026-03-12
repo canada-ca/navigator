@@ -2,7 +2,9 @@ defmodule ValentineWeb.WorkspaceLive.Show do
   use ValentineWeb, :live_view
   use PrimerLive
 
+  alias Phoenix.PubSub
   alias Valentine.Composer
+  alias Valentine.RepoAnalysis
 
   @impl true
   def mount(_params, _session, socket) do
@@ -11,17 +13,54 @@ defmodule ValentineWeb.WorkspaceLive.Show do
 
   @impl true
   def handle_params(%{"workspace_id" => workspace_id}, _, socket) do
+    if connected?(socket) do
+      PubSub.subscribe(Valentine.PubSub, RepoAnalysis.workspace_topic(workspace_id))
+    end
+
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(
-       :workspace,
-       Composer.get_workspace!(workspace_id, [:assumptions, :threats, :mitigations])
-     )
-     |> assign(:workspace_id, workspace_id)}
+     |> assign_workspace(workspace_id)}
+  end
+
+  @impl true
+  def handle_event("cancel_repo_analysis", %{"id" => id}, socket) do
+    case RepoAnalysis.cancel_for_owner(id, socket.assigns.current_user) do
+      {:ok, _repo_analysis_agent} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Cancellation requested"))
+         |> assign_workspace(socket.assigns.workspace_id)}
+
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, gettext("Agent job not found"))}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, inspect(reason))}
+    end
+  end
+
+  @impl true
+  def handle_info(%{event: :repo_analysis_updated}, socket) do
+    {:noreply, assign_workspace(socket, socket.assigns.workspace_id)}
   end
 
   defp page_title(:show), do: gettext("Show Workspace")
+
+  defp assign_workspace(socket, workspace_id) do
+    latest_repo_analysis_agent =
+      workspace_id
+      |> Composer.list_repo_analysis_agents_by_workspace()
+      |> List.first()
+
+    socket
+    |> assign(
+      :workspace,
+      Composer.get_workspace!(workspace_id, [:assumptions, :threats, :mitigations])
+    )
+    |> assign(:workspace_id, workspace_id)
+    |> assign(:latest_repo_analysis_agent, latest_repo_analysis_agent)
+  end
 
   defp data_by_field(data, field) do
     data

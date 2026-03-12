@@ -11,6 +11,41 @@
     </a>
   </:actions>
 </.subhead>
+<.box :if={@latest_repo_analysis_agent} class="mb-3">
+  <:header_title>{gettext("Repository import")}</:header_title>
+  <:body>
+    <div class="d-flex flex-justify-between flex-items-start gap-3">
+      <div>
+        <div class="text-bold">{@latest_repo_analysis_agent.github_url}</div>
+        <div class="color-fg-muted text-small">
+          {gettext("Status")}: {@latest_repo_analysis_agent.status}
+        </div>
+      </div>
+      <div class="d-flex flex-items-center gap-2">
+        <span class="Label">{@latest_repo_analysis_agent.status}</span>
+        <.button
+          :if={RepoAnalysis.running_status?(@latest_repo_analysis_agent.status)}
+          phx-click="cancel_repo_analysis"
+          phx-value-id={@latest_repo_analysis_agent.id}
+        >
+          {gettext("Terminate")}
+        </.button>
+      </div>
+    </div>
+
+    <div class="mt-2">{@latest_repo_analysis_agent.progress_message || gettext("Waiting for updates")}</div>
+    <progress class="mt-2" max="100" value={@latest_repo_analysis_agent.progress_percent || 0} style="width: 100%;"></progress>
+
+    <div class="d-flex flex-justify-between color-fg-muted text-small mt-2">
+      <span>{gettext("Progress: %{percent}%", percent: @latest_repo_analysis_agent.progress_percent || 0)}</span>
+      <.link navigate={~p"/agents"}>{gettext("View all agent jobs")}</.link>
+    </div>
+
+    <div :if={@latest_repo_analysis_agent.failure_reason} class="color-fg-danger text-small mt-2">
+      {@latest_repo_analysis_agent.failure_reason}
+    </div>
+  </:body>
+</.box>
 <div class="clearfix">
   <%= if workspace_empty?(@workspace) do %>
     <.blankslate class="color-bg-default">

@@ -86,5 +86,28 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
       assert html =~ "Threat STRIDE"
       assert html =~ "Spoofing"
     end
+
+    test "displays the latest repository import status for the workspace", %{conn: conn} do
+      workspace = workspace_fixture(%{owner: "some owner"})
+
+      _repo_analysis_agent =
+        repo_analysis_agent_fixture(%{
+          workspace_id: workspace.id,
+          owner: workspace.owner,
+          github_url: "https://github.com/example/platform-api",
+          status: :persisting_results,
+          progress_message: "Persisting generated threat model artifacts",
+          progress_percent: 85
+        })
+
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
+      {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{workspace.id}")
+
+      assert html =~ "Repository import"
+      assert html =~ "https://github.com/example/platform-api"
+      assert html =~ "Persisting generated threat model artifacts"
+      assert html =~ "View all agent jobs"
+    end
   end
 end

@@ -2,6 +2,9 @@
   {gettext("Workspaces")}
   <:actions>
     <.button_group>
+      <.link navigate={~p"/agents"} class="btn mr-2">
+        {gettext("My Agents")}
+      </.link>
       <.button is_primary phx-click={JS.patch(~p"/workspaces/new")}>
         {gettext("New Workspace")}
       </.button>
@@ -18,6 +21,12 @@
             phx-click={JS.patch(~p"/workspaces/import")}
           >
             {gettext("Import JSON file")}
+          </.action_list_item>
+          <.action_list_item
+            id="import-github-workspace-btn"
+            phx-click={JS.patch(~p"/workspaces/import/github")}
+          >
+            {gettext("Import from GitHub")}
           </.action_list_item>
         </.action_list>
       </.action_menu>
@@ -69,4 +78,13 @@
   workspace={@workspace}
   current_user={@current_user}
   patch={~p"/workspaces"}
+/>
+
+<.live_component
+  :if={@live_action == :github_import}
+  module={ValentineWeb.WorkspaceLive.GitHubImportComponent}
+  id={:github_import}
+  current_user={@current_user}
+  patch={~p"/workspaces"}
+  redirect_to={~p"/agents"}
 />

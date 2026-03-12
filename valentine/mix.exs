@@ -55,6 +55,7 @@ defmodule Valentine.MixProject do
       {:primer_live, "~> 0.9"},
       {:mdex, "~> 0.2"},
       {:req_llm, "~> 1.6"},
+      {:jido, "~> 2.0"},
       {:cachex, "~> 4.0"},
       {:csv, "~> 3.2"},
       {:ueberauth_google, "~> 0.10"},

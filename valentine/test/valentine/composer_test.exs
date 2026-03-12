@@ -134,6 +134,54 @@ defmodule Valentine.ComposerTest do
     end
   end
 
+  describe "repo_analysis_agents" do
+    alias Valentine.Composer.RepoAnalysisAgent
+
+    import Valentine.ComposerFixtures
+
+    test "list_repo_analysis_agents_by_owner/1 returns only matching owner's jobs" do
+      repo_analysis_agent = repo_analysis_agent_fixture(%{owner: "owner-1"})
+      _other_repo_analysis_agent = repo_analysis_agent_fixture(%{owner: "owner-2"})
+
+      assert [fetched_repo_analysis_agent] = Composer.list_repo_analysis_agents_by_owner("owner-1")
+      assert fetched_repo_analysis_agent.id == repo_analysis_agent.id
+    end
+
+    test "create_repo_analysis_agent/1 with valid data creates a repo analysis agent" do
+      workspace = workspace_fixture()
+
+      valid_attrs = %{
+        workspace_id: workspace.id,
+        owner: workspace.owner,
+        github_url: "https://github.com/example/valentine",
+        status: :queued,
+        progress_message: "Queued",
+        progress_percent: 0,
+        limits: %{},
+        metadata: %{},
+        result_summary: %{},
+        requested_at: DateTime.utc_now()
+      }
+
+      assert {:ok, %RepoAnalysisAgent{} = repo_analysis_agent} =
+               Composer.create_repo_analysis_agent(valid_attrs)
+
+      assert repo_analysis_agent.workspace_id == workspace.id
+      assert repo_analysis_agent.owner == workspace.owner
+      assert repo_analysis_agent.github_url == "https://github.com/example/valentine"
+      assert repo_analysis_agent.status == :queued
+    end
+
+    test "request_repo_analysis_agent_cancel/1 stamps cancellation time" do
+      repo_analysis_agent = repo_analysis_agent_fixture()
+
+      assert {:ok, %RepoAnalysisAgent{} = repo_analysis_agent} =
+               Composer.request_repo_analysis_agent_cancel(repo_analysis_agent)
+
+      assert %DateTime{} = repo_analysis_agent.cancel_requested_at
+    end
+  end
+
   describe "threats" do
     alias Valentine.Composer.Threat
 
