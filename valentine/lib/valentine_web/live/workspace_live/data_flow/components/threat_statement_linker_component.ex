@@ -113,12 +113,7 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementLinkerCo
   def update(assigns, socket) do
     dfd = Valentine.Composer.DataFlowDiagram.get(assigns.workspace_id)
 
-    element =
-      cond do
-        String.starts_with?(assigns.element_id, "node") -> dfd.nodes[assigns.element_id]
-        String.starts_with?(assigns.element_id, "edge") -> dfd.edges[assigns.element_id]
-        true -> nil
-      end
+    element = resolve_element(dfd, assigns.element_id)
 
     linked_threats =
       if element do
@@ -135,5 +130,13 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementLinkerCo
      |> assign(:element, element)
      |> assign(:linked_threats, linked_threats)
      |> assign(:threats, threats)}
+  end
+
+  defp resolve_element(dfd, element_id) do
+    cond do
+      Map.has_key?(dfd.nodes, element_id) -> dfd.nodes[element_id]
+      Map.has_key?(dfd.edges, element_id) -> dfd.edges[element_id]
+      true -> nil
+    end
   end
 end

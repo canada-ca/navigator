@@ -224,6 +224,31 @@ defmodule Valentine.ComposerFixtures do
   end
 
   @doc """
+  Generate a repo analysis agent job.
+  """
+  def repo_analysis_agent_fixture(attrs \\ %{}) do
+    workspace = workspace_fixture()
+
+    {:ok, repo_analysis_agent} =
+      attrs
+      |> Enum.into(%{
+        workspace_id: workspace.id,
+        owner: workspace.owner,
+        github_url: "https://github.com/example/project",
+        status: :queued,
+        progress_message: "Queued for repository analysis",
+        progress_percent: 0,
+        limits: %{},
+        metadata: %{},
+        result_summary: %{},
+        requested_at: DateTime.utc_now()
+      })
+      |> Valentine.Composer.create_repo_analysis_agent()
+
+    repo_analysis_agent
+  end
+
+  @doc """
   Generate evidence.
   """
   def evidence_fixture(attrs \\ %{}) do

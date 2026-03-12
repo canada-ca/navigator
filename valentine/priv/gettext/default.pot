@@ -74,19 +74,19 @@ msgid "French"
 msgstr ""
 
 #: lib/valentine_web/live/workspace_live/form_component.ex:30
-#: lib/valentine_web/live/workspace_live/index.ex:34
-#: lib/valentine_web/live/workspace_live/index.html.heex:6
+#: lib/valentine_web/live/workspace_live/index.ex:40
+#: lib/valentine_web/live/workspace_live/index.html.heex:9
 #, elixir-autogen, elixir-format
 msgid "New Workspace"
 msgstr ""
 
-#: lib/valentine_web/components/layouts/app.html.heex:140
+#: lib/valentine_web/components/layouts/app.html.heex:141
 #: lib/valentine_web/live/workspace_live/index.html.heex:2
 #, elixir-autogen, elixir-format
 msgid "Workspaces"
 msgstr ""
 
-#: lib/valentine_web/components/layouts/app.html.heex:154
+#: lib/valentine_web/components/layouts/app.html.heex:155
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:25
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:33
 #: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:20
@@ -95,7 +95,7 @@ msgstr ""
 msgid "Application Information"
 msgstr ""
 
-#: lib/valentine_web/components/layouts/app.html.heex:168
+#: lib/valentine_web/components/layouts/app.html.heex:169
 #: lib/valentine_web/live/workspace_live/architecture/index.ex:42
 #: lib/valentine_web/live/workspace_live/architecture/index.html.heex:2
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:26
@@ -106,7 +106,8 @@ msgstr ""
 msgid "Architecture"
 msgstr ""
 
-#: lib/valentine_web/components/layouts/app.html.heex:196
+#: lib/valentine_web/components/layouts/app.html.heex:211
+#: lib/valentine_web/live/workspace_live/components/evidence_component.ex:70
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:48
 #: lib/valentine_web/live/workspace_live/components/threat_component.ex:62
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:28
@@ -121,7 +122,7 @@ msgstr ""
 msgid "Assumptions"
 msgstr ""
 
-#: lib/valentine_web/components/layouts/app.html.heex:182
+#: lib/valentine_web/components/layouts/app.html.heex:183
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:27
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:41
 #: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:22
@@ -130,13 +131,14 @@ msgstr ""
 msgid "Data Flow"
 msgstr ""
 
-#: lib/valentine_web/components/layouts/app.html.heex:133
+#: lib/valentine_web/components/layouts/app.html.heex:134
 #, elixir-autogen, elixir-format
 msgid "Menu"
 msgstr ""
 
-#: lib/valentine_web/components/layouts/app.html.heex:224
+#: lib/valentine_web/components/layouts/app.html.heex:239
 #: lib/valentine_web/live/workspace_live/components/assumption_component.ex:59
+#: lib/valentine_web/live/workspace_live/components/evidence_component.ex:92
 #: lib/valentine_web/live/workspace_live/components/threat_component.ex:73
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:30
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:73
@@ -148,28 +150,31 @@ msgstr ""
 msgid "Mitigations"
 msgstr ""
 
-#: lib/valentine_web/components/layouts/app.html.heex:280
+#: lib/valentine_web/components/layouts/app.html.heex:309
+#: lib/valentine_web/live/workspace_live/components/evidence_component.ex:54
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:164
 #, elixir-autogen, elixir-format
 msgid "NIST Controls"
 msgstr ""
 
-#: lib/valentine_web/components/layouts/app.html.heex:254
+#: lib/valentine_web/components/layouts/app.html.heex:283
 #, elixir-autogen, elixir-format
 msgid "Reference Packs"
 msgstr ""
 
-#: lib/valentine_web/components/layouts/app.html.heex:267
+#: lib/valentine_web/components/layouts/app.html.heex:296
 #, elixir-autogen, elixir-format
 msgid "SRTM View"
 msgstr ""
 
-#: lib/valentine_web/components/layouts/app.html.heex:239
+#: lib/valentine_web/components/layouts/app.html.heex:268
 #, elixir-autogen, elixir-format
 msgid "Threat Model"
 msgstr ""
 
-#: lib/valentine_web/components/layouts/app.html.heex:210
+#: lib/valentine_web/components/layouts/app.html.heex:225
 #: lib/valentine_web/live/workspace_live/components/assumption_component.ex:46
+#: lib/valentine_web/live/workspace_live/components/evidence_component.ex:81
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:61
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:29
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:69
@@ -180,32 +185,32 @@ msgid "Threats"
 msgstr ""
 
 #: lib/valentine_web/live/workspace_live/assumption/index.html.heex:37
-#: lib/valentine_web/live/workspace_live/index.html.heex:36
+#: lib/valentine_web/live/workspace_live/index.html.heex:45
 #: lib/valentine_web/live/workspace_live/mitigation/index.html.heex:42
 #: lib/valentine_web/live/workspace_live/threat/index.html.heex:57
 #, elixir-autogen, elixir-format
 msgid "Get started"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/index.html.heex:20
+#: lib/valentine_web/live/workspace_live/index.html.heex:23
 #, elixir-autogen, elixir-format
 msgid "Import JSON file"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/index.html.heex:39
+#: lib/valentine_web/live/workspace_live/index.html.heex:48
 #, elixir-autogen, elixir-format
 msgid "Let's create a workspace"
 msgstr ""
 
 #: lib/valentine_web/live/workspace_live/assumption/index.html.heex:41
-#: lib/valentine_web/live/workspace_live/index.html.heex:40
+#: lib/valentine_web/live/workspace_live/index.html.heex:49
 #: lib/valentine_web/live/workspace_live/mitigation/index.html.heex:46
 #: lib/valentine_web/live/workspace_live/threat/index.html.heex:61
 #, elixir-autogen, elixir-format
 msgid "Start by clicking the button below and work from there..."
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/index.html.heex:29
+#: lib/valentine_web/live/workspace_live/index.html.heex:38
 #, elixir-autogen, elixir-format
 msgid "Your workspaces"
 msgstr ""
@@ -223,7 +228,7 @@ msgstr ""
 msgid "Import Workspace"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/index.ex:40
+#: lib/valentine_web/live/workspace_live/index.ex:46
 #, elixir-autogen, elixir-format
 msgid "Listing Workspaces"
 msgstr ""
@@ -233,83 +238,84 @@ msgstr ""
 msgid "Back to all workspaces"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:72
+#: lib/valentine_web/live/workspace_live/show.html.heex:278
 #, elixir-autogen, elixir-format
 msgid "Details"
 msgstr ""
 
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:166
 #: lib/valentine_web/live/workspace_live/show.html.heex:9
 #, elixir-autogen, elixir-format
 msgid "Export"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/index.ex:62
+#: lib/valentine_web/live/workspace_live/index.ex:68
 #, elixir-autogen, elixir-format
 msgid "Failed to delete workspace"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:83
+#: lib/valentine_web/live/workspace_live/show.html.heex:289
 #, elixir-autogen, elixir-format
 msgid "High threats"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:91
+#: lib/valentine_web/live/workspace_live/show.html.heex:297
 #, elixir-autogen, elixir-format
 msgid "Low threats"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:87
+#: lib/valentine_web/live/workspace_live/show.html.heex:293
 #, elixir-autogen, elixir-format
 msgid "Medium threats"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:156
+#: lib/valentine_web/live/workspace_live/show.html.heex:362
 #, elixir-autogen, elixir-format
 msgid "Mitigation status"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.ex:30
+#: lib/valentine_web/live/workspace_live/show.ex:100
 #, elixir-autogen, elixir-format
 msgid "Not set"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:95
-#: lib/valentine_web/live/workspace_live/show.html.heex:107
+#: lib/valentine_web/live/workspace_live/show.html.heex:301
+#: lib/valentine_web/live/workspace_live/show.html.heex:313
 #, elixir-autogen, elixir-format
 msgid "Resolved"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.ex:24
+#: lib/valentine_web/live/workspace_live/show.ex:76
 #, elixir-autogen, elixir-format
 msgid "Show Workspace"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:144
+#: lib/valentine_web/live/workspace_live/show.html.heex:350
 #, elixir-autogen, elixir-format
 msgid "Threat STRIDE distribution"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:130
+#: lib/valentine_web/live/workspace_live/show.html.heex:336
 #, elixir-autogen, elixir-format
 msgid "Threat status"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:118
+#: lib/valentine_web/live/workspace_live/show.html.heex:324
 #, elixir-autogen, elixir-format
 msgid "Threats prioritization"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:99
+#: lib/valentine_web/live/workspace_live/show.html.heex:305
 #, elixir-autogen, elixir-format
 msgid "Total assumptions"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:103
+#: lib/valentine_web/live/workspace_live/show.html.heex:309
 #, elixir-autogen, elixir-format
 msgid "Total mitigations"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:79
+#: lib/valentine_web/live/workspace_live/show.html.heex:285
 #, elixir-autogen, elixir-format
 msgid "Total threats"
 msgstr ""
@@ -324,18 +330,21 @@ msgstr ""
 msgid "Workspace created successfully"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/index.ex:55
+#: lib/valentine_web/live/workspace_live/index.ex:61
 #, elixir-autogen, elixir-format
 msgid "Workspace deleted successfully"
 msgstr ""
 
 #: lib/valentine_web/live/workspace_live/api_key/components/api_key_component.ex:45
 #: lib/valentine_web/live/workspace_live/assumption/components/form_component.ex:53
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:239
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:475
 #: lib/valentine_web/live/workspace_live/components/entity_linker_component.ex:45
-#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:56
+#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:57
 #: lib/valentine_web/live/workspace_live/form_component.ex:93
+#: lib/valentine_web/live/workspace_live/github_import_component.ex:95
 #: lib/valentine_web/live/workspace_live/import_component.ex:41
-#: lib/valentine_web/live/workspace_live/mitigation/components/control_categorizer.ex:56
+#: lib/valentine_web/live/workspace_live/mitigation/components/control_categorizer.ex:58
 #: lib/valentine_web/live/workspace_live/mitigation/components/form_component.ex:53
 #, elixir-autogen, elixir-format
 msgid "Cancel"
@@ -379,6 +388,7 @@ msgstr ""
 msgid "You have selected an unacceptable file type"
 msgstr ""
 
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:25
 #: lib/valentine_web/live/workspace_live/form_component.ex:39
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:85
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:123
@@ -396,14 +406,16 @@ msgstr ""
 
 #: lib/valentine_web/live/workspace_live/application_information/index.html.heex:8
 #: lib/valentine_web/live/workspace_live/architecture/index.html.heex:8
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:232
 #: lib/valentine_web/live/workspace_live/components/assumption_component.ex:124
 #: lib/valentine_web/live/workspace_live/components/entity_linker_component.ex:43
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:138
 #: lib/valentine_web/live/workspace_live/components/threat_component.ex:132
-#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:51
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:15
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:24
-#: lib/valentine_web/live/workspace_live/mitigation/components/control_categorizer.ex:51
+#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:52
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:16
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:25
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:15
+#: lib/valentine_web/live/workspace_live/mitigation/components/control_categorizer.ex:53
 #: lib/valentine_web/live/workspace_live/threat/show.html.heex:11
 #, elixir-autogen, elixir-format
 msgid "Save"
@@ -411,42 +423,42 @@ msgstr ""
 
 #: lib/valentine_web/live/workspace_live/application_information/index.html.heex:13
 #: lib/valentine_web/live/workspace_live/architecture/index.html.heex:13
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:19
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:20
 #, elixir-autogen, elixir-format
 msgid "Saved"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:33
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:34
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:57
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:58
 #, elixir-autogen, elixir-format
 msgid "Add actor"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:65
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:66
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:89
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:90
 #, elixir-autogen, elixir-format
 msgid "Add boundary"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:51
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:52
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:75
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:76
 #, elixir-autogen, elixir-format
 msgid "Add datastore"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:42
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:43
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:66
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:67
 #, elixir-autogen, elixir-format
 msgid "Add process"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:61
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:85
 #, elixir-autogen, elixir-format
 msgid "Boundaries"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:131
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:132
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:155
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:156
 #, elixir-autogen, elixir-format
 msgid "Clear entire diagram"
 msgstr ""
@@ -457,102 +469,102 @@ msgstr ""
 msgid "Data flow diagram"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:119
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:143
 #, elixir-autogen, elixir-format
 msgid "Destructive actions"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:29
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:53
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:49
 #: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:45
 #, elixir-autogen, elixir-format
 msgid "Entities"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:73
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:74
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:97
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:98
 #, elixir-autogen, elixir-format
 msgid "Extend boundary"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:94
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:95
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:118
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:119
 #, elixir-autogen, elixir-format
 msgid "Fit view"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:81
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:82
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:105
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:106
 #, elixir-autogen, elixir-format
 msgid "Remove boundary"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:123
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:124
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:147
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:148
 #, elixir-autogen, elixir-format
 msgid "Remove selected elements"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:90
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:114
 #, elixir-autogen, elixir-format
 msgid "View options"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:102
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:103
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:126
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:127
 #, elixir-autogen, elixir-format
 msgid "Zoom in"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:110
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:111
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:134
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:135
 #, elixir-autogen, elixir-format
 msgid "Zoom out"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:54
+#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:55
 #, elixir-autogen, elixir-format
 msgid "Generate another"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:37
+#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:38
 #, elixir-autogen, elixir-format
 msgid "Generate threat statement"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:480
-#: lib/valentine_web/live/workspace_live/mitigation/components/control_categorizer.ex:276
+#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:438
+#: lib/valentine_web/live/workspace_live/mitigation/components/control_categorizer.ex:248
 #, elixir-autogen, elixir-format
 msgid " Current token usage: (In: %{in}, Out: %{out}, Cost: $%{cost})"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:470
-#: lib/valentine_web/live/workspace_live/mitigation/components/control_categorizer.ex:266
+#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:430
+#: lib/valentine_web/live/workspace_live/mitigation/components/control_categorizer.ex:240
 #, elixir-autogen, elixir-format
 msgid "Mistakes are possible. Review output carefully before use."
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:99
+#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:100
 #, elixir-autogen, elixir-format
 msgid "AI generated"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:141
+#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:131
 #, elixir-autogen, elixir-format
 msgid "Error decoding response"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:93
+#: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:94
 #, elixir-autogen, elixir-format
 msgid "No threat statement generated"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/assumption/index.ex:113
+#: lib/valentine_web/live/workspace_live/assumption/index.ex:122
 #, elixir-autogen, elixir-format
 msgid "Assumption deleted successfully"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/assumption/index.ex:93
+#: lib/valentine_web/live/workspace_live/assumption/index.ex:102
 #, elixir-autogen, elixir-format
 msgid "Assumption not found"
 msgstr ""
@@ -568,7 +580,7 @@ msgstr ""
 msgid "Export reference pack"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/assumption/index.ex:120
+#: lib/valentine_web/live/workspace_live/assumption/index.ex:129
 #, elixir-autogen, elixir-format
 msgid "Failed to delete assumption"
 msgstr ""
@@ -611,6 +623,7 @@ msgid "Assumptions help you to make better decisions by identifying the things y
 msgstr ""
 
 #: lib/valentine_web/live/workspace_live/assumption/components/form_component.ex:33
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:208
 #: lib/valentine_web/live/workspace_live/mitigation/components/form_component.ex:33
 #, elixir-autogen, elixir-format
 msgid "Content"
@@ -629,12 +642,14 @@ msgstr ""
 msgid "Add a comment..."
 msgstr ""
 
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:13
 #: lib/valentine_web/live/workspace_live/reference_packs/show.html.heex:5
 #: lib/valentine_web/live/workspace_live/threat/show.html.heex:9
 #, elixir-autogen, elixir-format
 msgid "Back"
 msgstr ""
 
+#: lib/valentine_web/live/workspace_live/evidence/index.html.heex:15
 #: lib/valentine_web/live/workspace_live/mitigation/index.html.heex:29
 #: lib/valentine_web/live/workspace_live/threat/index.html.heex:47
 #, elixir-autogen, elixir-format
@@ -683,12 +698,12 @@ msgstr ""
 msgid "Filters"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:323
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:326
 #, elixir-autogen, elixir-format
 msgid "Inputs for mitigation"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:347
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:350
 #, elixir-autogen, elixir-format
 msgid "Inputs for prioritization"
 msgstr ""
@@ -723,6 +738,7 @@ msgstr ""
 #: lib/valentine_web/live/workspace_live/components/assumption_component.ex:116
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:130
 #: lib/valentine_web/live/workspace_live/components/threat_component.ex:124
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:62
 #: lib/valentine_web/live/workspace_live/threat/show.html.heex:171
 #, elixir-autogen, elixir-format
 msgid "Markdown is supported"
@@ -734,7 +750,9 @@ msgstr ""
 msgid "New Threat Statement"
 msgstr ""
 
+#: lib/valentine_web/live/workspace_live/evidence/index.html.heex:17
 #: lib/valentine_web/live/workspace_live/mitigation/index.html.heex:31
+#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:193
 #: lib/valentine_web/live/workspace_live/threat/index.html.heex:49
 #, elixir-autogen, elixir-format
 msgid "No results found"
@@ -743,6 +761,7 @@ msgstr ""
 #: lib/valentine_web/live/workspace_live/components/assumption_component.ex:96
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:110
 #: lib/valentine_web/live/workspace_live/components/threat_component.ex:104
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:48
 #: lib/valentine_web/live/workspace_live/threat/show.html.heex:156
 #, elixir-autogen, elixir-format
 msgid "Preview"
@@ -778,6 +797,7 @@ msgstr ""
 #: lib/valentine_web/live/workspace_live/components/assumption_component.ex:95
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:109
 #: lib/valentine_web/live/workspace_live/components/threat_component.ex:103
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:47
 #: lib/valentine_web/live/workspace_live/threat/show.html.heex:155
 #, elixir-autogen, elixir-format
 msgid "Write"
@@ -788,7 +808,7 @@ msgstr ""
 msgid "You may have filters set that are hiding threats"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:285
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:288
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:194
 #: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:162
 #, elixir-autogen, elixir-format
@@ -868,19 +888,19 @@ msgstr ""
 msgid "You may have filters set that are hiding mitigations"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/mitigation/components/control_categorizer.ex:28
+#: lib/valentine_web/live/workspace_live/mitigation/components/control_categorizer.ex:30
 #, elixir-autogen, elixir-format
 msgid "Categorize this mitigation based on NIST controls"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/mitigation/components/control_categorizer.ex:33
+#: lib/valentine_web/live/workspace_live/mitigation/components/control_categorizer.ex:35
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:229
 #: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:202
 #, elixir-autogen, elixir-format
 msgid "Mitigation"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/mitigation/components/control_categorizer.ex:54
+#: lib/valentine_web/live/workspace_live/mitigation/components/control_categorizer.ex:56
 #, elixir-autogen, elixir-format
 msgid "Try again"
 msgstr ""
@@ -892,19 +912,22 @@ msgstr ""
 
 #: lib/valentine_web/live/workspace_live/api_key/index.html.heex:116
 #: lib/valentine_web/live/workspace_live/components/assumption_component.ex:77
-#: lib/valentine_web/live/workspace_live/components/data_flow_metadata_component.ex:222
+#: lib/valentine_web/live/workspace_live/components/data_flow_metadata_component.ex:225
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:91
 #: lib/valentine_web/live/workspace_live/components/threat_component.ex:88
 #: lib/valentine_web/live/workspace_live/components/workspace_component.ex:27
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:134
-#: lib/valentine_web/live/workspace_live/reference_packs/index.html.heex:39
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:158
+#: lib/valentine_web/live/workspace_live/reference_packs/index.html.heex:38
 #, elixir-autogen, elixir-format
 msgid "Are you sure?"
 msgstr ""
 
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:34
 #: lib/valentine_web/live/workspace_live/components/assumption_component.ex:141
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:155
 #: lib/valentine_web/live/workspace_live/components/threat_component.ex:149
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:177
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:214
 #: lib/valentine_web/live/workspace_live/threat/components/array_input_component.ex:27
 #, elixir-autogen, elixir-format
 msgid "Add"
@@ -923,11 +946,12 @@ msgstr ""
 #: lib/valentine_web/live/workspace_live/components/assumption_component.ex:135
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:149
 #: lib/valentine_web/live/workspace_live/components/threat_component.ex:143
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:208
 #, elixir-autogen, elixir-format
 msgid "Add a tag"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/reference_packs/index.html.heex:36
+#: lib/valentine_web/live/workspace_live/reference_packs/index.html.heex:35
 #, elixir-autogen, elixir-format
 msgid "Delete"
 msgstr ""
@@ -979,7 +1003,7 @@ msgstr ""
 msgid "References"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:154
+#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:237
 #, elixir-autogen, elixir-format
 msgid "Covered by assumption"
 msgstr ""
@@ -989,30 +1013,30 @@ msgstr ""
 msgid "Export to Excel"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:98
-#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:125
+#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:67
+#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:132
 #, elixir-autogen, elixir-format
 msgid "In scope"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:160
+#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:243
 #, elixir-autogen, elixir-format
 msgid "Mitigated by"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:57
-#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:123
+#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:106
+#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:134
 #, elixir-autogen, elixir-format
 msgid "Not allocated"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:80
-#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:124
+#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:85
+#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:133
 #, elixir-autogen, elixir-format
 msgid "Out of scope"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/srtm/index.ex:66
+#: lib/valentine_web/live/workspace_live/srtm/index.ex:78
 #: lib/valentine_web/live/workspace_live/srtm/index.html.heex:2
 #, elixir-autogen, elixir-format
 msgid "Security Requirements Traceability Matrix"
@@ -1066,6 +1090,7 @@ msgstr ""
 msgid "Data flow definitions"
 msgstr ""
 
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:40
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:85
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:123
 #: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:51
@@ -1152,7 +1177,7 @@ msgstr ""
 msgid "Threats Mitigating"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:76
+#: lib/valentine_web/live/workspace_live/show.html.heex:282
 #: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:85
 #: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:49
 #, elixir-autogen, elixir-format
@@ -1160,36 +1185,43 @@ msgid "Type"
 msgstr ""
 
 #: lib/valentine_web/live/workspace_live/form_component.ex:52
+#: lib/valentine_web/live/workspace_live/github_import_component.ex:61
 #, elixir-autogen, elixir-format
 msgid "CCCS Low Profile for Cloud"
 msgstr ""
 
 #: lib/valentine_web/live/workspace_live/form_component.ex:54
+#: lib/valentine_web/live/workspace_live/github_import_component.ex:63
 #, elixir-autogen, elixir-format
 msgid "CCCS Medium Profile for Cloud"
 msgstr ""
 
 #: lib/valentine_web/live/workspace_live/form_component.ex:67
+#: lib/valentine_web/live/workspace_live/github_import_component.ex:76
 #, elixir-autogen, elixir-format
 msgid "CSP Full Stack"
 msgstr ""
 
 #: lib/valentine_web/live/workspace_live/form_component.ex:68
+#: lib/valentine_web/live/workspace_live/github_import_component.ex:77
 #, elixir-autogen, elixir-format
 msgid "CSP Stacked PaaS"
 msgstr ""
 
 #: lib/valentine_web/live/workspace_live/form_component.ex:69
+#: lib/valentine_web/live/workspace_live/github_import_component.ex:78
 #, elixir-autogen, elixir-format
 msgid "CSP Stacked SaaS"
 msgstr ""
 
 #: lib/valentine_web/live/workspace_live/form_component.ex:70
+#: lib/valentine_web/live/workspace_live/github_import_component.ex:79
 #, elixir-autogen, elixir-format
 msgid "Client IaaS / PaaS"
 msgstr ""
 
 #: lib/valentine_web/live/workspace_live/form_component.ex:71
+#: lib/valentine_web/live/workspace_live/github_import_component.ex:80
 #, elixir-autogen, elixir-format
 msgid "Client SaaS"
 msgstr ""
@@ -1229,28 +1261,30 @@ msgstr ""
 msgid "Link threats to mitigation"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/components/entity_linker_component.ex:121
+#: lib/valentine_web/live/workspace_live/components/entity_linker_component.ex:133
 #, elixir-autogen, elixir-format
 msgid "Linked %{source_entity_type} updated"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:137
+#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:205
 #, elixir-autogen, elixir-format
 msgid "More information"
 msgstr ""
 
 #: lib/valentine_web/live/workspace_live/form_component.ex:51
 #: lib/valentine_web/live/workspace_live/form_component.ex:66
+#: lib/valentine_web/live/workspace_live/github_import_component.ex:60
+#: lib/valentine_web/live/workspace_live/github_import_component.ex:75
 #, elixir-autogen, elixir-format
 msgid "None selected"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:75
+#: lib/valentine_web/live/workspace_live/show.html.heex:281
 #, elixir-autogen, elixir-format
 msgid "Profile"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:158
+#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:241
 #, elixir-autogen, elixir-format
 msgid "Threatened by"
 msgstr ""
@@ -1260,7 +1294,7 @@ msgstr ""
 msgid "URL"
 msgstr ""
 
-#: lib/valentine_web/components/layouts/app.html.heex:297
+#: lib/valentine_web/components/layouts/app.html.heex:326
 #: lib/valentine_web/live/workspace_live/collaboration/index.ex:27
 #: lib/valentine_web/live/workspace_live/collaboration/index.html.heex:2
 #, elixir-autogen, elixir-format
@@ -1283,7 +1317,7 @@ msgid "Users available for collaboration"
 msgstr ""
 
 #: lib/valentine_web/live/workspace_live/form_component.ex:137
-#: lib/valentine_web/live/workspace_live/index.ex:65
+#: lib/valentine_web/live/workspace_live/index.ex:71
 #, elixir-autogen, elixir-format
 msgid "You are not the owner of this workspace"
 msgstr ""
@@ -1303,22 +1337,22 @@ msgstr ""
 msgid "Your current permission level is: %{permission}"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:41
+#: lib/valentine_web/live/workspace_live/show.html.heex:247
 #, elixir-autogen, elixir-format
 msgid "Add a data flow diagram"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:34
+#: lib/valentine_web/live/workspace_live/show.html.heex:240
 #, elixir-autogen, elixir-format
 msgid "Describe the architecture of the application"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:19
+#: lib/valentine_web/live/workspace_live/show.html.heex:225
 #, elixir-autogen, elixir-format
 msgid "Get started by doing some of the following"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:55
+#: lib/valentine_web/live/workspace_live/show.html.heex:261
 #, elixir-autogen, elixir-format
 msgid "Identify and build threats"
 msgstr ""
@@ -1328,12 +1362,12 @@ msgstr ""
 msgid "None: Cannot see or edit the threat model."
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:62
+#: lib/valentine_web/live/workspace_live/show.html.heex:268
 #, elixir-autogen, elixir-format
 msgid "Prevent disaster by documenting your mitigations"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:25
+#: lib/valentine_web/live/workspace_live/show.html.heex:231
 #, elixir-autogen, elixir-format
 msgid "Tell us more about the application or feature you are threat modeling against"
 msgstr ""
@@ -1343,12 +1377,12 @@ msgstr ""
 msgid "User will become available once the log in for the first time."
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:18
+#: lib/valentine_web/live/workspace_live/show.html.heex:224
 #, elixir-autogen, elixir-format
 msgid "Welcome to your new threat modeling workspace"
 msgstr ""
 
-#: lib/valentine_web/live/workspace_live/show.html.heex:48
+#: lib/valentine_web/live/workspace_live/show.html.heex:254
 #, elixir-autogen, elixir-format
 msgid "What are you NOT threat modeling against by adding your assumptions"
 msgstr ""
@@ -1378,7 +1412,7 @@ msgstr ""
 msgid "API Key created successfully"
 msgstr ""
 
-#: lib/valentine_web/components/layouts/app.html.heex:313
+#: lib/valentine_web/components/layouts/app.html.heex:342
 #: lib/valentine_web/live/workspace_live/api_key/index.ex:33
 #: lib/valentine_web/live/workspace_live/api_key/index.html.heex:2
 #, elixir-autogen, elixir-format
@@ -1502,4 +1536,723 @@ msgstr ""
 #: lib/valentine_web/live/workspace_live/api_key/index.html.heex:135
 #, elixir-autogen, elixir-format
 msgid "Expires at: "
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:294
+#: lib/valentine_web/live/workspace_live/show.ex:161
+#, elixir-autogen, elixir-format
+msgid "%{count} day ago"
+msgid_plural "%{count} days ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:290
+#: lib/valentine_web/live/workspace_live/show.ex:157
+#, elixir-autogen, elixir-format
+msgid "%{count} hour ago"
+msgid_plural "%{count} hours ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:286
+#: lib/valentine_web/live/workspace_live/show.ex:153
+#, elixir-autogen, elixir-format
+msgid "%{count} minute ago"
+msgid_plural "%{count} minutes ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:140
+#: lib/valentine_web/live/workspace_live/show.html.heex:37
+#, elixir-autogen, elixir-format
+msgid "%{percent}%"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:70
+#: lib/valentine_web/live/workspace_live/show.ex:63
+#, elixir-autogen, elixir-format
+msgid "A repository import is already running for this workspace"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:135
+#, elixir-autogen, elixir-format
+msgid "Active (not archived)"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:171
+#, elixir-autogen, elixir-format
+msgid "Add a control"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:33
+#, elixir-autogen, elixir-format
+msgid "Add a name"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:43
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:60
+#: lib/valentine_web/live/workspace_live/show.ex:36
+#: lib/valentine_web/live/workspace_live/show.ex:53
+#, elixir-autogen, elixir-format
+msgid "Agent job not found"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:155
+#, elixir-autogen, elixir-format
+msgid "All"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:364
+#, elixir-autogen, elixir-format
+msgid "Archive"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:140
+#, elixir-autogen, elixir-format
+msgid "Archived"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/components/evidence_component.ex:106
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to delete this evidence?"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:385
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to delete this item?"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:479
+#, elixir-autogen, elixir-format
+msgid "Assign"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:415
+#, elixir-autogen, elixir-format
+msgid "Assign to Cluster"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:341
+#, elixir-autogen, elixir-format
+msgid "Assign to cluster"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:79
+#, elixir-autogen, elixir-format
+msgid "Attach Evidence"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:90
+#, elixir-autogen, elixir-format
+msgid "Back to Workspaces"
+msgstr ""
+
+#: lib/valentine_web/components/layouts/app.html.heex:197
+#, elixir-autogen, elixir-format
+msgid "Brainstorm"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:63
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:3
+#, elixir-autogen, elixir-format
+msgid "Brainstorm Board"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:205
+#: lib/valentine_web/live/workspace_live/show.html.heex:103
+#, elixir-autogen, elixir-format
+msgid "Cancel requested"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:39
+#: lib/valentine_web/live/workspace_live/show.ex:32
+#, elixir-autogen, elixir-format
+msgid "Cancellation requested"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:104
+#, elixir-autogen, elixir-format
+msgid "Capture your threat modeling ideas here. Add items and they'll be organized by category automatically."
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:186
+#, elixir-autogen, elixir-format
+msgid "Category"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:438
+#, elixir-autogen, elixir-format
+msgid "Choose Existing Cluster"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:90
+#, elixir-autogen, elixir-format
+msgid "Clear"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:421
+#, elixir-autogen, elixir-format
+msgid "Close dialog"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:158
+#, elixir-autogen, elixir-format
+msgid "Cluster"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:262
+#, elixir-autogen, elixir-format
+msgid "Cluster key"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:435
+#, elixir-autogen, elixir-format
+msgid "Cluster selection"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:184
+#: lib/valentine_web/live/workspace_live/show.html.heex:82
+#: lib/valentine_web/live/workspace_live/show.html.heex:177
+#, elixir-autogen, elixir-format
+msgid "Completed"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/components/evidence_component.ex:35
+#, elixir-autogen, elixir-format
+msgid "Created"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:386
+#, elixir-autogen, elixir-format
+msgid "Delete item"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:57
+#, elixir-autogen, elixir-format
+msgid "Describe this evidence..."
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:147
+#, elixir-autogen, elixir-format
+msgid "Drag to reorder category"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/components/evidence_component.ex:98
+#, elixir-autogen, elixir-format
+msgid "Edit"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/show.ex:46
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:4
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:6
+#, elixir-autogen, elixir-format
+msgid "Edit Evidence"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:331
+#, elixir-autogen, elixir-format
+msgid "Edit item"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:465
+#, elixir-autogen, elixir-format
+msgid "Enter new cluster name..."
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:13
+#, elixir-autogen, elixir-format
+msgid "Enter your idea..."
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:152
+#, elixir-autogen, elixir-format
+msgid "Error"
+msgstr ""
+
+#: lib/valentine_web/components/layouts/app.html.heex:253
+#, elixir-autogen, elixir-format
+msgid "Evidence"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/index.ex:33
+#: lib/valentine_web/live/workspace_live/evidence/index.html.heex:2
+#, elixir-autogen, elixir-format
+msgid "Evidence Overview"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:171
+#, elixir-autogen, elixir-format
+msgid "Evidence attached"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/show.ex:172
+#, elixir-autogen, elixir-format
+msgid "Evidence created successfully"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/index.ex:91
+#, elixir-autogen, elixir-format
+msgid "Evidence deleted successfully"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/index.ex:76
+#, elixir-autogen, elixir-format
+msgid "Evidence not found"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/show.ex:198
+#, elixir-autogen, elixir-format
+msgid "Evidence updated successfully"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/index.html.heex:25
+#, elixir-autogen, elixir-format
+msgid "Evidence will appear here once you create some using the button above or the API. You can then link evidence to threats, assumptions, or mitigations."
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:123
+#, elixir-autogen, elixir-format
+msgid "Ex: https://example.com/evidence.pdf"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:171
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:172
+#, elixir-autogen, elixir-format
+msgid "Export to Mermaid.js"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:347
+#, elixir-autogen, elixir-format
+msgid "Failed to assign cluster"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/index.ex:95
+#, elixir-autogen, elixir-format
+msgid "Failed to delete evidence"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:176
+#, elixir-autogen, elixir-format
+msgid "Failed to delete item"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:250
+#, elixir-autogen, elixir-format
+msgid "Failed to move item"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:202
+#, elixir-autogen, elixir-format
+msgid "Failed to restore item"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:149
+#, elixir-autogen, elixir-format
+msgid "Filter by evidence status"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/index.html.heex:35
+#, elixir-autogen, elixir-format
+msgid "Filters:"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:222
+#: lib/valentine_web/live/workspace_live/show.html.heex:119
+#: lib/valentine_web/live/workspace_live/show.html.heex:193
+#, elixir-autogen, elixir-format
+msgid "Generated"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:320
+#: lib/valentine_web/live/workspace_live/show.ex:187
+#, elixir-autogen, elixir-format
+msgid "Generated %{threats} threats, %{assumptions} assumptions, %{mitigations} mitigations, %{components} components, and %{flows} flows"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:30
+#, elixir-autogen, elixir-format
+msgid "History"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:469
+#, elixir-autogen, elixir-format
+msgid "If you enter a new cluster name it will be created and used."
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:102
+#: lib/valentine_web/live/workspace_live/github_import_component.ex:37
+#: lib/valentine_web/live/workspace_live/index.ex:34
+#: lib/valentine_web/live/workspace_live/index.html.heex:29
+#, elixir-autogen, elixir-format
+msgid "Import from GitHub"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:342
+#, elixir-autogen, elixir-format
+msgid "Item assigned to cluster"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:132
+#, elixir-autogen, elixir-format
+msgid "Item counts"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:171
+#, elixir-autogen, elixir-format
+msgid "Item deleted. Undo available."
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:208
+#, elixir-autogen, elixir-format
+msgid "Item no longer available for undo"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:197
+#, elixir-autogen, elixir-format
+msgid "Item restored successfully"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:118
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:138
+#, elixir-autogen, elixir-format
+msgid "Item updated successfully"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:159
+#, elixir-autogen, elixir-format
+msgid "Items in cluster"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:196
+#: lib/valentine_web/live/workspace_live/show.html.heex:94
+#, elixir-autogen, elixir-format
+msgid "Last heartbeat"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/index.ex:40
+#: lib/valentine_web/live/workspace_live/evidence/index.ex:52
+#: lib/valentine_web/live/workspace_live/evidence/index.ex:64
+#, elixir-autogen, elixir-format
+msgid "Link Evidence"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:103
+#, elixir-autogen, elixir-format
+msgid "Link URL"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:288
+#, elixir-autogen, elixir-format
+msgid "Mark as Candidate"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:277
+#, elixir-autogen, elixir-format
+msgid "Mark as Clustered"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:299
+#, elixir-autogen, elixir-format
+msgid "Mark as Used"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:30
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:87
+#: lib/valentine_web/live/workspace_live/index.html.heex:6
+#, elixir-autogen, elixir-format
+msgid "My Agents"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:163
+#, elixir-autogen, elixir-format
+msgid "Needs evidence"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/index.html.heex:5
+#: lib/valentine_web/live/workspace_live/evidence/show.ex:31
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:9
+#, elixir-autogen, elixir-format
+msgid "New Evidence"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:105
+#, elixir-autogen, elixir-format
+msgid "No agents yet"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:454
+#, elixir-autogen, elixir-format
+msgid "No clusters exist yet for this category. Create one below."
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/index.html.heex:23
+#, elixir-autogen, elixir-format
+msgid "No evidence found"
+msgstr ""
+
+#: lib/valentine_web/components/core_components.ex:378
+#, elixir-autogen, elixir-format
+msgid "No results"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:130
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:245
+#, elixir-autogen, elixir-format
+msgid "Open workspace"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:80
+#, elixir-autogen, elixir-format
+msgid "Optional"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:461
+#, elixir-autogen, elixir-format
+msgid "Or Create New Cluster"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:111
+#, elixir-autogen, elixir-format
+msgid "Paste JSON"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:140
+#, elixir-autogen, elixir-format
+msgid "Paste JSON content here - {...}"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:118
+#, elixir-autogen, elixir-format
+msgid "Pending workspace"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:450
+#, elixir-autogen, elixir-format
+msgid "Pick one of the existing clusters for this category (type)."
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:93
+#, elixir-autogen, elixir-format
+msgid "Please select a category for your item"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:237
+#: lib/valentine_web/live/workspace_live/show.html.heex:136
+#, elixir-autogen, elixir-format
+msgid "Progress: %{percent}%"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/github_import_component.ex:43
+#, elixir-autogen, elixir-format
+msgid "Public GitHub URL"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/show.html.heex:149
+#, elixir-autogen, elixir-format
+msgid "Recent import history"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:43
+#, elixir-autogen, elixir-format
+msgid "Redo"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:44
+#, elixir-autogen, elixir-format
+msgid "Redo (Ctrl+Y)"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:88
+#, elixir-autogen, elixir-format
+msgid "Remove"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:352
+#, elixir-autogen, elixir-format
+msgid "Remove from cluster"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:217
+#: lib/valentine_web/live/workspace_live/show.html.heex:112
+#: lib/valentine_web/live/workspace_live/show.html.heex:186
+#, elixir-autogen, elixir-format
+msgid "Repository"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:96
+#, elixir-autogen, elixir-format
+msgid "Repository analysis jobs"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:56
+#: lib/valentine_web/live/workspace_live/show.ex:49
+#, elixir-autogen, elixir-format
+msgid "Repository analysis queued"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/github_import_component.ex:132
+#, elixir-autogen, elixir-format
+msgid "Repository analysis started"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/show.html.heex:15
+#, elixir-autogen, elixir-format
+msgid "Repository import"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:170
+#: lib/valentine_web/live/workspace_live/show.html.heex:67
+#: lib/valentine_web/live/workspace_live/show.html.heex:169
+#, elixir-autogen, elixir-format
+msgid "Requested"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:321
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:375
+#, elixir-autogen, elixir-format
+msgid "Restore to Draft"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:334
+#, elixir-autogen, elixir-format
+msgid "Retry"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/show.ex:223
+#, elixir-autogen, elixir-format
+msgid "Retry import"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:310
+#, elixir-autogen, elixir-format
+msgid "Revert to Candidate"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:335
+#, elixir-autogen, elixir-format
+msgid "Run again"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/show.ex:224
+#, elixir-autogen, elixir-format
+msgid "Run import again"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:48
+#, elixir-autogen, elixir-format
+msgid "Search items..."
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:443
+#, elixir-autogen, elixir-format
+msgid "Select a cluster"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:23
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:191
+#, elixir-autogen, elixir-format
+msgid "Select category..."
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:102
+#, elixir-autogen, elixir-format
+msgid "Start Brainstorming!"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:106
+#, elixir-autogen, elixir-format
+msgid "Start a GitHub import to create a threat model from a public repository."
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/github_import_component.ex:92
+#, elixir-autogen, elixir-format
+msgid "Start import"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:178
+#: lib/valentine_web/live/workspace_live/show.html.heex:76
+#, elixir-autogen, elixir-format
+msgid "Started"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/github_import_component.ex:91
+#, elixir-autogen, elixir-format
+msgid "Starting..."
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:224
+#, elixir-autogen, elixir-format
+msgid "Status updated successfully"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/components/evidence_component.ex:47
+#: lib/valentine_web/live/workspace_live/evidence/show.html.heex:201
+#, elixir-autogen, elixir-format
+msgid "Tags"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:153
+#: lib/valentine_web/live/workspace_live/show.html.heex:50
+#, elixir-autogen, elixir-format
+msgid "Terminate"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:63
+#: lib/valentine_web/live/workspace_live/show.ex:56
+#, elixir-autogen, elixir-format
+msgid "That job cannot be rerun right now"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:34
+#, elixir-autogen, elixir-format
+msgid "Undo"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:35
+#, elixir-autogen, elixir-format
+msgid "Undo (Ctrl+Z)"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/components/evidence_component.ex:42
+#, elixir-autogen, elixir-format
+msgid "Updated"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:109
+#, elixir-autogen, elixir-format
+msgid "Use the form above to add your first brainstorm item."
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/show.html.heex:27
+#: lib/valentine_web/live/workspace_live/show.html.heex:140
+#, elixir-autogen, elixir-format
+msgid "View all agent jobs"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:165
+#: lib/valentine_web/live/workspace_live/show.html.heex:62
+#: lib/valentine_web/live/workspace_live/show.html.heex:159
+#, elixir-autogen, elixir-format
+msgid "Waiting for updates"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/github_import_component.ex:51
+#, elixir-autogen, elixir-format
+msgid "Workspace name"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/srtm/index.html.heex:194
+#, elixir-autogen, elixir-format
+msgid "You may have filters set that are hiding controls"
+msgstr ""
+
+#: lib/valentine_web/live/workspace_live/evidence/index.html.heex:18
+#, elixir-autogen, elixir-format
+msgid "You may have filters set that are hiding evidence"
+msgstr ""
+
+#: lib/valentine_web/live/repo_analysis_agent_live/index.ex:282
+#: lib/valentine_web/live/workspace_live/show.ex:149
+#, elixir-autogen, elixir-format
+msgid "just now"
 msgstr ""

@@ -87,8 +87,11 @@ defmodule ValentineWeb.Router do
         ValentineWeb.Helpers.PresenceHelper,
         ValentineWeb.Helpers.ThemeHelper
       ] do
+      live "/agents", RepoAnalysisAgentLive.Index, :index
+
       live "/workspaces", WorkspaceLive.Index, :index
       live "/workspaces/import", WorkspaceLive.Index, :import
+      live "/workspaces/import/github", WorkspaceLive.Index, :github_import
       live "/workspaces/new", WorkspaceLive.Index, :new
       live "/workspaces/:workspace_id/edit", WorkspaceLive.Index, :edit
 

@@ -11,6 +11,214 @@
     </a>
   </:actions>
 </.subhead>
+<.box :if={@latest_repo_analysis_agent} class="mb-3">
+  <:header_title>{gettext("Repository import")}</:header_title>
+  <:body>
+    <details class="repo-analysis-collapsible repo-analysis-collapsible--embedded">
+      <summary class="repo-analysis-collapsible__summary">
+        <div class="repo-analysis-collapsible__summary-main">
+          <div class="repo-analysis-collapsible__summary-title">{@workspace.name}</div>
+          <div class="repo-analysis-collapsible__summary-subtitle">
+            {@latest_repo_analysis_agent.github_url}
+          </div>
+        </div>
+        <div class="repo-analysis-collapsible__summary-side">
+          <.link navigate={~p"/agents"} class="repo-analysis-collapsible__summary-link">
+            {gettext("View all agent jobs")}
+          </.link>
+          <.state_label
+            is_small
+            class={repo_analysis_status_class(@latest_repo_analysis_agent.status)}
+          >
+            <.octicon name={repo_analysis_status_icon(@latest_repo_analysis_agent.status)} />
+            {repo_analysis_status_label(@latest_repo_analysis_agent.status)}
+          </.state_label>
+          <span class="repo-analysis-progress-text">
+            {gettext("%{percent}%", percent: @latest_repo_analysis_agent.progress_percent || 0)}
+          </span>
+          <.octicon name="triangle-down-16" class="repo-analysis-collapsible__chevron" />
+        </div>
+      </summary>
+
+      <div class="repo-analysis-collapsible__content">
+        <div class="repo-analysis-card__actions">
+          <.button
+            :if={RepoAnalysis.running_status?(@latest_repo_analysis_agent.status)}
+            phx-click="cancel_repo_analysis"
+            phx-value-id={@latest_repo_analysis_agent.id}
+          >
+            {gettext("Terminate")}
+          </.button>
+          <.button
+            :if={RepoAnalysis.rerunnable_status?(@latest_repo_analysis_agent.status)}
+            phx-click="retry_repo_analysis"
+            phx-value-id={@latest_repo_analysis_agent.id}
+          >
+            {rerun_label(@latest_repo_analysis_agent.status)}
+          </.button>
+        </div>
+
+        <div class="repo-analysis-card__message">
+          {@latest_repo_analysis_agent.progress_message || gettext("Waiting for updates")}
+        </div>
+
+        <div class="repo-analysis-meta-grid mt-2">
+          <div class="repo-analysis-meta-item">
+            <div class="repo-analysis-meta-label">{gettext("Requested")}</div>
+            <div class="repo-analysis-meta-value">
+              {format_timestamp_with_relative(
+                @latest_repo_analysis_agent.requested_at ||
+                  @latest_repo_analysis_agent.inserted_at
+              )}
+            </div>
+          </div>
+          <div :if={@latest_repo_analysis_agent.started_at} class="repo-analysis-meta-item">
+            <div class="repo-analysis-meta-label">{gettext("Started")}</div>
+            <div class="repo-analysis-meta-value">
+              {format_timestamp_with_relative(@latest_repo_analysis_agent.started_at)}
+            </div>
+          </div>
+          <div :if={@latest_repo_analysis_agent.completed_at} class="repo-analysis-meta-item">
+            <div class="repo-analysis-meta-label">{gettext("Completed")}</div>
+            <div class="repo-analysis-meta-value">
+              {format_timestamp_with_relative(@latest_repo_analysis_agent.completed_at)}
+            </div>
+          </div>
+          <div
+            :if={
+              @latest_repo_analysis_agent.last_heartbeat_at &&
+                RepoAnalysis.running_status?(@latest_repo_analysis_agent.status)
+            }
+            class="repo-analysis-meta-item"
+          >
+            <div class="repo-analysis-meta-label">{gettext("Last heartbeat")}</div>
+            <div class="repo-analysis-meta-value">
+              {format_timestamp_with_relative(@latest_repo_analysis_agent.last_heartbeat_at)}
+            </div>
+          </div>
+          <div
+            :if={@latest_repo_analysis_agent.cancel_requested_at}
+            class="repo-analysis-meta-item"
+          >
+            <div class="repo-analysis-meta-label">{gettext("Cancel requested")}</div>
+            <div class="repo-analysis-meta-value">
+              {format_timestamp_with_relative(@latest_repo_analysis_agent.cancel_requested_at)}
+            </div>
+          </div>
+        </div>
+
+        <div class="repo-analysis-detail-grid mt-2">
+          <div :if={repo_label(@latest_repo_analysis_agent)} class="repo-analysis-detail-card">
+            <div class="repo-analysis-meta-label">{gettext("Repository")}</div>
+            <div class="repo-analysis-detail-value">
+              {repo_label(@latest_repo_analysis_agent)}
+            </div>
+          </div>
+
+          <div :if={summary_text(@latest_repo_analysis_agent)} class="repo-analysis-detail-card">
+            <div class="repo-analysis-meta-label">{gettext("Generated")}</div>
+            <div class="repo-analysis-detail-value">
+              {summary_text(@latest_repo_analysis_agent)}
+            </div>
+          </div>
+        </div>
+
+        <div class="repo-analysis-progress-block mt-2">
+          <progress
+            max="100"
+            value={@latest_repo_analysis_agent.progress_percent || 0}
+            style="width: 100%;"
+          >
+          </progress>
+
+          <div class="repo-analysis-progress-row">
+            <span class="repo-analysis-progress-text">
+              {gettext("Progress: %{percent}%",
+                percent: @latest_repo_analysis_agent.progress_percent || 0
+              )}
+            </span>
+            <.link navigate={~p"/agents"}>{gettext("View all agent jobs")}</.link>
+          </div>
+        </div>
+
+        <div :if={@latest_repo_analysis_agent.failure_reason} class="repo-analysis-alert mt-2">
+          {@latest_repo_analysis_agent.failure_reason}
+        </div>
+
+        <div :if={length(@repo_analysis_history) > 1} class="mt-4">
+          <div class="repo-analysis-history-heading">{gettext("Recent import history")}</div>
+          <div class="repo-analysis-history-list">
+            <div
+              :for={repo_analysis_agent <- Enum.drop(@repo_analysis_history, 1)}
+              class="repo-analysis-history-row"
+            >
+              <div class="repo-analysis-history-main">
+                <div class="repo-analysis-history-topline">
+                  <span class="Label mr-2">
+                    {repo_analysis_status_label(repo_analysis_agent.status)}
+                  </span>
+                  <span class="repo-analysis-history-message">
+                    {repo_analysis_agent.progress_message || gettext("Waiting for updates")}
+                  </span>
+                </div>
+
+                <div :if={repo_analysis_agent.failure_reason} class="repo-analysis-alert mt-2">
+                  {repo_analysis_agent.failure_reason}
+                </div>
+
+                <div class="repo-analysis-meta-grid mt-2">
+                  <div class="repo-analysis-meta-item">
+                    <div class="repo-analysis-meta-label">{gettext("Requested")}</div>
+                    <div class="repo-analysis-meta-value">
+                      {format_timestamp_with_relative(
+                        repo_analysis_agent.requested_at || repo_analysis_agent.inserted_at
+                      )}
+                    </div>
+                  </div>
+                  <div :if={repo_analysis_agent.completed_at} class="repo-analysis-meta-item">
+                    <div class="repo-analysis-meta-label">{gettext("Completed")}</div>
+                    <div class="repo-analysis-meta-value">
+                      {format_timestamp_with_relative(repo_analysis_agent.completed_at)}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="repo-analysis-detail-grid mt-2">
+                  <div :if={repo_label(repo_analysis_agent)} class="repo-analysis-detail-card">
+                    <div class="repo-analysis-meta-label">{gettext("Repository")}</div>
+                    <div class="repo-analysis-detail-value">
+                      {repo_label(repo_analysis_agent)}
+                    </div>
+                  </div>
+
+                  <div :if={summary_text(repo_analysis_agent)} class="repo-analysis-detail-card">
+                    <div class="repo-analysis-meta-label">{gettext("Generated")}</div>
+                    <div class="repo-analysis-detail-value">
+                      {summary_text(repo_analysis_agent)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="repo-analysis-history-side">
+                <div class="repo-analysis-progress-text">
+                  {repo_analysis_agent.progress_percent || 0}%
+                </div>
+                <.button
+                  :if={RepoAnalysis.rerunnable_status?(repo_analysis_agent.status)}
+                  phx-click="retry_repo_analysis"
+                  phx-value-id={repo_analysis_agent.id}
+                >
+                  {rerun_label(repo_analysis_agent.status)}
+                </.button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </details>
+  </:body>
+</.box>
 <div class="clearfix">
   <%= if workspace_empty?(@workspace) do %>
     <.blankslate class="color-bg-default">
