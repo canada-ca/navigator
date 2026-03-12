@@ -59,7 +59,10 @@ defmodule ValentineWeb.WorkspaceLive.GitHubImportComponent do
               options={[
                 [key: gettext("None selected"), value: ""],
                 [key: gettext("CCCS Low Profile for Cloud"), value: "CCCS Low Profile for Cloud"],
-                [key: gettext("CCCS Medium Profile for Cloud"), value: "CCCS Medium Profile for Cloud"]
+                [
+                  key: gettext("CCCS Medium Profile for Cloud"),
+                  value: "CCCS Medium Profile for Cloud"
+                ]
               ]}
               selected={input_value(f, :cloud_profile)}
               is_form_control

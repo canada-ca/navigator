@@ -4,7 +4,10 @@ defmodule Valentine.Repo.Migrations.CreateRepoAnalysisAgents do
   def change do
     create table(:repo_analysis_agents, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :workspace_id, references(:workspaces, type: :binary_id, on_delete: :delete_all), null: false
+
+      add :workspace_id, references(:workspaces, type: :binary_id, on_delete: :delete_all),
+        null: false
+
       add :owner, :string, null: false
       add :github_url, :text, null: false
       add :repo_full_name, :string
@@ -29,6 +32,9 @@ defmodule Valentine.Repo.Migrations.CreateRepoAnalysisAgents do
     create index(:repo_analysis_agents, [:owner])
     create index(:repo_analysis_agents, [:workspace_id])
     create index(:repo_analysis_agents, [:status])
-    create unique_index(:repo_analysis_agents, [:runtime_agent_id], where: "runtime_agent_id IS NOT NULL")
+
+    create unique_index(:repo_analysis_agents, [:runtime_agent_id],
+             where: "runtime_agent_id IS NOT NULL"
+           )
   end
 end

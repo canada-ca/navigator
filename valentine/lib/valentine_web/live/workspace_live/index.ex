@@ -83,7 +83,10 @@ defmodule ValentineWeb.WorkspaceLive.Index do
   end
 
   @impl true
-  def handle_info({ValentineWeb.WorkspaceLive.GitHubImportComponent, {:saved, _workspace}}, socket) do
+  def handle_info(
+        {ValentineWeb.WorkspaceLive.GitHubImportComponent, {:saved, _workspace}},
+        socket
+      ) do
     {:noreply,
      assign(
        socket,

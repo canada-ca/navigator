@@ -143,7 +143,9 @@ defmodule Valentine.ComposerTest do
       repo_analysis_agent = repo_analysis_agent_fixture(%{owner: "owner-1"})
       _other_repo_analysis_agent = repo_analysis_agent_fixture(%{owner: "owner-2"})
 
-      assert [fetched_repo_analysis_agent] = Composer.list_repo_analysis_agents_by_owner("owner-1")
+      assert [fetched_repo_analysis_agent] =
+               Composer.list_repo_analysis_agents_by_owner("owner-1")
+
       assert fetched_repo_analysis_agent.id == repo_analysis_agent.id
     end
 
