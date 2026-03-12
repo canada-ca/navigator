@@ -805,6 +805,7 @@ defmodule Valentine.RepoAnalysis.Persister do
       ArgumentError -> :error
     end
   end
+
   defp unwrap_result({:ok, value}), do: value
   defp unwrap_result({count, _}) when is_integer(count), do: count
   defp unwrap_result({:error, reason}), do: Repo.rollback(reason)
