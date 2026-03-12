@@ -20,7 +20,9 @@ config :valentine, :repo_analysis,
   max_prompt_bytes: 120_000,
   recovery_interval_ms: 60_000,
   start_recovery: true,
-  working_dir: Path.expand("../tmp/repo_analysis", __DIR__)
+  working_dir:
+    System.get_env("REPO_ANALYSIS_WORKING_DIR") ||
+      Path.join(System.tmp_dir!(), "valentine_repo_analysis")
 
 config :valentine,
   ecto_repos: [Valentine.Repo],
