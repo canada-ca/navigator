@@ -71,17 +71,15 @@ defmodule Valentine.RepoAnalysis do
            }) do
       result =
         if runtime_start_enabled?() do
-          case
-            Valentine.Jido.start_agent(Valentine.RepoAnalysis.Agent,
-              id: runtime_agent_id,
-              initial_state: %{
-                repo_analysis_agent_id: repo_analysis_agent.id,
-                workspace_id: repo_analysis_agent.workspace_id,
-                owner: repo_analysis_agent.owner,
-                github_url: repo_analysis_agent.github_url
-              }
-            )
-          do
+          case Valentine.Jido.start_agent(Valentine.RepoAnalysis.Agent,
+                 id: runtime_agent_id,
+                 initial_state: %{
+                   repo_analysis_agent_id: repo_analysis_agent.id,
+                   workspace_id: repo_analysis_agent.workspace_id,
+                   owner: repo_analysis_agent.owner,
+                   github_url: repo_analysis_agent.github_url
+                 }
+               ) do
             {:ok, pid} ->
               :ok =
                 AgentServer.cast(
