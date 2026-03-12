@@ -56,5 +56,37 @@ defmodule ValentineWeb.WorkspaceLive.Components.DataFlowMetadataComponentTest do
       assert socket.assigns.element["data"]["id"] == node["data"]["id"]
       assert socket.assigns.threats == [threat]
     end
+
+    test "updates the assigns for imported nodes whose ids do not use the node prefix", %{
+      dfd: dfd,
+      socket: socket
+    } do
+      imported_node = %{
+        "data" => %{
+          "id" => "api",
+          "data_tags" => [],
+          "description" => "API service",
+          "label" => "API",
+          "linked_threats" => [],
+          "out_of_scope" => "false",
+          "parent" => nil,
+          "security_tags" => [],
+          "technology_tags" => [],
+          "type" => "process"
+        },
+        "grabbable" => "true",
+        "position" => %{"x" => 100, "y" => 100}
+      }
+
+      dfd
+      |> Map.update!(:nodes, &Map.put(&1, "api", imported_node))
+      |> DataFlowDiagram.put()
+
+      assigns = %{socket.assigns | element_id: "api"}
+
+      {:ok, socket} = DataFlowMetadataComponent.update(assigns, socket)
+      assert socket.assigns.element == imported_node
+      assert socket.assigns.threats == []
+    end
   end
 end

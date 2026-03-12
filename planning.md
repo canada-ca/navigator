@@ -19,7 +19,9 @@ Current end-to-end behavior:
 7. Generated assumptions and mitigations are linked to generated threats.
 8. Re-running an import for the same generated content updates generated records instead of endlessly duplicating them.
 9. Users can monitor job progress globally in `My Agents` and see workspace-local import status on the workspace show page.
-10. Stale jobs can be recovered by a supervised recovery worker.
+10. Users can retry failed imports or rerun completed imports from both `My Agents` and the workspace overview.
+11. Repository import summaries are collapsible, start collapsed by default, and expose compact status/navigation affordances.
+12. Stale jobs can be recovered by a supervised recovery worker.
 
 ## What Was Implemented
 
@@ -63,10 +65,13 @@ Current end-to-end behavior:
 ### DFD generation and layout improvements
 
 - Fixed the initial generated DFD collapse bug in [valentine/lib/valentine/repo_analysis/persister.ex](valentine/lib/valentine/repo_analysis/persister.ex).
+- Normalized generated DFD component kinds in [valentine/lib/valentine/repo_analysis/persister.ex](valentine/lib/valentine/repo_analysis/persister.ex) so `external_entity` persists as `actor` and `data_store` persists as `datastore`, matching the editor.
 - Replaced the old fixed node position (`50,50` for every node) with a deterministic layout pass that:
   - spaces trust boundaries on a grid
-  - places components inside boundaries by flow depth and component type
+  - spaces trust boundaries using the largest generated boundary footprint
+  - places components inside boundaries by flow depth and component lane
   - places root-level components separately from boundary-contained components
+- Added type-specific lanes so generated actors, processes, and data stores are stacked more predictably.
 - Added layout-focused assertions in [valentine/test/valentine/repo_analysis/persister_test.exs](valentine/test/valentine/repo_analysis/persister_test.exs) so generated nodes must receive distinct, non-default positions.
 
 ### Recovery and stuck-job handling
@@ -86,6 +91,9 @@ Current end-to-end behavior:
 - Fixed the import form crash in [valentine/lib/valentine_web/live/workspace_live/github_import_component.ex](valentine/lib/valentine_web/live/workspace_live/github_import_component.ex) by switching from a raw map-backed form to a changeset-backed form.
 - Added global job monitor LiveView in [valentine/lib/valentine_web/live/repo_analysis_agent_live/index.ex](valentine/lib/valentine_web/live/repo_analysis_agent_live/index.ex).
 - Added workspace-local repo-analysis status and cancel visibility in [valentine/lib/valentine_web/live/workspace_live/show.ex](valentine/lib/valentine_web/live/workspace_live/show.ex) and [valentine/lib/valentine_web/live/workspace_live/show.html.heex](valentine/lib/valentine_web/live/workspace_live/show.html.heex).
+- Added retry/rerun actions to `My Agents` and the workspace overview in [valentine/lib/valentine_web/live/repo_analysis_agent_live/index.ex](valentine/lib/valentine_web/live/repo_analysis_agent_live/index.ex) and [valentine/lib/valentine_web/live/workspace_live/show.ex](valentine/lib/valentine_web/live/workspace_live/show.ex).
+- Added richer timestamps, recent import history, relative time rendering, and summary metadata to the repo-analysis views in [valentine/lib/valentine_web/live/repo_analysis_agent_live/index.ex](valentine/lib/valentine_web/live/repo_analysis_agent_live/index.ex) and [valentine/lib/valentine_web/live/workspace_live/show.html.heex](valentine/lib/valentine_web/live/workspace_live/show.html.heex).
+- Added collapsible import/job cards, compact summary links, and state-style status pills to the repo-analysis UI in [valentine/lib/valentine_web/live/repo_analysis_agent_live/index.ex](valentine/lib/valentine_web/live/repo_analysis_agent_live/index.ex), [valentine/lib/valentine_web/live/workspace_live/show.html.heex](valentine/lib/valentine_web/live/workspace_live/show.html.heex), and [valentine/assets/css/app.css](valentine/assets/css/app.css).
 
 ### Prompt and repo selection improvements
 
@@ -119,17 +127,18 @@ cd /workspace/valentine
 mix deps.get
 mix test test/valentine/repo_analysis_test.exs test/valentine/repo_analysis/persister_test.exs
 mix test test/valentine/repo_analysis_test.exs test/valentine/repo_analysis/persister_test.exs test/valentine_web/live/workspace/show_view_test.exs test/valentine_web/live/workspace/index_view_test.exs test/valentine_web/live/repo_analysis_agent/index_view_test.exs test/valentine/composer_test.exs
+mix test test/valentine/repo_analysis/persister_test.exs
+mix test test/valentine_web/live/repo_analysis_agent/index_view_test.exs test/valentine_web/live/workspace/show_view_test.exs
 ```
 
-The focused repo-analysis layout/persistence run ended green after the deterministic DFD layout change.
+The focused repo-analysis layout/persistence run ended green after the actor/datastore normalization and lane-based DFD layout changes.
 
 ## Known Limitations
 
 - The import flow is still public-GitHub-only. There is no private repo auth, GitHub App integration, or support for non-GitHub providers.
 - Cancellation is cooperative between major phases. A currently executing external call or LLM request is not forcibly interrupted mid-request.
-- DFD layout is much better than the original fixed-position output, but it is still heuristic rather than editor-quality graph layout.
+- DFD layout is materially better than the original fixed-position output and now uses explicit actor/process/datastore lanes, but it is still heuristic rather than editor-quality graph layout.
 - Prompt quality is improved, but generated architecture prose and DFD semantics will still vary by repository quality and model behavior.
-- There is still no explicit user-facing `retry this failed import` workflow.
 - Manual browser validation of the full UX should still be done after major follow-up changes.
 
 ## Logical Next Steps
@@ -140,8 +149,8 @@ The deterministic layout solved the overlap/collapse bug, but the next useful re
 
 Good follow-ups:
 
-- put external entities, processes, and data stores into clearer visual lanes
-- improve boundary sizing/placement when a boundary contains many nodes
+- refine actor/process/datastore lanes against a few denser real-repo imports
+- improve boundary sizing/placement when a boundary contains many nodes or long multi-stage flows
 - use flow direction more aggressively to reduce crossing edges
 - add a few representative fixture cases for denser generated DFDs
 
@@ -150,23 +159,7 @@ Main files:
 - [valentine/lib/valentine/repo_analysis/persister.ex](valentine/lib/valentine/repo_analysis/persister.ex)
 - [valentine/test/valentine/repo_analysis/persister_test.exs](valentine/test/valentine/repo_analysis/persister_test.exs)
 
-### 2. Add retry/re-run UX for failed or stale imports
-
-The backend now supports safer reruns and stale recovery, but the user-facing flow would be much better with explicit retry actions.
-
-Useful additions:
-
-- retry from failed job state
-- rerun import for an existing workspace
-- clearer status transitions and timestamps in the UI
-
-Likely files:
-
-- [valentine/lib/valentine/repo_analysis.ex](valentine/lib/valentine/repo_analysis.ex)
-- [valentine/lib/valentine_web/live/repo_analysis_agent_live/index.ex](valentine/lib/valentine_web/live/repo_analysis_agent_live/index.ex)
-- [valentine/lib/valentine_web/live/workspace_live/show.ex](valentine/lib/valentine_web/live/workspace_live/show.ex)
-
-### 3. Improve private-repo and provider support strategy
+### 2. Improve private-repo and provider support strategy
 
 If this feature is meant to be broadly useful, public GitHub-only is the next major product limitation.
 
@@ -182,7 +175,7 @@ This will likely require changes in:
 - [valentine/lib/valentine_web/live/workspace_live/github_import_component.ex](valentine/lib/valentine_web/live/workspace_live/github_import_component.ex)
 - config/runtime handling for credentials
 
-### 4. Broaden automated coverage around runner and recovery paths
+### 3. Broaden automated coverage around runner and recovery paths
 
 The focused coverage is solid, but the most brittle code still lives around long-running runtime behavior.
 
@@ -192,9 +185,9 @@ Best next tests:
 - clone timeout and cleanup behavior
 - repeated rerun behavior on existing workspaces
 - more complex DFD layout cases
-- UI tests for workspace-local cancel/retry affordances once retry exists
+- UI tests for collapsible import summaries and compact status affordances
 
-### 5. Do manual UX validation on the happy path
+### 4. Do manual UX validation on the happy path
 
 Before treating the feature as finished, walk through the app manually with one or two real repositories:
 
@@ -204,6 +197,16 @@ Before treating the feature as finished, walk through the app manually with one 
 4. inspect the generated DFD visually for readability
 5. inspect generated threats, assumptions, and mitigations for reasonable linking
 
+### 5. Profile and optimize performance hot paths
+
+Once the product-visible follow-ups above are in a good place, the next engineering pass can focus on performance.
+
+Likely targets:
+
+- large repo clone/index cost in [valentine/lib/valentine/repo_analysis/github.ex](valentine/lib/valentine/repo_analysis/github.ex)
+- persistence/query overhead in [valentine/lib/valentine/repo_analysis/persister.ex](valentine/lib/valentine/repo_analysis/persister.ex)
+- LiveView rendering density in [valentine/lib/valentine_web/live/repo_analysis_agent_live/index.ex](valentine/lib/valentine_web/live/repo_analysis_agent_live/index.ex) and [valentine/lib/valentine_web/live/workspace_live/show.html.heex](valentine/lib/valentine_web/live/workspace_live/show.html.heex)
+
 ## Safe Starting Point For The Next AI Window
 
 If a later context window needs to continue this work, a good first task is:
@@ -211,7 +214,7 @@ If a later context window needs to continue this work, a good first task is:
 1. run the focused repo-analysis test suite again
 2. inspect one real generated DFD in the UI
 3. improve the layout heuristics in [valentine/lib/valentine/repo_analysis/persister.ex](valentine/lib/valentine/repo_analysis/persister.ex)
-4. then add retry/rerun UX if the layout looks acceptable
+4. if the layout looks acceptable, move on to private-repo support or performance profiling
 
 ## Files Added
 

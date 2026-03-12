@@ -180,6 +180,37 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
       assert workspace.application_information.content == "Updated application information"
       assert workspace.architecture.content == "Updated architecture"
     end
+
+    test "lays out actors, processes, and datastores in distinct lanes" do
+      workspace = workspace_fixture()
+
+      analysis =
+        analysis_fixture(%{
+          dfd: lane_dfd_json()
+        })
+
+      assert :ok = Persister.persist(workspace.id, analysis)
+
+      data_flow_diagram = Composer.get_data_flow_diagram_by_workspace_id(workspace.id)
+
+      browser_y = get_in(data_flow_diagram.nodes, ["browser", "position", "y"])
+      admin_y = get_in(data_flow_diagram.nodes, ["admin", "position", "y"])
+      api_y = get_in(data_flow_diagram.nodes, ["api", "position", "y"])
+      worker_y = get_in(data_flow_diagram.nodes, ["worker", "position", "y"])
+      db_y = get_in(data_flow_diagram.nodes, ["db", "position", "y"])
+
+      assert browser_y < api_y
+      assert admin_y < api_y
+      assert api_y < db_y
+      assert worker_y < db_y
+      assert browser_y != admin_y
+
+      assert get_in(data_flow_diagram.nodes, ["browser", "position", "x"]) <
+               get_in(data_flow_diagram.nodes, ["api", "position", "x"])
+
+      assert get_in(data_flow_diagram.nodes, ["api", "position", "x"]) <
+               get_in(data_flow_diagram.nodes, ["db", "position", "x"])
+    end
   end
 
   defp analysis_fixture(attrs) do
@@ -252,6 +283,77 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
           "target" => "worker",
           "label" => "Dispatch",
           "description" => "Enqueues work"
+        }
+      ]
+    }
+  end
+
+  defp lane_dfd_json do
+    %{
+      "boundaries" => [
+        %{"id" => "platform", "label" => "Platform", "description" => "Primary system"}
+      ],
+      "components" => [
+        %{
+          "id" => "browser",
+          "label" => "Browser",
+          "kind" => "external_entity",
+          "description" => "End user browser",
+          "boundary_id" => "platform"
+        },
+        %{
+          "id" => "admin",
+          "label" => "Admin",
+          "kind" => "external_entity",
+          "description" => "Operator",
+          "boundary_id" => "platform"
+        },
+        %{
+          "id" => "api",
+          "label" => "API",
+          "kind" => "process",
+          "description" => "Entry point",
+          "boundary_id" => "platform"
+        },
+        %{
+          "id" => "worker",
+          "label" => "Worker",
+          "kind" => "process",
+          "description" => "Background processor",
+          "boundary_id" => "platform"
+        },
+        %{
+          "id" => "db",
+          "label" => "Database",
+          "kind" => "data_store",
+          "description" => "Persistent store",
+          "boundary_id" => "platform"
+        }
+      ],
+      "flows" => [
+        %{
+          "source" => "browser",
+          "target" => "api",
+          "label" => "Request",
+          "description" => "User request"
+        },
+        %{
+          "source" => "admin",
+          "target" => "api",
+          "label" => "Admin request",
+          "description" => "Administrative request"
+        },
+        %{
+          "source" => "api",
+          "target" => "worker",
+          "label" => "Dispatch",
+          "description" => "Enqueue work"
+        },
+        %{
+          "source" => "worker",
+          "target" => "db",
+          "label" => "Persist",
+          "description" => "Write records"
         }
       ]
     }

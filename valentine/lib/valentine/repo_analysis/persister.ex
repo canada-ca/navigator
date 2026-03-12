@@ -21,7 +21,10 @@ defmodule Valentine.RepoAnalysis.Persister do
   @boundary_inner_start_x 170
   @boundary_inner_start_y 150
   @node_gap_x 260
-  @node_gap_y 180
+  @lane_gap_y 180
+  @lane_row_gap 110
+  @boundary_layout_padding_x 320
+  @boundary_layout_padding_y 260
   @root_origin_x 220
   @root_origin_y 980
 
@@ -273,6 +276,14 @@ defmodule Valentine.RepoAnalysis.Persister do
   defp build_layout(boundaries, components, flows) do
     boundary_ids = MapSet.new(Enum.map(boundaries, & &1["id"]))
     component_levels = component_levels(components, flows)
+    boundary_components = components_by_boundary(components, boundary_ids)
+    boundary_dimensions = boundary_dimensions(boundaries, boundary_components, component_levels)
+
+    max_boundary_width = max_boundary_dimension(boundary_dimensions, :width, @boundary_gap_x)
+    max_boundary_height = max_boundary_dimension(boundary_dimensions, :height, @boundary_gap_y)
+
+    boundary_gap_x = max(@boundary_gap_x, max_boundary_width)
+    boundary_gap_y = max(@boundary_gap_y, max_boundary_height)
 
     boundary_positions =
       boundaries
@@ -283,8 +294,8 @@ defmodule Valentine.RepoAnalysis.Persister do
 
         {boundary["id"],
          %{
-           "x" => @boundary_center_x + column * @boundary_gap_x,
-           "y" => @boundary_center_y + row * @boundary_gap_y
+           "x" => @boundary_center_x + column * boundary_gap_x,
+           "y" => @boundary_center_y + row * boundary_gap_y
          }}
       end)
 
@@ -302,7 +313,13 @@ defmodule Valentine.RepoAnalysis.Persister do
       |> Enum.reduce(%{}, fn {group, group_components}, acc ->
         Map.merge(
           acc,
-          group_component_positions(group, group_components, component_levels, boundary_positions)
+          group_component_positions(
+            group,
+            group_components,
+            component_levels,
+            boundary_positions,
+            boundary_dimensions
+          )
         )
       end)
 
@@ -313,47 +330,43 @@ defmodule Valentine.RepoAnalysis.Persister do
          {:boundary, _boundary_id},
          components,
          component_levels,
-         _boundary_positions
+         _boundary_positions,
+         _boundary_dimensions
        ) do
-    components
-    |> layout_rows(component_levels)
-    |> Enum.map(fn {component, {level, row}} ->
-      {component["id"],
-       %{
-         "x" => @boundary_inner_start_x + level * @node_gap_x,
-         "y" => @boundary_inner_start_y + row * @node_gap_y
-       }}
-    end)
-    |> Map.new()
+    layout_positions(
+      components,
+      component_levels,
+      @boundary_inner_start_x,
+      @boundary_inner_start_y
+    )
   end
 
-  defp group_component_positions(:root, components, component_levels, boundary_positions) do
-    boundary_rows =
+  defp group_component_positions(
+         :root,
+         components,
+         component_levels,
+         boundary_positions,
+         boundary_dimensions
+       ) do
+    boundary_bottom =
       boundary_positions
-      |> map_size()
-      |> max(1)
-      |> then(&(div(&1 - 1, @boundary_columns) + 1))
+      |> Enum.map(fn {boundary_id, position} ->
+        dimension = Map.get(boundary_dimensions, boundary_id, %{height: @boundary_gap_y})
+        position["y"] + div(dimension.height, 2)
+      end)
+      |> Enum.max(fn -> @root_origin_y - @boundary_layout_padding_y end)
 
-    base_y = @root_origin_y + max(boundary_rows - 1, 0) * 140
+    base_y = max(@root_origin_y, boundary_bottom + div(@boundary_layout_padding_y, 2))
 
-    components
-    |> layout_rows(component_levels)
-    |> Enum.map(fn {component, {level, row}} ->
-      {component["id"],
-       %{
-         "x" => @root_origin_x + level * @node_gap_x,
-         "y" => base_y + row * @node_gap_y
-       }}
-    end)
-    |> Map.new()
+    layout_positions(components, component_levels, @root_origin_x, base_y)
   end
 
-  defp layout_rows(components, component_levels) do
+  defp layout_positions(components, component_levels, start_x, start_y) do
     components
     |> Enum.sort_by(fn component ->
       {
         Map.get(component_levels, component["id"], 0),
-        component_type_priority(component["kind"]),
+        component_type_priority(normalize_component_type(component["kind"])),
         component["label"] || component["id"] || ""
       }
     end)
@@ -361,10 +374,79 @@ defmodule Valentine.RepoAnalysis.Persister do
     |> Enum.sort_by(fn {level, _components} -> level end)
     |> Enum.flat_map(fn {level, level_components} ->
       level_components
-      |> Enum.with_index()
-      |> Enum.map(fn {component, row} -> {component, {level, row}} end)
+      |> Enum.group_by(&component_lane(normalize_component_type(&1["kind"])))
+      |> Enum.sort_by(fn {lane, _components} -> lane end)
+      |> Enum.flat_map(fn {lane, lane_components} ->
+        lane_components
+        |> Enum.sort_by(&(&1["label"] || &1["id"] || ""))
+        |> Enum.with_index()
+        |> Enum.map(fn {component, row} ->
+          {component["id"],
+           %{
+             "x" => start_x + level * @node_gap_x,
+             "y" => start_y + lane * @lane_gap_y + row * @lane_row_gap
+           }}
+        end)
+      end)
+    end)
+    |> Map.new()
+  end
+
+  defp components_by_boundary(components, boundary_ids) do
+    Enum.group_by(components, fn component ->
+      boundary_id = component["boundary_id"]
+
+      if is_binary(boundary_id) and MapSet.member?(boundary_ids, boundary_id) do
+        boundary_id
+      else
+        nil
+      end
     end)
   end
+
+  defp boundary_dimensions(boundaries, boundary_components, component_levels) do
+    Map.new(boundaries, fn boundary ->
+      components = Map.get(boundary_components, boundary["id"], [])
+      {boundary["id"], estimate_group_dimensions(components, component_levels)}
+    end)
+  end
+
+  defp max_boundary_dimension(boundary_dimensions, key, fallback) do
+    boundary_dimensions
+    |> Map.values()
+    |> Enum.map(&Map.get(&1, key, fallback))
+    |> Enum.max(fn -> fallback end)
+  end
+
+  defp estimate_group_dimensions([], _component_levels) do
+    %{width: @boundary_gap_x, height: @boundary_gap_y}
+  end
+
+  defp estimate_group_dimensions(components, component_levels) do
+    positions = layout_positions(components, component_levels, 0, 0)
+
+    max_x =
+      positions
+      |> Map.values()
+      |> Enum.map(& &1["x"])
+      |> Enum.max(fn -> 0 end)
+
+    max_y =
+      positions
+      |> Map.values()
+      |> Enum.map(& &1["y"])
+      |> Enum.max(fn -> 0 end)
+
+    %{
+      width: max(max_x + @boundary_layout_padding_x, @boundary_gap_x),
+      height: max(max_y + @boundary_layout_padding_y, @boundary_gap_y)
+    }
+  end
+
+  defp component_lane("actor"), do: 0
+  defp component_lane("process"), do: 1
+  defp component_lane("datastore"), do: 2
+  defp component_lane(_type), do: 1
 
   defp component_levels(components, flows) do
     component_ids = MapSet.new(Enum.map(components, & &1["id"]))
