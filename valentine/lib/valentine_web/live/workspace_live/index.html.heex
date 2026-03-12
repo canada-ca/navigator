@@ -2,7 +2,7 @@
   {gettext("Workspaces")}
   <:actions>
     <.button_group>
-      <.link navigate={~p"/agents"} class="btn mr-2">
+      <.link navigate={~p"/agents"} class="btn">
         {gettext("My Agents")}
       </.link>
       <.button is_primary phx-click={JS.patch(~p"/workspaces/new")}>

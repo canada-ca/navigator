@@ -10,6 +10,7 @@ defmodule Valentine.RepoAnalysis do
   alias Phoenix.PubSub
   alias Valentine.Composer
   alias Valentine.Composer.RepoAnalysisAgent
+  alias Valentine.Composer.Workspace
   alias Valentine.RepoAnalysis.GitHub
   alias Valentine.RepoAnalysis.Runner
   alias Valentine.Repo
@@ -48,19 +49,8 @@ defmodule Valentine.RepoAnalysis do
       |> Repo.transaction()
       |> case do
         {:ok, %{workspace: workspace, repo_analysis_agent: repo_analysis_agent}} ->
-          with {:ok, repo_analysis_agent} <- launch(repo_analysis_agent) do
+          with {:ok, repo_analysis_agent} <- launch_created_agent(repo_analysis_agent) do
             {:ok, %{workspace: workspace, repo_analysis_agent: repo_analysis_agent}}
-          else
-            {:error, reason} ->
-              _ =
-                Composer.update_repo_analysis_agent(repo_analysis_agent, %{
-                  status: :failed,
-                  failure_reason: format_error(reason),
-                  completed_at: DateTime.utc_now(),
-                  progress_message: "Failed to start repository analysis"
-                })
-
-              {:error, reason}
           end
 
         {:error, _step, reason, _changes} ->
@@ -138,6 +128,28 @@ defmodule Valentine.RepoAnalysis do
     end
   end
 
+  def retry_for_owner(id, owner) do
+    case Composer.get_repo_analysis_agent_for_owner(id, owner) do
+      nil ->
+        {:error, :not_found}
+
+      %RepoAnalysisAgent{workspace: %Workspace{} = workspace} = repo_analysis_agent ->
+        if rerunnable_status?(repo_analysis_agent.status) do
+          workspace
+          |> start_existing_workspace_import(
+            owner,
+            repo_analysis_agent.github_url,
+            repo_analysis_agent.limits
+          )
+        else
+          {:error, :not_retryable}
+        end
+
+      _repo_analysis_agent ->
+        {:error, :not_found}
+    end
+  end
+
   def running_status?(status)
       when status in [
              :queued,
@@ -151,6 +163,11 @@ defmodule Valentine.RepoAnalysis do
       do: true
 
   def running_status?(_status), do: false
+
+  def rerunnable_status?(status) when status in [:completed, :failed, :cancelled, :timed_out],
+    do: true
+
+  def rerunnable_status?(_status), do: false
 
   def recover_stale_jobs do
     stale_jobs = list_stale_jobs()
@@ -196,6 +213,59 @@ defmodule Valentine.RepoAnalysis do
   end
 
   def runtime_agent_id(job_id), do: "repo-analysis-#{job_id}"
+
+  defp start_existing_workspace_import(%Workspace{} = workspace, owner, github_url, limits) do
+    with :ok <- ensure_workspace_owner(workspace, owner),
+         {:ok, github_url} <- validate_github_url(%{github_url: github_url}),
+         :ok <- ensure_no_running_job(workspace.id),
+         {:ok, repo_analysis_agent} <-
+           Composer.create_repo_analysis_agent(%{
+             workspace_id: workspace.id,
+             owner: owner,
+             github_url: github_url,
+             requested_at: DateTime.utc_now(),
+             limits: normalize_limits(limits),
+             progress_message: "Queued for repository analysis"
+           }) do
+      launch_created_agent(repo_analysis_agent)
+    end
+  end
+
+  defp ensure_workspace_owner(%Workspace{owner: owner}, owner), do: :ok
+  defp ensure_workspace_owner(%Workspace{}, _owner), do: {:error, :not_found}
+
+  defp ensure_no_running_job(workspace_id) do
+    if Enum.any?(
+         Composer.list_repo_analysis_agents_by_workspace(workspace_id),
+         fn repo_analysis_agent ->
+           running_status?(repo_analysis_agent.status)
+         end
+       ) do
+      {:error, :already_running}
+    else
+      :ok
+    end
+  end
+
+  defp normalize_limits(limits) when is_map(limits) and map_size(limits) > 0, do: limits
+  defp normalize_limits(_limits), do: default_limits()
+
+  defp launch_created_agent(repo_analysis_agent) do
+    with {:ok, repo_analysis_agent} <- launch(repo_analysis_agent) do
+      {:ok, repo_analysis_agent}
+    else
+      {:error, reason} ->
+        _ =
+          Composer.update_repo_analysis_agent(repo_analysis_agent, %{
+            status: :failed,
+            failure_reason: format_error(reason),
+            completed_at: DateTime.utc_now(),
+            progress_message: "Failed to start repository analysis"
+          })
+
+        {:error, reason}
+    end
+  end
 
   defp runtime_start_enabled? do
     Application.get_env(:valentine, :repo_analysis, [])

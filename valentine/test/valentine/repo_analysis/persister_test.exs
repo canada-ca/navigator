@@ -60,6 +60,9 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
                first_threat.id
              ]
 
+      assert get_in(data_flow_diagram.nodes, ["user", "data", "type"]) == "actor"
+      assert get_in(data_flow_diagram.nodes, ["db", "data", "type"]) == "datastore"
+
       assert get_in(data_flow_diagram.nodes, ["worker", "data", "linked_threats"]) == [
                second_threat.id
              ]
@@ -203,6 +206,13 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
       ],
       "components" => [
         %{
+          "id" => "user",
+          "label" => "User",
+          "kind" => "external_entity",
+          "description" => "Human actor",
+          "boundary_id" => nil
+        },
+        %{
           "id" => "api",
           "label" => "API",
           "kind" => "process",
@@ -225,6 +235,12 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
         }
       ],
       "flows" => [
+        %{
+          "source" => "user",
+          "target" => "api",
+          "label" => "User inputs secret",
+          "description" => "Submits secret data"
+        },
         %{
           "source" => "api",
           "target" => "db",

@@ -195,12 +195,13 @@ defmodule Valentine.RepoAnalysis.Persister do
     component_nodes =
       Enum.map(components, fn component ->
         linked_threats = Map.get(threat_ids_by_component, component["id"], [])
+        component_type = normalize_component_type(component["kind"])
 
         {component["id"],
          node(
            component["id"],
            component["label"],
-           component["kind"],
+           component_type,
            component["description"],
            component["boundary_id"],
            linked_threats,
@@ -449,9 +450,16 @@ defmodule Valentine.RepoAnalysis.Persister do
   end
 
   defp component_type_priority("external_entity"), do: 0
+  defp component_type_priority("actor"), do: 0
   defp component_type_priority("process"), do: 1
   defp component_type_priority("data_store"), do: 2
+  defp component_type_priority("datastore"), do: 2
   defp component_type_priority(_type), do: 3
+
+  defp normalize_component_type("external_entity"), do: "actor"
+  defp normalize_component_type("data_store"), do: "datastore"
+  defp normalize_component_type(type) when is_binary(type), do: type
+  defp normalize_component_type(_type), do: "process"
 
   defp assumption_attrs(workspace_id, assumption_json) do
     %{

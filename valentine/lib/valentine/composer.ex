@@ -172,7 +172,7 @@ defmodule Valentine.Composer do
     from(agent in RepoAnalysisAgent,
       where: agent.owner == ^owner,
       preload: [:workspace],
-      order_by: [desc: agent.inserted_at]
+      order_by: [desc: agent.requested_at, desc: agent.inserted_at]
     )
     |> Repo.all()
   end
@@ -183,7 +183,7 @@ defmodule Valentine.Composer do
   def list_repo_analysis_agents_by_workspace(workspace_id) do
     from(agent in RepoAnalysisAgent,
       where: agent.workspace_id == ^workspace_id,
-      order_by: [desc: agent.inserted_at]
+      order_by: [desc: agent.requested_at, desc: agent.inserted_at]
     )
     |> Repo.all()
   end

@@ -143,6 +143,63 @@ defmodule Valentine.RepoAnalysisTest do
     end
   end
 
+  describe "retry_for_owner/2" do
+    test "creates a new queued job for a failed import" do
+      workspace = workspace_fixture(%{owner: "owner-1", url: "https://github.com/example/repo"})
+
+      repo_analysis_agent =
+        repo_analysis_agent_fixture(%{
+          workspace_id: workspace.id,
+          owner: workspace.owner,
+          github_url: workspace.url,
+          status: :failed,
+          limits: %{"max_files" => 15},
+          failure_reason: "clone failed",
+          completed_at: DateTime.utc_now()
+        })
+
+      assert {:ok, retried_repo_analysis_agent} =
+               RepoAnalysis.retry_for_owner(repo_analysis_agent.id, workspace.owner)
+
+      assert retried_repo_analysis_agent.id != repo_analysis_agent.id
+      assert retried_repo_analysis_agent.workspace_id == workspace.id
+      assert retried_repo_analysis_agent.owner == workspace.owner
+      assert retried_repo_analysis_agent.github_url == workspace.url
+      assert retried_repo_analysis_agent.status == :queued
+      assert retried_repo_analysis_agent.progress_message == "Queued for repository analysis"
+      assert retried_repo_analysis_agent.limits == %{"max_files" => 15}
+
+      persisted_jobs = Composer.list_repo_analysis_agents_by_workspace(workspace.id)
+
+      assert length(persisted_jobs) == 2
+      assert Enum.any?(persisted_jobs, &(&1.id == repo_analysis_agent.id))
+      assert Enum.any?(persisted_jobs, &(&1.id == retried_repo_analysis_agent.id))
+    end
+
+    test "returns already_running when the workspace already has an active import" do
+      workspace = workspace_fixture(%{owner: "owner-1", url: "https://github.com/example/repo"})
+
+      repo_analysis_agent_fixture(%{
+        workspace_id: workspace.id,
+        owner: workspace.owner,
+        github_url: workspace.url,
+        status: :queued
+      })
+
+      failed_repo_analysis_agent =
+        repo_analysis_agent_fixture(%{
+          workspace_id: workspace.id,
+          owner: workspace.owner,
+          github_url: workspace.url,
+          status: :failed,
+          completed_at: DateTime.utc_now()
+        })
+
+      assert {:error, :already_running} =
+               RepoAnalysis.retry_for_owner(failed_repo_analysis_agent.id, workspace.owner)
+    end
+  end
+
   describe "recover_stale_jobs/0" do
     test "marks stale running jobs as timed out and removes clone directories" do
       clone_dir =
