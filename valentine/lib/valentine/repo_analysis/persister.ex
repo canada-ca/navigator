@@ -784,16 +784,27 @@ defmodule Valentine.RepoAnalysis.Persister do
     values
     |> List.wrap()
     |> Enum.reject(&is_nil/1)
-    |> Enum.map(fn
-      value when is_atom(value) -> value
-      value when is_binary(value) -> String.to_existing_atom(value)
+    |> Enum.reduce([], fn
+      value, acc when is_atom(value) ->
+        [value | acc]
+
+      value, acc when is_binary(value) ->
+        case safe_to_existing_atom(value) do
+          {:ok, atom} -> [atom | acc]
+          :error -> acc
+        end
     end)
     |> Enum.uniq()
     |> Enum.sort()
-  rescue
-    ArgumentError -> []
   end
 
+  defp safe_to_existing_atom(value) when is_binary(value) do
+    try do
+      {:ok, String.to_existing_atom(value)}
+    rescue
+      ArgumentError -> :error
+    end
+  end
   defp unwrap_result({:ok, value}), do: value
   defp unwrap_result({count, _}) when is_integer(count), do: count
   defp unwrap_result({:error, reason}), do: Repo.rollback(reason)
