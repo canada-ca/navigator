@@ -106,6 +106,56 @@ defmodule Valentine.RepoAnalysisTest do
 
       assert "GitHub URL must point to a repository" in errors_on(changeset).github_url
     end
+
+    test "returns a changeset error for a private or inaccessible GitHub repository" do
+      temp_dir =
+        Path.join(
+          System.tmp_dir!(),
+          "repo-analysis-private-access-test-#{System.unique_integer([:positive])}"
+        )
+
+      fake_bin_dir = Path.join(temp_dir, "bin")
+      fake_git_path = Path.join(fake_bin_dir, "git")
+      original_path = System.get_env("PATH") || ""
+      repo_analysis_config = Application.get_env(:valentine, :repo_analysis, [])
+
+      File.mkdir_p!(fake_bin_dir)
+
+      File.write!(
+        fake_git_path,
+        "#!/bin/sh\nprintf \"fatal: could not read Username for 'https://github.com': terminal prompts disabled\\n\"\nexit 128\n"
+      )
+
+      File.chmod!(fake_git_path, 0o755)
+      System.put_env("PATH", fake_bin_dir <> ":" <> original_path)
+
+      Application.put_env(
+        :valentine,
+        :repo_analysis,
+        Keyword.merge(repo_analysis_config,
+          verify_repo_access: true,
+          repo_access_timeout_ms: 100
+        )
+      )
+
+      on_exit(fn ->
+        System.put_env("PATH", original_path)
+        Application.put_env(:valentine, :repo_analysis, repo_analysis_config)
+        File.rm_rf(temp_dir)
+      end)
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               RepoAnalysis.create_import("owner-1", %{
+                 "github_url" => "https://github.com/example/private-repo/pulls"
+               })
+
+      assert "Repository is private or inaccessible; only public GitHub repositories are supported" in errors_on(
+               changeset
+             ).github_url
+
+      assert Composer.list_workspaces() == []
+      assert Composer.list_repo_analysis_agents_by_owner("owner-1") == []
+    end
   end
 
   describe "cancel_for_owner/2" do

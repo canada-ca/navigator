@@ -62,6 +62,10 @@ defmodule Valentine.RepoAnalysis do
     end
   end
 
+  def validate_import_github_url(attrs) do
+    validate_github_url(attrs)
+  end
+
   def launch(%RepoAnalysisAgent{} = repo_analysis_agent) do
     runtime_agent_id = runtime_agent_id(repo_analysis_agent.id)
 
@@ -360,12 +364,30 @@ defmodule Valentine.RepoAnalysis do
   defp validate_github_url(attrs) do
     github_url = Map.get(attrs, "github_url") || Map.get(attrs, :github_url) || ""
 
-    github_url
-    |> GitHub.parse_public_url()
-    |> case do
-      {:ok, _repo_ref} -> {:ok, github_url}
+    with {:ok, repo_ref} <- GitHub.parse_public_url(github_url),
+         :ok <- ensure_public_repo_access(repo_ref) do
+      {:ok, github_url}
+    else
       {:error, reason} -> {:error, reason}
     end
+  end
+
+  defp ensure_public_repo_access(repo_ref) do
+    if verify_repo_access?() do
+      GitHub.ensure_publicly_accessible(repo_ref, repo_access_timeout_ms())
+    else
+      :ok
+    end
+  end
+
+  defp verify_repo_access? do
+    Application.get_env(:valentine, :repo_analysis, [])
+    |> Keyword.get(:verify_repo_access, true)
+  end
+
+  defp repo_access_timeout_ms do
+    Application.get_env(:valentine, :repo_analysis, [])
+    |> Keyword.get(:repo_access_timeout_ms, 15_000)
   end
 
   defp invalid_import_changeset(attrs, reason) do

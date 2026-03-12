@@ -14,12 +14,14 @@ config :valentine, Valentine.Jido,
 config :valentine, :repo_analysis,
   clone_timeout_ms: 120_000,
   heartbeat_timeout_ms: 300_000,
+  repo_access_timeout_ms: 15_000,
   max_repo_files: 2_000,
   max_selected_files: 40,
   max_file_bytes: 20_000,
   max_prompt_bytes: 120_000,
   recovery_interval_ms: 60_000,
   start_recovery: true,
+  verify_repo_access: true,
   working_dir:
     System.get_env("REPO_ANALYSIS_WORKING_DIR") ||
       Path.join(System.tmp_dir!(), "valentine_repo_analysis")

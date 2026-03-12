@@ -38,6 +38,29 @@ defmodule Valentine.RepoAnalysis.GitHub do
     error in RuntimeError -> {:error, Exception.message(error)}
   end
 
+  def ensure_publicly_accessible(repo_ref, timeout_ms \\ 15_000)
+
+  def ensure_publicly_accessible(%RepoRef{} = repo_ref, timeout_ms) do
+    {output, exit_code} =
+      run_command_with_timeout(
+        "git",
+        git_args(["ls-remote", "--exit-code", repo_ref.clone_url, "HEAD"]),
+        git_command_opts(),
+        timeout_ms
+      )
+
+    case exit_code do
+      0 ->
+        :ok
+
+      _ ->
+        {:error, classify_repo_access_failure(output)}
+    end
+  rescue
+    error in RuntimeError ->
+      {:error, classify_repo_access_failure(Exception.message(error))}
+  end
+
   def parse_public_url!(github_url) do
     uri = URI.parse(github_url)
 
@@ -74,8 +97,8 @@ defmodule Valentine.RepoAnalysis.GitHub do
       {output, exit_code} =
         run_command_with_timeout(
           "git",
-          ["clone", "--depth", "1", repo_ref.clone_url, clone_dir],
-          [stderr_to_stdout: true],
+          git_args(["clone", "--depth", "1", repo_ref.clone_url, clone_dir]),
+          git_command_opts(),
           fetch_limit!(limits, "clone_timeout_ms")
         )
 
@@ -89,7 +112,7 @@ defmodule Valentine.RepoAnalysis.GitHub do
 
         _ ->
           _ = File.rm_rf(clone_dir)
-          raise "Failed to clone repository: #{truncate(output, 2_000)}"
+          raise clone_failure_message(output)
       end
     rescue
       error ->
@@ -230,8 +253,59 @@ defmodule Valentine.RepoAnalysis.GitHub do
     |> Enum.map(&elem(&1, 0))
   end
 
+  defp classify_repo_access_failure(output) do
+    if private_or_inaccessible_error?(output) do
+      "Repository is private or inaccessible; only public GitHub repositories are supported"
+    else
+      "Unable to access GitHub repository: #{truncate(output, 500)}"
+    end
+  end
+
+  defp clone_failure_message(output) do
+    if private_or_inaccessible_error?(output) do
+      "Repository is private or inaccessible; only public GitHub repositories are supported"
+    else
+      "Failed to clone repository: #{truncate(output, 2_000)}"
+    end
+  end
+
+  defp private_or_inaccessible_error?(output) do
+    normalized_output = String.downcase(output)
+
+    Enum.any?(
+      [
+        "repository not found",
+        "authentication failed",
+        "could not read username",
+        "terminal prompts disabled",
+        "access denied",
+        "not authorized",
+        "http basic: access denied",
+        "requested url returned error: 403",
+        "requested url returned error: 404"
+      ],
+      &String.contains?(normalized_output, &1)
+    )
+  end
+
   defp truncate(text, max_bytes) when byte_size(text) <= max_bytes, do: text
   defp truncate(text, max_bytes), do: binary_part(text, 0, max_bytes) <> "..."
+
+  defp git_args(args) do
+    [
+      "-c",
+      "credential.helper=",
+      "-c",
+      "core.askPass=",
+      "-c",
+      "credential.interactive=never"
+      | args
+    ]
+  end
+
+  defp git_command_opts do
+    [stderr_to_stdout: true, env: [{"GIT_TERMINAL_PROMPT", "0"}]]
+  end
 
   defp run_command_with_timeout(command, args, opts, timeout_ms) do
     task = Task.async(fn -> System.cmd(command, args, opts) end)

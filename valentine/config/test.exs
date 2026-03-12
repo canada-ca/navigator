@@ -30,7 +30,8 @@ config :logger, level: :warning
 
 config :valentine, :repo_analysis,
   start_recovery: false,
-  start_runtime: false
+  start_runtime: false,
+  verify_repo_access: false
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime

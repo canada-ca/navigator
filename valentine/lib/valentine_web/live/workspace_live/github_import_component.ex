@@ -56,6 +56,7 @@ defmodule ValentineWeb.WorkspaceLive.GitHubImportComponent do
             <.select
               form={f}
               name="import[cloud_profile]"
+              form_control={%{label: gettext("Cloud Profile")}}
               options={[
                 [key: gettext("None selected"), value: ""],
                 [key: gettext("CCCS Low Profile for Cloud"), value: "CCCS Low Profile for Cloud"],
@@ -71,6 +72,7 @@ defmodule ValentineWeb.WorkspaceLive.GitHubImportComponent do
             <.select
               form={f}
               name="import[cloud_profile_type]"
+              form_control={%{label: gettext("Cloud Profile Type")}}
               options={[
                 [key: gettext("None selected"), value: ""],
                 [key: gettext("CSP Full Stack"), value: "CSP Full Stack"],
@@ -115,10 +117,17 @@ defmodule ValentineWeb.WorkspaceLive.GitHubImportComponent do
 
   @impl true
   def handle_event("validate", %{"import" => params}, socket) do
+    changeset =
+      params
+      |> change_import()
+      |> validate_github_url()
+      |> Map.put(:action, :validate)
+
     {:noreply,
      socket
      |> assign(:params, params)
-     |> assign(:form, to_form(change_import(params), as: :import))}
+     |> assign(:form, to_form(changeset, as: :import))
+     |> assign(:error, nil)}
   end
 
   @impl true
@@ -155,6 +164,19 @@ defmodule ValentineWeb.WorkspaceLive.GitHubImportComponent do
     |> Changeset.cast(params, Map.keys(@form_types))
   end
 
+  defp validate_github_url(%Changeset{} = changeset) do
+    github_url = Changeset.get_field(changeset, :github_url, "")
+
+    if blank?(github_url) do
+      changeset
+    else
+      case RepoAnalysis.validate_import_github_url(%{github_url: github_url}) do
+        {:ok, _repo_ref} -> changeset
+        {:error, reason} -> Changeset.add_error(changeset, :github_url, reason)
+      end
+    end
+  end
+
   defp default_params do
     %{
       "github_url" => "",
@@ -173,4 +195,6 @@ defmodule ValentineWeb.WorkspaceLive.GitHubImportComponent do
 
   defp format_reason(reason) when is_binary(reason), do: reason
   defp format_reason(reason), do: inspect(reason)
+
+  defp blank?(value), do: String.trim(value) == ""
 end
