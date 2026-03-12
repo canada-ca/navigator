@@ -154,7 +154,9 @@
             >
               <div class="repo-analysis-history-main">
                 <div class="repo-analysis-history-topline">
-                  <span class="Label mr-2">{repo_analysis_agent.status}</span>
+                  <span class="Label mr-2">
+                    {repo_analysis_status_label(repo_analysis_agent.status)}
+                  </span>
                   <span class="repo-analysis-history-message">
                     {repo_analysis_agent.progress_message || gettext("Waiting for updates")}
                   </span>
