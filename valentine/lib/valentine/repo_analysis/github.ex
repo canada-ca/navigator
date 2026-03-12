@@ -70,25 +70,31 @@ defmodule Valentine.RepoAnalysis.GitHub do
     _ = File.rm_rf(clone_dir)
     :ok = File.mkdir_p!(working_dir)
 
-    {output, exit_code} =
-      run_command_with_timeout(
-        "git",
-        ["clone", "--depth", "1", repo_ref.clone_url, clone_dir],
-        [stderr_to_stdout: true],
-        fetch_limit!(limits, "clone_timeout_ms")
-      )
+    try do
+      {output, exit_code} =
+        run_command_with_timeout(
+          "git",
+          ["clone", "--depth", "1", repo_ref.clone_url, clone_dir],
+          [stderr_to_stdout: true],
+          fetch_limit!(limits, "clone_timeout_ms")
+        )
 
-    case exit_code do
-      0 ->
-        {:ok, clone_dir,
-         %{
-           "clone_dir" => clone_dir,
-           "clone_output" => truncate(output, 2_000)
-         }}
+      case exit_code do
+        0 ->
+          {:ok, clone_dir,
+           %{
+             "clone_dir" => clone_dir,
+             "clone_output" => truncate(output, 2_000)
+           }}
 
-      _ ->
+        _ ->
+          _ = File.rm_rf(clone_dir)
+          raise "Failed to clone repository: #{truncate(output, 2_000)}"
+      end
+    rescue
+      error ->
         _ = File.rm_rf(clone_dir)
-        raise "Failed to clone repository: #{truncate(output, 2_000)}"
+        reraise error, __STACKTRACE__
     end
   end
 

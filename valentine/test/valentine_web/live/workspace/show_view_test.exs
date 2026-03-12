@@ -127,11 +127,16 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
       assert html =~ "Last heartbeat"
       assert html =~ "2 hours ago"
       assert html =~ "example/platform-api @ main"
+      assert html =~ "repo-analysis-collapsible__summary"
+      assert html =~ "repo-analysis-collapsible__summary-link"
 
       assert html =~
                "Generated 4 threats, 2 assumptions, 3 mitigations, 5 components, and 6 flows"
 
       assert html =~ "View all agent jobs"
+
+      refute html =~
+               "<details class=\"repo-analysis-collapsible repo-analysis-collapsible--embedded\" open"
     end
 
     test "shows recent repository import history for the workspace", %{conn: conn} do
@@ -189,6 +194,7 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
       assert html =~ "Git clone timed out"
       assert html =~ "example/platform-api @ main"
       assert html =~ "Retry import"
+      assert html =~ "repo-analysis-history-row"
 
       assert html =~
                "Generated 1 threats, 1 assumptions, 0 mitigations, 2 components, and 1 flows"

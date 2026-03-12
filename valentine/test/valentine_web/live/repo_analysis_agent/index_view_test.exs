@@ -40,6 +40,9 @@ defmodule ValentineWeb.RepoAnalysisAgentLive.IndexViewTest do
       assert html =~ "Completed"
       assert html =~ "2 hours ago"
       assert html =~ "example/platform-api @ main"
+      assert html =~ "repo-analysis-collapsible__summary"
+      assert html =~ "repo-analysis-collapsible__summary-link"
+      refute html =~ "<details open"
 
       assert html =~
                "Generated 4 threats, 2 assumptions, 3 mitigations, 5 components, and 6 flows"

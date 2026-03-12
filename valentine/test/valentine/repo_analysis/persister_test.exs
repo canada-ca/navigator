@@ -211,6 +211,34 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
       assert get_in(data_flow_diagram.nodes, ["api", "position", "x"]) <
                get_in(data_flow_diagram.nodes, ["db", "position", "x"])
     end
+
+    test "lays out multiple boundaries on a grid and keeps root nodes below them" do
+      workspace = workspace_fixture()
+
+      analysis =
+        analysis_fixture(%{
+          dfd: multi_boundary_dfd_json()
+        })
+
+      assert :ok = Persister.persist(workspace.id, analysis)
+
+      data_flow_diagram = Composer.get_data_flow_diagram_by_workspace_id(workspace.id)
+
+      boundary_positions =
+        Enum.map(["clients", "platform", "data"], fn boundary_id ->
+          {boundary_id, get_in(data_flow_diagram.nodes, [boundary_id, "position"])}
+        end)
+        |> Map.new()
+
+      assert boundary_positions["data"]["x"] > boundary_positions["clients"]["x"]
+      assert boundary_positions["platform"]["y"] > boundary_positions["clients"]["y"]
+
+      assert get_in(data_flow_diagram.nodes, ["job-runner", "position", "y"]) >
+               get_in(data_flow_diagram.nodes, ["api", "position", "y"])
+
+      assert get_in(data_flow_diagram.nodes, ["job-runner", "position", "y"]) >
+               get_in(data_flow_diagram.nodes, ["warehouse", "position", "y"])
+    end
   end
 
   defp analysis_fixture(attrs) do
@@ -354,6 +382,92 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
           "target" => "db",
           "label" => "Persist",
           "description" => "Write records"
+        }
+      ]
+    }
+  end
+
+  defp multi_boundary_dfd_json do
+    %{
+      "boundaries" => [
+        %{"id" => "clients", "label" => "Clients", "description" => "External users"},
+        %{"id" => "platform", "label" => "Platform", "description" => "App tier"},
+        %{"id" => "data", "label" => "Data", "description" => "Data services"}
+      ],
+      "components" => [
+        %{
+          "id" => "browser",
+          "label" => "Browser",
+          "kind" => "external_entity",
+          "description" => "End user",
+          "boundary_id" => "clients"
+        },
+        %{
+          "id" => "mobile",
+          "label" => "Mobile App",
+          "kind" => "external_entity",
+          "description" => "Mobile user",
+          "boundary_id" => "clients"
+        },
+        %{
+          "id" => "api",
+          "label" => "API",
+          "kind" => "process",
+          "description" => "Entry point",
+          "boundary_id" => "platform"
+        },
+        %{
+          "id" => "auth",
+          "label" => "Auth",
+          "kind" => "process",
+          "description" => "Identity service",
+          "boundary_id" => "platform"
+        },
+        %{
+          "id" => "warehouse",
+          "label" => "Warehouse",
+          "kind" => "data_store",
+          "description" => "Analytics store",
+          "boundary_id" => "data"
+        },
+        %{
+          "id" => "job-runner",
+          "label" => "Job Runner",
+          "kind" => "process",
+          "description" => "Root orchestration",
+          "boundary_id" => nil
+        }
+      ],
+      "flows" => [
+        %{
+          "source" => "browser",
+          "target" => "api",
+          "label" => "HTTPS",
+          "description" => "User traffic"
+        },
+        %{
+          "source" => "mobile",
+          "target" => "api",
+          "label" => "HTTPS",
+          "description" => "Mobile traffic"
+        },
+        %{
+          "source" => "api",
+          "target" => "auth",
+          "label" => "Validate",
+          "description" => "Auth checks"
+        },
+        %{
+          "source" => "auth",
+          "target" => "warehouse",
+          "label" => "Events",
+          "description" => "Audit writes"
+        },
+        %{
+          "source" => "api",
+          "target" => "job-runner",
+          "label" => "Dispatch",
+          "description" => "Async jobs"
         }
       ]
     }

@@ -3,9 +3,13 @@ defmodule Valentine.RepoAnalysisTest do
 
   alias Valentine.Composer
   alias Valentine.RepoAnalysis
+  alias Valentine.RepoAnalysis.Generator.Analysis
+  alias Valentine.RepoAnalysis.GitHub.RepoRef
+  alias Valentine.RepoAnalysis.GitHub.Snapshot
   alias Valentine.RepoAnalysis.Runner
 
   import ExUnit.CaptureLog
+  import Mock
   import Valentine.ComposerFixtures
 
   setup do
@@ -198,6 +202,48 @@ defmodule Valentine.RepoAnalysisTest do
       assert {:error, :already_running} =
                RepoAnalysis.retry_for_owner(failed_repo_analysis_agent.id, workspace.owner)
     end
+
+    test "supports repeated reruns for the same workspace after prior reruns complete" do
+      workspace =
+        workspace_fixture(%{owner: "owner-1", url: "https://github.com/example/repo"})
+
+      completed_repo_analysis_agent =
+        repo_analysis_agent_fixture(%{
+          workspace_id: workspace.id,
+          owner: workspace.owner,
+          github_url: workspace.url,
+          status: :completed,
+          limits: %{"max_files" => 15},
+          completed_at: DateTime.utc_now()
+        })
+
+      assert {:ok, first_rerun} =
+               RepoAnalysis.retry_for_owner(completed_repo_analysis_agent.id, workspace.owner)
+
+      assert first_rerun.workspace_id == workspace.id
+      assert first_rerun.github_url == workspace.url
+      assert first_rerun.limits == %{"max_files" => 15}
+      assert first_rerun.status == :queued
+
+      {:ok, first_rerun} =
+        Composer.update_repo_analysis_agent(first_rerun, %{
+          status: :completed,
+          progress_message: "Threat model created from GitHub repository",
+          completed_at: DateTime.utc_now()
+        })
+
+      assert {:ok, second_rerun} =
+               RepoAnalysis.retry_for_owner(first_rerun.id, workspace.owner)
+
+      jobs = Composer.list_repo_analysis_agents_by_workspace(workspace.id)
+
+      assert length(jobs) == 3
+      assert Enum.all?(jobs, &(&1.workspace_id == workspace.id))
+      assert Enum.all?(jobs, &(&1.github_url == workspace.url))
+      assert second_rerun.id not in [completed_repo_analysis_agent.id, first_rerun.id]
+      assert second_rerun.status == :queued
+      assert second_rerun.limits == %{"max_files" => 15}
+    end
   end
 
   describe "recover_stale_jobs/0" do
@@ -239,9 +285,103 @@ defmodule Valentine.RepoAnalysisTest do
 
       assert unchanged_repo_analysis_agent.status == :indexing
     end
+
+    test "uses requested_at fallback when heartbeat timestamps are missing and ignores terminal jobs" do
+      stale_requested_at = DateTime.add(DateTime.utc_now(), -900, :second)
+
+      stale_repo_analysis_agent =
+        repo_analysis_agent_fixture(%{
+          status: :queued,
+          requested_at: stale_requested_at,
+          started_at: nil,
+          last_heartbeat_at: nil,
+          completed_at: nil,
+          failure_reason: nil
+        })
+
+      completed_repo_analysis_agent =
+        repo_analysis_agent_fixture(%{
+          status: :completed,
+          requested_at: stale_requested_at,
+          started_at: nil,
+          last_heartbeat_at: nil,
+          completed_at: DateTime.utc_now(),
+          progress_message: "Threat model created from GitHub repository"
+        })
+
+      assert RepoAnalysis.recover_stale_jobs() == 1
+
+      timed_out_repo_analysis_agent =
+        Composer.get_repo_analysis_agent!(stale_repo_analysis_agent.id)
+
+      assert timed_out_repo_analysis_agent.status == :timed_out
+      assert timed_out_repo_analysis_agent.failure_reason =~ "No heartbeat received"
+
+      unchanged_completed_repo_analysis_agent =
+        Composer.get_repo_analysis_agent!(completed_repo_analysis_agent.id)
+
+      assert unchanged_completed_repo_analysis_agent.status == :completed
+      assert unchanged_completed_repo_analysis_agent.completed_at
+    end
   end
 
   describe "Runner.run/1" do
+    test "marks the job cancelled and cleans up after cancellation is requested mid-run" do
+      clone_dir =
+        Path.join(
+          System.tmp_dir!(),
+          "repo-analysis-runner-cancel-#{System.unique_integer([:positive])}"
+        )
+
+      File.mkdir_p!(clone_dir)
+      File.write!(Path.join(clone_dir, "partial.txt"), "partial")
+
+      repo_analysis_agent =
+        repo_analysis_agent_fixture(%{
+          github_url: "https://github.com/example/repo",
+          status: :queued,
+          runtime_agent_id: "runtime-agent-1",
+          metadata: %{},
+          cancel_requested_at: nil,
+          completed_at: nil
+        })
+
+      with_mocks([
+        {
+          Valentine.RepoAnalysis.GitHub,
+          [:passthrough],
+          clone: fn _repo_ref, repo_analysis_agent_id, _limits ->
+            repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent_id)
+
+            {:ok, _repo_analysis_agent} =
+              Composer.update_repo_analysis_agent(repo_analysis_agent, %{
+                cancel_requested_at: DateTime.utc_now()
+              })
+
+            {:ok, clone_dir, %{"clone_dir" => clone_dir, "clone_output" => "cloned"}}
+          end,
+          build_snapshot: fn _clone_dir, _repo_ref, _limits ->
+            flunk("build_snapshot/3 should not run after cancellation is requested")
+          end
+        },
+        {Valentine.Jido, [],
+         stop_agent: fn runtime_agent_id ->
+           send(self(), {:stop_agent, runtime_agent_id})
+           :ok
+         end}
+      ]) do
+        assert :ok = Runner.run(repo_analysis_agent.id)
+      end
+
+      updated_repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent.id)
+
+      assert updated_repo_analysis_agent.status == :cancelled
+      assert updated_repo_analysis_agent.progress_message == "Repository analysis cancelled"
+      assert %DateTime{} = updated_repo_analysis_agent.completed_at
+      refute File.exists?(clone_dir)
+      assert_received {:stop_agent, "runtime-agent-1"}
+    end
+
     test "marks the job failed for an invalid GitHub URL" do
       repo_analysis_agent =
         repo_analysis_agent_fixture(%{
@@ -266,6 +406,193 @@ defmodule Valentine.RepoAnalysisTest do
                "Only public GitHub repository URLs are supported"
 
       assert %DateTime{} = failed_repo_analysis_agent.completed_at
+    end
+
+    test "marks the job failed and still cleans up the clone directory after downstream failures" do
+      clone_dir =
+        Path.join(
+          System.tmp_dir!(),
+          "repo-analysis-runner-failure-#{System.unique_integer([:positive])}"
+        )
+
+      File.mkdir_p!(clone_dir)
+      File.write!(Path.join(clone_dir, "partial.txt"), "partial")
+
+      repo_analysis_agent =
+        repo_analysis_agent_fixture(%{
+          github_url: "https://github.com/example/repo",
+          status: :queued,
+          runtime_agent_id: "runtime-agent-2",
+          metadata: %{},
+          failure_reason: nil,
+          completed_at: nil
+        })
+
+      with_mocks([
+        {
+          Valentine.RepoAnalysis.GitHub,
+          [:passthrough],
+          clone: fn _repo_ref, _repo_analysis_agent_id, _limits ->
+            {:ok, clone_dir, %{"clone_dir" => clone_dir, "clone_output" => "cloned"}}
+          end,
+          build_snapshot: fn _clone_dir, _repo_ref, _limits ->
+            raise "snapshot failed"
+          end
+        },
+        {Valentine.Jido, [],
+         stop_agent: fn runtime_agent_id ->
+           send(self(), {:stop_agent, runtime_agent_id})
+           :ok
+         end}
+      ]) do
+        log =
+          capture_log(fn ->
+            assert :error = Runner.run(repo_analysis_agent.id)
+          end)
+
+        assert log =~ "[RepoAnalysis] job failed"
+      end
+
+      failed_repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent.id)
+
+      assert failed_repo_analysis_agent.status == :failed
+      assert failed_repo_analysis_agent.progress_message == "Repository analysis failed"
+      assert failed_repo_analysis_agent.failure_reason == "snapshot failed"
+      assert %DateTime{} = failed_repo_analysis_agent.completed_at
+      refute File.exists?(clone_dir)
+      assert_received {:stop_agent, "runtime-agent-2"}
+    end
+
+    test "keeps repo metadata from snapshot enrichment when persistence fails after generation" do
+      clone_dir =
+        Path.join(
+          System.tmp_dir!(),
+          "repo-analysis-runner-persist-failure-#{System.unique_integer([:positive])}"
+        )
+
+      File.mkdir_p!(clone_dir)
+      File.write!(Path.join(clone_dir, "partial.txt"), "partial")
+
+      repo_analysis_agent =
+        repo_analysis_agent_fixture(%{
+          github_url: "https://github.com/example/repo",
+          status: :queued,
+          runtime_agent_id: "runtime-agent-3",
+          metadata: %{},
+          failure_reason: nil,
+          completed_at: nil
+        })
+
+      repo_ref = %RepoRef{
+        owner: "example",
+        name: "repo",
+        full_name: "example/repo",
+        clone_url: "https://github.com/example/repo.git"
+      }
+
+      snapshot = %Snapshot{
+        repo: repo_ref,
+        default_branch: "main",
+        directory_tree: "README.md",
+        documents: [%{path: "README.md", content: "hello"}],
+        metadata: %{
+          "stack_hints" => ["Phoenix/Elixir"],
+          "priority_paths" => ["README.md"],
+          "languages" => %{".ex" => 3}
+        }
+      }
+
+      analysis = %Analysis{
+        application_information: "Generated app info",
+        architecture: "Generated architecture",
+        assumptions: [],
+        mitigations: [],
+        threats: [],
+        dfd: %{"boundaries" => [], "components" => [], "flows" => []}
+      }
+
+      with_mocks([
+        {
+          Valentine.RepoAnalysis.GitHub,
+          [:passthrough],
+          parse_public_url!: fn _github_url -> repo_ref end,
+          clone: fn _repo_ref, _repo_analysis_agent_id, _limits ->
+            {:ok, clone_dir, %{"clone_dir" => clone_dir, "clone_output" => "cloned"}}
+          end,
+          build_snapshot: fn ^clone_dir, ^repo_ref, _limits ->
+            {:ok, snapshot}
+          end
+        },
+        {Valentine.RepoAnalysis.Generator, [],
+         generate: fn ^snapshot, _github_url, _model_spec, _opts ->
+           send(self(), :generator_called)
+           analysis
+         end},
+        {Valentine.RepoAnalysis.Persister, [],
+         persist: fn _workspace_id, ^analysis ->
+           raise "persist failed"
+         end},
+        {Valentine.Jido, [],
+         stop_agent: fn runtime_agent_id ->
+           send(self(), {:stop_agent, runtime_agent_id})
+           :ok
+         end}
+      ]) do
+        log =
+          capture_log(fn ->
+            assert :error = Runner.run(repo_analysis_agent.id)
+          end)
+
+        assert log =~ "[RepoAnalysis] job failed"
+      end
+
+      assert_received :generator_called
+
+      failed_repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent.id)
+
+      assert failed_repo_analysis_agent.status == :failed
+      assert failed_repo_analysis_agent.progress_message == "Repository analysis failed"
+      assert failed_repo_analysis_agent.failure_reason == "persist failed"
+      assert failed_repo_analysis_agent.repo_full_name == "example/repo"
+      assert failed_repo_analysis_agent.repo_default_branch == "main"
+      assert failed_repo_analysis_agent.metadata["clone_output"] == "cloned"
+      assert failed_repo_analysis_agent.metadata["stack_hints"] == ["Phoenix/Elixir"]
+      assert failed_repo_analysis_agent.metadata["priority_paths"] == ["README.md"]
+      assert %DateTime{} = failed_repo_analysis_agent.completed_at
+      refute File.exists?(clone_dir)
+      assert_received {:stop_agent, "runtime-agent-3"}
+    end
+  end
+
+  describe "Runner.cancel/1" do
+    test "cleans up the clone directory and marks the job cancelled" do
+      clone_dir =
+        Path.join(
+          System.tmp_dir!(),
+          "repo-analysis-runner-cleanup-#{System.unique_integer([:positive])}"
+        )
+
+      File.mkdir_p!(clone_dir)
+      File.write!(Path.join(clone_dir, "partial.txt"), "partial")
+
+      repo_analysis_agent =
+        repo_analysis_agent_fixture(%{
+          status: :indexing,
+          metadata: %{"clone_dir" => clone_dir},
+          completed_at: nil,
+          cancel_requested_at: nil
+        })
+
+      assert {:ok, cancelled_repo_analysis_agent} = Runner.cancel(repo_analysis_agent.id)
+
+      assert cancelled_repo_analysis_agent.status == :cancelled
+      assert cancelled_repo_analysis_agent.progress_message == "Repository analysis cancelled"
+      assert %DateTime{} = cancelled_repo_analysis_agent.completed_at
+
+      persisted_repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent.id)
+
+      assert persisted_repo_analysis_agent.status == :cancelled
+      refute File.exists?(clone_dir)
     end
   end
 end
