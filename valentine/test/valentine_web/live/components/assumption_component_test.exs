@@ -49,6 +49,11 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponentTest do
       html = render_component(AssumptionComponent, assigns)
       assert html =~ "open"
     end
+
+    test "renders a categorize control button", %{assigns: assigns} do
+      html = render_component(AssumptionComponent, assigns)
+      assert html =~ "categorize-assumption-#{assigns.assumption.id}"
+    end
   end
 
   describe "update/2" do
