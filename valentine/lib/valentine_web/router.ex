@@ -101,6 +101,10 @@ defmodule ValentineWeb.Router do
       live "/workspaces/:workspace_id/assumptions/new", WorkspaceLive.Assumption.Index, :new
       live "/workspaces/:workspace_id/assumptions/:id/edit", WorkspaceLive.Assumption.Index, :edit
 
+      live "/workspaces/:workspace_id/assumptions/:id/categorize",
+           WorkspaceLive.Assumption.Index,
+           :categorize
+
       live "/workspaces/:workspace_id/assumptions/:id/mitigations",
            WorkspaceLive.Assumption.Index,
            :mitigations

@@ -33,6 +33,12 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
     |> assign(:assumption, Composer.get_assumption!(id))
   end
 
+  defp apply_action(socket, :categorize, %{"id" => id}) do
+    socket
+    |> assign(:page_title, gettext("Categorize Assumption"))
+    |> assign(:assumption, Composer.get_assumption!(id, [:mitigations, :threats]))
+  end
+
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(

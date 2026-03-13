@@ -61,6 +61,18 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
           </.button>
           <.button
             is_icon_button
+            aria-label="Categorize"
+            phx-click={
+              JS.patch(
+                ~p"/workspaces/#{@assumption.workspace_id}/assumptions/#{@assumption.id}/categorize"
+              )
+            }
+            id={"categorize-assumption-#{@assumption.id}"}
+          >
+            <.octicon name="dependabot-16" />
+          </.button>
+          <.button
+            is_icon_button
             aria-label="Edit"
             phx-click={
               JS.patch(~p"/workspaces/#{@assumption.workspace_id}/assumptions/#{@assumption.id}/edit")
