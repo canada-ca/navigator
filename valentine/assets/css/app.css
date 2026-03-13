@@ -978,6 +978,112 @@ div:has(> button.rtl-btn) {
     width: 100% !important;
 }
 
+.threat-model-print-hint {
+    max-width: 60rem;
+    margin: 0 0 1rem;
+    color: var(--color-fg-muted);
+}
+
+.threat-model-report-page {
+    max-width: 1100px;
+}
+
+.threat-model-report-page table {
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+.threat-model-report-page th,
+.threat-model-report-page td {
+    padding: 0.5rem;
+    border: 1px solid var(--color-border-default);
+    text-align: left;
+    vertical-align: top;
+}
+
+.threat-model-report-page th {
+    background-color: var(--color-canvas-subtle);
+}
+
+.threat-model-report-page img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.threat-model-report-page ul,
+.threat-model-report-page ol {
+    padding-left: 1.5rem;
+}
+
+@page {
+    margin: 0.5in;
+}
+
+@media print {
+
+    html,
+    body {
+        background: #fff !important;
+    }
+
+    body {
+        color: #111;
+    }
+
+    .Header,
+    .Layout-sidebar,
+    #far_side_drawer,
+    .threat-model-actions,
+    .threat-model-print-hint {
+        display: none !important;
+    }
+
+    .Layout,
+    .Layout-main,
+    .Layout-main>.d-flex,
+    .Layout-main .flex-auto {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    .Layout {
+        padding: 0 !important;
+    }
+
+    .Layout-main {
+        padding: 0 !important;
+    }
+
+    .threat-model-report-page {
+        max-width: none;
+    }
+
+    .threat-model-report-page h1,
+    .threat-model-report-page h2,
+    .threat-model-report-page h3,
+    .threat-model-report-page h4,
+    .threat-model-report-page h5,
+    .threat-model-report-page h6 {
+        break-after: avoid-page;
+        page-break-after: avoid;
+    }
+
+    .threat-model-report-page img,
+    .threat-model-report-page table,
+    .threat-model-report-page tr,
+    .threat-model-report-page .Box {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .threat-model-report-page a {
+        color: inherit !important;
+        text-decoration: none;
+    }
+}
+
 /* Resize handle */
 .resize-handle {
     position: absolute;

@@ -25,6 +25,9 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
 
       assert html =~ "Show Workspace"
       assert html =~ workspace.name
+      assert html =~ "Print Threat Model"
+      assert html =~ ~p"/workspaces/#{workspace.id}/threat_model?print=true"
+      assert html =~ "Export JSON"
     end
 
     test "displays a get started dashboard if no assumptions, mitigations, or threats exist", %{

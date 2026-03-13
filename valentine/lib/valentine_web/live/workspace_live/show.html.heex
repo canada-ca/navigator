@@ -4,9 +4,14 @@
     <.button phx-click={JS.patch(~p"/workspaces")}>
       {gettext("Back to all workspaces")}
     </.button>
+    <.link navigate={~p"/workspaces/#{@workspace.id}/threat_model?print=true"}>
+      <.button>
+        {gettext("Print Threat Model")}
+      </.button>
+    </.link>
     <a href={"/workspaces/#{@workspace.id}/export"} target="_blank">
       <.button is_outline>
-        {gettext("Export")}
+        {gettext("Export JSON")}
       </.button>
     </a>
   </:actions>
