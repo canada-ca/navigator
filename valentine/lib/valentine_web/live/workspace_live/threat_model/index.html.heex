@@ -1,6 +1,13 @@
 <.subhead>
   {gettext("Threat model")} {gettext("for")}: {@workspace.name}
-  <:actions>
+  <:actions class="threat-model-actions">
+    <.button
+      id="threat-model-native-print"
+      phx-hook="NativePrint"
+      data-auto-print={to_string(@auto_print)}
+    >
+      {gettext("Print / Save as PDF")}
+    </.button>
     <a href={"/workspaces/#{@workspace.id}/threat_model/markdown"} target="_blank">
       <.button is_primary>
         {gettext("Download Markdown")}
@@ -8,4 +15,9 @@
     </a>
   </:actions>
 </.subhead>
-<ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent.render workspace={@workspace} />
+<p class="threat-model-print-hint">
+  {gettext("Use your browser's print dialog to print this report or save it as a PDF.")}
+</p>
+<section class="threat-model-report-page">
+  <ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent.render workspace={@workspace} />
+</section>

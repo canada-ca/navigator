@@ -10,7 +10,7 @@ defmodule ValentineWeb.Router do
 
     plug :put_secure_browser_headers, %{
       "content-security-policy" =>
-        "default-src 'self' style-src 'self' 'unsafe-inline' img-src 'self' data:"
+        "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
     }
   end
 
