@@ -1,0 +1,50 @@
+schema: spec-driven
+
+context: |
+  Navigator is a Phoenix LiveView application for collaborative threat modeling.
+  The main product surface is organized around workspaces that contain application information,
+  architecture documentation, data flow diagrams, threat statements, assumptions,
+  mitigations, evidence, reference packs, exports, and AI-assisted analysis.
+
+  Tech stack:
+  - Elixir 1.18.x
+  - Phoenix LiveView
+  - Ecto with PostgreSQL
+  - Node 22 for frontend assets
+
+  Architecture conventions:
+  - Core business logic lives primarily in Valentine.Composer and related schemas under valentine/lib/valentine/composer/
+  - User-facing workflows live primarily under valentine/lib/valentine_web/live/workspace_live/
+  - Export and report behavior lives primarily in ValentineWeb.WorkspaceController
+  - Prefer extending existing contexts, LiveViews, and tests over creating parallel abstractions
+
+  Product and domain conventions:
+  - Preserve real-time collaboration behavior and workspace-scoped update semantics
+  - Preserve permission-aware workspace access and existing authentication/provider patterns
+  - Preserve provider-agnostic AI integration patterns for OpenAI and Azure OpenAI
+  - Treat OpenSpec specs as capability-level behavior baselines, not implementation dumps
+
+  Testing and validation:
+  - Domain logic should follow existing DataCase patterns
+  - Web behavior should follow existing ConnCase and Phoenix LiveView test patterns
+  - Run make fmt and make test before considering work complete
+  - For user-facing changes, validate the relevant workspace flows manually, especially workspace creation, threat workflows, mitigations, diagrams, reports, and exports
+
+rules:
+  proposal:
+    - Identify the affected capability specs under openspec/specs/
+    - State the current baseline behavior and what will change
+    - Focus on user-visible outcomes, not just implementation details
+    - Include non-goals
+    - Include migration, compatibility, or rollout considerations when applicable
+  design:
+    - Reference the existing Elixir context modules, LiveViews, controllers, and tests that anchor the change
+    - Reuse existing repository patterns before introducing new abstractions
+    - Describe schema, route, export, and real-time collaboration impacts when applicable
+    - Call out AI-provider, auth, or permission implications when relevant
+    - Name the concrete files or modules most likely to change
+  tasks:
+    - Break work into vertical slices that can be verified independently
+    - Pair implementation tasks with test updates
+    - Include spec-sync tasks whenever accepted behavior changes the baseline
+    - End with verification tasks for make fmt, make test, and relevant manual workflow checks

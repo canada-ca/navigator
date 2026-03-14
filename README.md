@@ -77,6 +77,23 @@ cd assets
 npm i 
 ```
 
+## OpenSpec workflow
+
+This repository uses OpenSpec for spec-driven development.
+
+- `openspec/specs/` contains the current-state baseline: what the system currently does.
+- `openspec/changes/` contains proposed deltas: what a feature or behavior change will modify.
+- Main specs in `openspec/specs/` do not need an extra "implemented" marker. If they exist, they describe the currently implemented behavior.
+- New feature work should usually start by asking the AI agent to create an OpenSpec change for you, then implementing it, and finally syncing the accepted behavior back into the baseline spec during archive.
+
+Typical agent-driven workflow:
+
+1. Tell your AI: `/opsx:propose <what-you-want-to-build>`.
+2. Review the generated change under `openspec/changes/<change-name>/`.
+3. Tell your AI to implement the approved change.
+4. Tell your AI to archive the change once the code and specs are in sync.
+
+
 ## OpenAI on Azure
 
 You can also use OpenAI on Azure. You need to provide the following environment variables:
@@ -196,6 +213,22 @@ mix run priv/repo/seeds.exs
 cd assets
 npm i 
 ```
+
+## Flux de travail OpenSpec
+
+Ce dépôt utilise OpenSpec pour le développement piloté par les spécifications.
+
+- `openspec/specs/` contient la base de référence de l'état actuel : ce que le système fait aujourd'hui.
+- `openspec/changes/` contient les deltas proposés : ce qu'une nouvelle fonctionnalité ou un changement de comportement modifiera.
+- Les spécifications principales dans `openspec/specs/` n'ont pas besoin d'un marqueur supplémentaire comme « implemented ». Si elles existent, elles décrivent le comportement déjà en place.
+- En général, le travail sur une nouvelle fonctionnalité devrait commencer en demandant à l'agent IA de créer un changement OpenSpec, puis être implémenté, puis synchronisé dans la spécification de référence au moment de l'archivage.
+
+Flux de travail typique avec l'agent :
+
+1. Dites à votre IA : `/opsx:propose <ce-que-vous-voulez-construire>`.
+2. Examinez le changement généré dans `openspec/changes/<change-name>/`.
+3. Demandez à votre IA d'implémenter le changement approuvé.
+4. Demandez à votre IA d'archiver le changement une fois que le code et les spécifications sont synchronisés.
 
 ## OpenAI sur Azure 
 Vous pouvez également utiliser OpenAI sur Azure. Vous devez fournir les variables d'environnement suivantes :
