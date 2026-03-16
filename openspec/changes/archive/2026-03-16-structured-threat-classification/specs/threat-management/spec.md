@@ -1,13 +1,13 @@
 ## MODIFIED Requirements
 
 ### Requirement: Threat create and edit flows
-Navigator SHALL expose distinct create and edit flows for threat statements within a workspace. Each threat form SHALL include optional classification fields: STRIDE category, MITRE ATT&CK tactic, kill chain phase, and assigned Deliberate Threat Level (Td1–Td7).
+Navigator SHALL expose distinct create and edit flows for threat statements within a workspace. Each threat form SHALL preserve the existing STRIDE categorization input and include optional classification fields for MITRE ATT&CK tactic, kill chain phase, and assigned Deliberate Threat Level (Td1–Td7).
 
 #### Scenario: Opening the new threat flow
 - **WHEN** a user navigates to the new threat action for a workspace
 - **THEN** Navigator assigns the page title "Create new threat statement"
 - **AND** initializes a new threat with the current workspace identifier in the pending changes
-- **AND** the form includes optional dropdowns for STRIDE category, kill chain phase, assigned Td level, and an optional text field for MITRE ATT&CK tactic
+- **AND** the form includes optional MITRE ATT&CK tactic, kill chain phase, and assigned Td level fields alongside the existing STRIDE categorization controls
 
 #### Scenario: Opening the threat edit flow
 - **WHEN** a user navigates to edit an existing threat
@@ -35,11 +35,11 @@ Navigator SHALL expose distinct create and edit flows for threat statements with
 ## ADDED Requirements
 
 ### Requirement: Threat index supports filtering by classification fields
-Navigator SHALL allow threats to be filtered by STRIDE category, assigned Deliberate Threat Level, and MITRE ATT&CK tactic from the threat listing.
+Navigator SHALL allow threats to be filtered by the existing STRIDE categories, assigned Deliberate Threat Level, and MITRE ATT&CK tactic from the threat listing.
 
 #### Scenario: Filtering threats by STRIDE category
 - **WHEN** a user applies a STRIDE category filter from the threat index
-- **THEN** Navigator reloads the threat list showing only threats whose `stride_category` matches the selected value
+- **THEN** Navigator reloads the threat list showing only threats tagged with the selected STRIDE category
 
 #### Scenario: Filtering threats by assigned Td level
 - **WHEN** a user applies a Deliberate Threat Level filter from the threat index
@@ -50,11 +50,12 @@ Navigator SHALL allow threats to be filtered by STRIDE category, assigned Delibe
 - **THEN** Navigator resets the filter state and reloads the full workspace threat list
 
 ### Requirement: Threat classification fields are displayed in the threat detail view
-Navigator SHALL display all classification fields (STRIDE category, MITRE ATT&CK tactic, kill chain phase, assigned Td level) when viewing a threat, showing "Not set" for any unclassified fields.
+Navigator SHALL display the threat's classification metadata with human-readable labels, showing "Not set" for any unclassified metadata fields.
 
 #### Scenario: Viewing a classified threat
 - **WHEN** a user views a threat that has classification fields set
-- **THEN** Navigator displays the STRIDE category, MITRE ATT&CK tactic, kill chain phase, and assigned Td level with their human-readable labels
+- **THEN** Navigator displays the MITRE ATT&CK tactic, kill chain phase, and assigned Td level with their human-readable labels
+- **AND** keeps the existing STRIDE categorization visible through the standard threat detail controls
 
 #### Scenario: Viewing a threat with no classification data
 - **WHEN** a user views a threat that has no classification fields set

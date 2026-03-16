@@ -6,7 +6,7 @@ This specification defines the current baseline behavior for listing, filtering,
 ## Requirements
 
 ### Requirement: Workspace threat listing and filtering
-Navigator SHALL provide a workspace-scoped threat listing that supports filter updates and filter reset, including classification-aware filtering by STRIDE categories, assigned Deliberate Threat Level, and MITRE ATT&CK tactic.
+Navigator SHALL provide a workspace-scoped threat listing that supports filter updates and filter reset, including filtering by the existing STRIDE categories plus classification metadata such as assigned Deliberate Threat Level and MITRE ATT&CK tactic.
 
 #### Scenario: Loading the threat index
 - **WHEN** the threat index mounts for a workspace
@@ -36,7 +36,7 @@ Navigator SHALL provide a workspace-scoped threat listing that supports filter u
 - **AND** reloads the full workspace threat list
 
 ### Requirement: Threat create and edit flows
-Navigator SHALL expose distinct create and edit flows for threat statements within a workspace. Each threat form SHALL preserve the existing STRIDE categorization input and include optional classification fields for MITRE ATT&CK tactic, kill chain phase, and assigned Deliberate Threat Level (Td1-Td7).
+Navigator SHALL expose distinct create and edit flows for threat statements within a workspace. Each threat form SHALL preserve the existing STRIDE categorization input and include optional classification metadata fields for MITRE ATT&CK tactic, kill chain phase, and assigned Deliberate Threat Level (Td1-Td7).
 
 #### Scenario: Opening the new threat flow
 - **WHEN** a user navigates to the new threat action for a workspace
@@ -106,7 +106,7 @@ Navigator SHALL expose threat-specific entry points for linking or creating rela
 - **AND** loads the workspace mitigation candidates together with the threat's current mitigation links
 
 ### Requirement: Threat classification fields are displayed in the threat detail view
-Navigator SHALL display the threat's classification metadata with human-readable labels, showing "Not set" for any unclassified metadata fields.
+Navigator SHALL display the threat's classification metadata with human-readable labels, showing "Not set" for any unclassified metadata fields, while continuing to show the existing STRIDE categorization through the standard threat controls.
 
 #### Scenario: Viewing a classified threat
 - **WHEN** a user views a threat that has classification metadata set

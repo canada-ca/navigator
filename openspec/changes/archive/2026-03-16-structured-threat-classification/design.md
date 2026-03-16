@@ -5,7 +5,7 @@ Navigator workspaces currently store threats with free-text fields and a STRIDE-
 This change introduces:
 1. A workspace-scoped maximum Deliberate Threat Level (Td1–Td7).
 2. A new `ThreatAgent` entity (workspace-scoped) carrying adversary classification metadata.
-3. Four new optional classification fields on each `Threat`.
+3. Three new optional classification fields on each `Threat`, while preserving the existing STRIDE categorization model.
 
 Relevant existing files:
 - `valentine/lib/valentine/composer/workspace.ex`
@@ -19,10 +19,10 @@ Relevant existing files:
 
 **Goals:**
 - Store a workspace-level `max_threat_level` (Td1–Td7 atom, nullable).
-- Store `stride_category`, `mitre_tactic`, `kill_chain_phase`, `threat_level` on threats (all optional, nullable).
+- Store `mitre_tactic`, `kill_chain_phase`, `threat_level` on threats (all optional, nullable).
 - Introduce `ThreatAgent` schema with full CRUD under `Valentine.Composer`.
 - Expose all new fields through existing LiveView form patterns.
-- Extend threat index filtering to support STRIDE category, MITRE tactic, and Td level.
+- Extend threat index filtering to support the existing STRIDE categories, plus MITRE tactic and Td level.
 
 **Non-Goals:**
 - AI-assisted Td level suggestion or automatic classification.
@@ -60,11 +60,11 @@ Relevant existing files:
 
 **Rationale**: Consistent with the existing workspace sub-entity pattern. Router entry points follow the existing `/workspaces/:workspace_id/threat_agents` pattern.
 
-### Decision 5: STRIDE category field on Threat
+### Decision 5: Preserve the existing STRIDE model on Threat
 
-**Chosen**: Add a `stride_category` string field validated against the canonical STRIDE values (`spoofing`, `tampering`, `repudiation`, `information_disclosure`, `denial_of_service`, `elevation_of_privilege`). Do not remove or replace any existing STRIDE-related free-text fields.
+**Chosen**: Do not add a separate `stride_category` field. Reuse the application's existing STRIDE categorization support and pair it with the new MITRE ATT&CK tactic, kill chain phase, and Td fields.
 
-**Rationale**: Navigator already uses STRIDE conceptually in its threat grammar; making the category explicit and machine-readable enables filtering without duplicating or breaking existing free-text threat statement fields.
+**Rationale**: Navigator already stores STRIDE in the threat model and exposes it in the UI. Adding a second STRIDE field would duplicate semantics, create migration noise, and make filtering behavior ambiguous.
 
 ## Risks / Trade-offs
 
@@ -77,12 +77,12 @@ Relevant existing files:
 
 1. Generate and run a single Ecto migration that adds:
    - `max_threat_level :string` to `workspaces`
-   - `stride_category :string`, `mitre_tactic :string`, `kill_chain_phase :string`, `threat_level :string` to `threats`
+   - `mitre_tactic :string`, `kill_chain_phase :string`, `threat_level :string` to `threats`
    - New `threat_agents` table with `workspace_id` (FK, cascade delete), `name`, `agent_class`, `capability`, `motivation`, `td_level`, `timestamps`
 2. Update `Workspace`, `Threat`, and new `ThreatAgent` schemas and changesets.
 3. Update `Valentine.Composer` with `ThreatAgent` CRUD functions.
 4. Update `WorkspaceLive.FormComponent` to render the `max_threat_level` dropdown.
-5. Update `ThreatLive.FormComponent` to render the four new classification fields.
+5. Update `ThreatLive.FormComponent` to render the new classification fields while preserving the existing STRIDE controls.
 6. Add `ThreatAgentLive.Index` and `ThreatAgentLive.FormComponent` LiveViews with router entries.
 7. Add navigation entry for Threat Agents in the workspace sidebar.
 8. Extend threat index filter handling for new fields.

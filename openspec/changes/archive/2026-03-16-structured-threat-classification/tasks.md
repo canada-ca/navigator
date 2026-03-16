@@ -1,7 +1,7 @@
 ## 1. Database Migration
 
 - [x] 1.1 Generate Ecto migration to add `max_threat_level :string` (nullable) to `workspaces`
-- [x] 1.2 Add `stride_category :string`, `mitre_tactic :string`, `kill_chain_phase :string`, `threat_level :string` (all nullable) to `threats` in the same or a separate migration
+- [x] 1.2 Add `mitre_tactic :string`, `kill_chain_phase :string`, `threat_level :string` (all nullable) to `threats` in the same or a separate migration, while preserving the existing STRIDE model
 - [x] 1.3 Create `threat_agents` table with columns: `id`, `workspace_id` (FK → workspaces, ON DELETE CASCADE), `name :string` (required), `agent_class :string`, `capability :string`, `motivation :string`, `td_level :string`, `timestamps`
 - [x] 1.4 Run `mix ecto.migrate` and verify the schema changes are applied cleanly
 
@@ -19,9 +19,9 @@
 
 ## 4. Threat Schema and Context Updates
 
-- [x] 4.1 Add `stride_category`, `mitre_tactic`, `kill_chain_phase`, `threat_level` fields to `Valentine.Composer.Threat` schema
-- [x] 4.2 Update `Threat.changeset/2` to cast all four new fields; validate `stride_category` against the STRIDE enum, `kill_chain_phase` against the kill chain enum, and `threat_level` against Td values (all nullable)
-- [x] 4.3 Define the STRIDE category enum (`spoofing`, `tampering`, `repudiation`, `information_disclosure`, `denial_of_service`, `elevation_of_privilege`) and kill chain phase enum in appropriate module constants
+- [x] 4.1 Add `mitre_tactic`, `kill_chain_phase`, `threat_level` fields to `Valentine.Composer.Threat` schema
+- [x] 4.2 Update `Threat.changeset/2` to cast the new fields; validate `kill_chain_phase` against the kill chain enum and `threat_level` against Td values (all nullable)
+- [x] 4.3 Preserve the existing STRIDE categorization model and define the kill chain phase enum in appropriate module constants
 - [x] 4.4 Update existing `Threat` DataCase tests to cover the new fields
 
 ## 5. ThreatAgent Schema and Context
@@ -40,15 +40,15 @@
 
 ## 7. Threat Form UI (classification fields)
 
-- [x] 7.1 Update `valentine/lib/valentine_web/live/workspace_live/threat_live/form_component.ex` to add the four classification fields (STRIDE category dropdown, MITRE tactic text input, kill chain phase dropdown, assigned Td level dropdown)
+- [x] 7.1 Update `valentine/lib/valentine_web/live/workspace_live/threat_live/form_component.ex` to add the new classification fields for MITRE tactic, kill chain phase, and assigned Td level while preserving the existing STRIDE controls
 - [x] 7.2 Ensure the new fields are optional and pre-populate from the loaded threat on edit
 - [x] 7.3 Update the threat form HEEx template to render the classification fields in a logical grouping (e.g., a "Classification" section below the main threat statement fields)
 
 ## 8. Threat Index Filtering
 
-- [x] 8.1 Extend the threat filter struct / changeset in `Valentine.Composer` to include `stride_category`, `threat_level` filter fields
+- [x] 8.1 Extend the threat filter struct / changeset in `Valentine.Composer` to support filtering by the existing STRIDE categories and the new `threat_level` field
 - [x] 8.2 Update the Threat query function(s) to apply the new classification filters when set
-- [x] 8.3 Update `WorkspaceLive.ThreatLive.Index` to expose the new filter UI (dropdowns for STRIDE category and Td level)
+- [x] 8.3 Update `WorkspaceLive.ThreatLive.Index` to expose filter UI for the existing STRIDE categories and the new Td level field
 - [x] 8.4 Write or update LiveView tests for the updated filter behavior
 
 ## 9. Threat Detail View (classification display)
@@ -71,5 +71,5 @@
 - [x] 11.3 Manually verify workspace create/edit form shows the max Td level dropdown with correct labels
 - [x] 11.4 Manually verify threat create/edit form shows STRIDE, MITRE, kill chain, and Td fields
 - [x] 11.5 Manually verify the Threat Agents listing, create, edit, and delete flows work end-to-end
-- [x] 11.6 Manually verify threat index filtering by STRIDE category and Td level returns the expected results
+- [x] 11.6 Manually verify threat index filtering by the existing STRIDE categories and Td level returns the expected results
 - [x] 11.7 Verify that deleting a workspace also removes its associated Threat Agents (cascade check)
