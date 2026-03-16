@@ -9,13 +9,15 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
     workspace = Composer.get_workspace!(workspace_id, [:assumptions, :mitigations])
     ValentineWeb.Endpoint.subscribe("workspace_" <> workspace.id)
 
+    threats = Composer.list_threats_by_workspace(workspace.id, %{})
+
     {:ok,
      socket
      |> assign(:workspace_id, workspace_id)
      |> assign(:workspace, workspace)
      |> assign(:filters, %{})
-     |> assign(:mitre_tactic_values, mitre_tactic_values(workspace.id))
-     |> assign(:threats, Composer.list_threats_by_workspace(workspace.id, %{}))}
+     |> assign(:threats, threats)
+     |> assign(:mitre_tactic_values, mitre_tactic_values(threats))}
   end
 
   @impl true
@@ -86,27 +88,25 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
 
   @impl true
   def handle_event("clear_filters", _params, socket) do
+    threats = Composer.list_threats_by_workspace(socket.assigns.workspace_id, %{})
+
     {:noreply,
      socket
      |> assign(:filters, %{})
-     |> assign(:mitre_tactic_values, mitre_tactic_values(socket.assigns.workspace_id))
-     |> assign(
-       :threats,
-       Composer.list_threats_by_workspace(socket.assigns.workspace_id, %{})
-     )}
+     |> assign(:threats, threats)
+     |> assign(:mitre_tactic_values, mitre_tactic_values(threats))}
   end
 
   @impl true
   def handle_info({:update_filter, filters}, socket) do
+    threats = Composer.list_threats_by_workspace(socket.assigns.workspace_id, filters)
+
     {
       :noreply,
       socket
       |> assign(:filters, filters)
-      |> assign(:mitre_tactic_values, mitre_tactic_values(socket.assigns.workspace_id))
-      |> assign(
-        :threats,
-        Composer.list_threats_by_workspace(socket.assigns.workspace_id, filters)
-      )
+      |> assign(:threats, threats)
+      |> assign(:mitre_tactic_values, mitre_tactic_values(threats))
     }
   end
 
@@ -115,29 +115,27 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
         {_, {:saved, _threat}},
         socket
       ) do
+    threats =
+      Composer.list_threats_by_workspace(socket.assigns.workspace_id, socket.assigns.filters)
+
     {:noreply,
      socket
-     |> assign(
-       :threats,
-       Composer.list_threats_by_workspace(socket.assigns.workspace_id, socket.assigns.filters)
-     )
-     |> assign(:mitre_tactic_values, mitre_tactic_values(socket.assigns.workspace_id))}
+     |> assign(:threats, threats)
+     |> assign(:mitre_tactic_values, mitre_tactic_values(threats))}
   end
 
   @impl true
   def handle_info(%{topic: "workspace_" <> workspace_id}, socket) do
+    threats = Composer.list_threats_by_workspace(workspace_id, socket.assigns.filters)
+
     {:noreply,
      socket
-     |> assign(
-       :threats,
-       Composer.list_threats_by_workspace(workspace_id, socket.assigns.filters)
-     )
-     |> assign(:mitre_tactic_values, mitre_tactic_values(workspace_id))}
+     |> assign(:threats, threats)
+     |> assign(:mitre_tactic_values, mitre_tactic_values(threats))}
   end
 
-  defp mitre_tactic_values(workspace_id) do
-    workspace_id
-    |> Composer.list_threats_by_workspace()
+  defp mitre_tactic_values(threats) do
+    threats
     |> Enum.map(& &1.mitre_tactic)
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq()
