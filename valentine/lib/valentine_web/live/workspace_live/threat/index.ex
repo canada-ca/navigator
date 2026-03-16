@@ -54,6 +54,12 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
       threat ->
         case Composer.delete_threat(threat) do
           {:ok, _} ->
+            threats =
+              Composer.list_threats_by_workspace(
+                socket.assigns.workspace_id,
+                socket.assigns.filters
+              )
+
             log(
               :info,
               socket.assigns.current_user,
@@ -71,14 +77,8 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
             {:noreply,
              socket
              |> put_flash(:info, gettext("Threat deleted successfully"))
-             |> assign(:mitre_tactic_values, mitre_tactic_values(socket.assigns.workspace_id))
-             |> assign(
-               :threats,
-               Composer.list_threats_by_workspace(
-                 socket.assigns.workspace_id,
-                 socket.assigns.filters
-               )
-             )}
+             |> assign(:mitre_tactic_values, mitre_tactic_values(threats))
+             |> assign(:threats, threats)}
 
           {:error, _} ->
             {:noreply, socket |> put_flash(:error, gettext("Failed to delete threat"))}
