@@ -140,7 +140,24 @@ defmodule Valentine.Composer.Threat do
 
   def kill_chain_phases, do: @kill_chain_phases
 
-  def classification_label(:threat_level, value), do: DeliberateThreatLevel.label(value)
+  # Normalize threat_level values before looking up a label.
+  # Supports both atoms and strings, and treats empty string as nil.
+  def classification_label(:threat_level, ""), do: nil
+
+  def classification_label(:threat_level, value) when is_atom(value) do
+    DeliberateThreatLevel.label(value)
+  end
+
+  def classification_label(:threat_level, value) when is_binary(value) do
+    try do
+      value
+      |> String.to_existing_atom()
+      |> DeliberateThreatLevel.label()
+    rescue
+      ArgumentError ->
+        nil
+    end
+  end
 
   def classification_label(:kill_chain_phase, nil), do: nil
 
