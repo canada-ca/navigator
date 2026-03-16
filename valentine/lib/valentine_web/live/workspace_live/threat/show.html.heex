@@ -323,6 +323,41 @@
     </form>
     <.action_list_section_divider />
     <.action_list_section_divider>
+      <:title>{gettext("Classification")}</:title>
+    </.action_list_section_divider>
+    <form phx-change="update_field">
+      <.text_input
+        id="mitre_tactic"
+        name="mitre_tactic"
+        class="mt-2"
+        value={@changes[:mitre_tactic]}
+        placeholder={gettext("MITRE ATT&CK tactic")}
+      />
+      <.select
+        is_full_width
+        name="kill_chain_phase"
+        class="mt-2"
+        options={[
+          {"Not set", ""}
+          | Enum.map(
+              Valentine.Composer.Threat.kill_chain_phases(),
+              &{Phoenix.Naming.humanize(&1), &1}
+            )
+        ]}
+        input_id="kill_chain_phase"
+        selected={@changes[:kill_chain_phase]}
+      />
+      <.select
+        is_full_width
+        name="threat_level"
+        class="mt-2"
+        options={[{"Not set", ""} | td_level_options()]}
+        input_id="threat_level"
+        selected={@changes[:threat_level]}
+      />
+    </form>
+    <.action_list_section_divider />
+    <.action_list_section_divider>
       <:title>{gettext("Inputs for mitigation")}</:title>
     </.action_list_section_divider>
     <ul style="list-style:none">
@@ -369,6 +404,39 @@
         <% end %>
       </li>
     </ul>
+    <.action_list_section_divider />
+    <.action_list_section_divider>
+      <:title>{gettext("Current classification")}</:title>
+    </.action_list_section_divider>
+    <ul style="list-style:none">
+      <li class="mb-2">
+        {gettext("MITRE Tactic")}: {classification_display(:mitre_tactic, @changes[:mitre_tactic])}
+      </li>
+      <li class="mb-2">
+        {gettext("Kill Chain Phase")}: {classification_display(
+          :kill_chain_phase,
+          @changes[:kill_chain_phase]
+        )}
+      </li>
+      <li class="mb-2">
+        {gettext("Threat Level")}: {classification_display(:threat_level, @changes[:threat_level])}
+      </li>
+    </ul>
+    <%= if @workspace.threat_agents != [] do %>
+      <.action_list_section_divider />
+      <.action_list_section_divider>
+        <:title>{gettext("Threat Agent References")}</:title>
+      </.action_list_section_divider>
+      <ul style="list-style:none">
+        <li :for={threat_agent <- @workspace.threat_agents} class="mb-2">
+          <span class="text-bold">{threat_agent.name}</span>
+          <span class="color-fg-muted">
+            ({Valentine.Composer.DeliberateThreatLevel.label(threat_agent.td_level) ||
+              gettext("Not set")})
+          </span>
+        </li>
+      </ul>
+    <% end %>
   </div>
 </div>
 

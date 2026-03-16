@@ -23,6 +23,7 @@ defmodule Valentine.ComposerFixtures do
         cloud_profile: "some cloud_profile",
         cloud_profile_type: "some cloud_profile_type",
         url: "some url",
+        max_threat_level: :td4,
         owner: "some owner",
         permissions: %{}
       })
@@ -47,6 +48,9 @@ defmodule Valentine.ComposerFixtures do
         priority: :high,
         status: :identified,
         stride: [:spoofing],
+        mitre_tactic: "initial_access",
+        kill_chain_phase: :delivery,
+        threat_level: :td4,
         numeric_id: 42,
         prerequisites: "some prerequisites",
         threat_action: "some threat_action",
@@ -59,6 +63,27 @@ defmodule Valentine.ComposerFixtures do
 
     threat
     |> Ecto.reset_fields([:assumptions, :mitigations])
+  end
+
+  @doc """
+  Generate a threat agent.
+  """
+  def threat_agent_fixture(attrs \\ %{}) do
+    workspace = workspace_fixture()
+
+    {:ok, threat_agent} =
+      attrs
+      |> Enum.into(%{
+        workspace_id: workspace.id,
+        name: "GC End User",
+        agent_class: "external_user",
+        capability: "basic",
+        motivation: "opportunistic",
+        td_level: :td2
+      })
+      |> Valentine.Composer.create_threat_agent()
+
+    threat_agent
   end
 
   @doc """

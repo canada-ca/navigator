@@ -4,6 +4,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
 
   alias Valentine.Composer
   alias Valentine.Composer.Assumption
+  alias Valentine.Composer.DeliberateThreatLevel
   alias Valentine.Composer.Mitigation
   alias Valentine.Composer.Threat
   alias Valentine.Repo
@@ -103,7 +104,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
           |> Enum.reject(&(&1 == "false"))
           |> Enum.map(&String.to_existing_atom/1)
 
-        field == "comments" ->
+        field in ["comments", "mitre_tactic"] ->
           params[field]
 
         is_binary(params[field]) ->
@@ -266,7 +267,15 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
   def get_dfd_data(_, _), do: []
 
   def get_workspace(id) do
-    Composer.get_workspace!(id, [:assumptions, :mitigations])
+    Composer.get_workspace!(id, [:assumptions, :mitigations, :threat_agents])
+  end
+
+  def td_level_options do
+    DeliberateThreatLevel.options()
+  end
+
+  def classification_display(field, value) do
+    Threat.classification_label(field, value) || gettext("Not set")
   end
 
   defp broadcast_threat_change(threat, event) do

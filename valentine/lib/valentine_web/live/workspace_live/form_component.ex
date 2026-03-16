@@ -3,6 +3,7 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
   use PrimerLive
 
   alias Valentine.Composer
+  alias Valentine.Composer.DeliberateThreatLevel
 
   @impl true
   def render(assigns) do
@@ -85,6 +86,15 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
               is_full_width
               is_form_control
             />
+
+            <.select
+              form={f}
+              field={:max_threat_level}
+              options={[[key: gettext("No Td scope"), value: ""]] ++ max_threat_level_options()}
+              selected={@changeset.changes[:max_threat_level] || @workspace.max_threat_level}
+              form_control={%{label: gettext("Maximum Deliberate Threat Level")}}
+              is_form_control
+            />
           </:body>
           <:footer>
             <.button is_primary is_submit phx-disable-with={gettext("Saving...")}>
@@ -157,4 +167,8 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  defp max_threat_level_options do
+    Enum.map(DeliberateThreatLevel.options(), fn {label, value} -> [key: label, value: value] end)
+  end
 end

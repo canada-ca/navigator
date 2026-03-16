@@ -14,6 +14,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
      |> assign(:workspace_id, workspace_id)
      |> assign(:workspace, workspace)
      |> assign(:filters, %{})
+     |> assign(:mitre_tactic_values, mitre_tactic_values(workspace.id))
      |> assign(:threats, Composer.list_threats_by_workspace(workspace.id, %{}))}
   end
 
@@ -68,6 +69,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
             {:noreply,
              socket
              |> put_flash(:info, gettext("Threat deleted successfully"))
+             |> assign(:mitre_tactic_values, mitre_tactic_values(socket.assigns.workspace_id))
              |> assign(
                :threats,
                Composer.list_threats_by_workspace(
@@ -87,6 +89,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
     {:noreply,
      socket
      |> assign(:filters, %{})
+     |> assign(:mitre_tactic_values, mitre_tactic_values(socket.assigns.workspace_id))
      |> assign(
        :threats,
        Composer.list_threats_by_workspace(socket.assigns.workspace_id, %{})
@@ -99,6 +102,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
       :noreply,
       socket
       |> assign(:filters, filters)
+      |> assign(:mitre_tactic_values, mitre_tactic_values(socket.assigns.workspace_id))
       |> assign(
         :threats,
         Composer.list_threats_by_workspace(socket.assigns.workspace_id, filters)
@@ -112,20 +116,31 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
         socket
       ) do
     {:noreply,
-     assign(
-       socket,
+     socket
+     |> assign(
        :threats,
        Composer.list_threats_by_workspace(socket.assigns.workspace_id, socket.assigns.filters)
-     )}
+     )
+     |> assign(:mitre_tactic_values, mitre_tactic_values(socket.assigns.workspace_id))}
   end
 
   @impl true
   def handle_info(%{topic: "workspace_" <> workspace_id}, socket) do
     {:noreply,
-     assign(
-       socket,
+     socket
+     |> assign(
        :threats,
        Composer.list_threats_by_workspace(workspace_id, socket.assigns.filters)
-     )}
+     )
+     |> assign(:mitre_tactic_values, mitre_tactic_values(workspace_id))}
+  end
+
+  defp mitre_tactic_values(workspace_id) do
+    workspace_id
+    |> Composer.list_threats_by_workspace()
+    |> Enum.map(& &1.mitre_tactic)
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+    |> Enum.sort()
   end
 end

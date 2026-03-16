@@ -1,0 +1,102 @@
+<.subhead>
+  {gettext("Listing Threat Agents")}
+  <:actions>
+    <.button is_primary phx-click={JS.patch(~p"/workspaces/#{@workspace_id}/threat_agents/new")}>
+      {gettext("New Threat Agent")}
+    </.button>
+  </:actions>
+</.subhead>
+
+<.box id="threat-agents" row_id={fn threat_agent -> "threat-agent-#{threat_agent.id}" end}>
+  <div class="stream-row hidden">
+    <%= if Enum.empty?(@threat_agents) do %>
+      <.blankslate class="color-bg-default">
+        <:octicon name="shield-24" />
+        <:action>
+          <.button
+            is_primary
+            phx-click={JS.patch(~p"/workspaces/#{@workspace_id}/threat_agents/new")}
+          >
+            {gettext("Get started")}
+          </.button>
+        </:action>
+        <h3>{gettext("Add your first threat agent")}</h3>
+        <p>
+          {gettext(
+            "Capture who you are defending against, their capability, motivation, and mapped Td level."
+          )}
+        </p>
+      </.blankslate>
+    <% end %>
+  </div>
+  <:row
+    :for={threat_agent <- @threat_agents}
+    class="d-flex flex-items-center flex-justify-between"
+  >
+    <div style="width:100%">
+      <div class="clearfix mb-3">
+        <div class="float-left">
+          <h3>{threat_agent.name}</h3>
+        </div>
+        <.live_component
+          module={ValentineWeb.WorkspaceLive.Components.LabelSelectComponent}
+          id={"threat-agent-td-level-#{threat_agent.id}"}
+          icon="shield-16"
+          default_value={gettext("Not set")}
+          value={threat_agent.td_level}
+          field="td_level"
+          items={td_level_items()}
+          labels={Valentine.Composer.DeliberateThreatLevel.labels()}
+        />
+        <div class="float-right">
+          <.button
+            is_icon_button
+            aria-label="Edit"
+            phx-click={
+              JS.patch(~p"/workspaces/#{@workspace_id}/threat_agents/#{threat_agent.id}/edit")
+            }
+          >
+            <.octicon name="pencil-16" />
+          </.button>
+          <.button
+            is_icon_button
+            is_danger
+            aria-label="Delete"
+            phx-click={JS.push("delete", value: %{id: threat_agent.id})}
+            data-confirm={gettext("Are you sure?")}
+          >
+            <.octicon name="trash-16" />
+          </.button>
+        </div>
+      </div>
+
+      <table class="table table-sm text-gray mt-2" style="width: auto; min-width: 24rem;">
+        <tbody>
+          <tr>
+            <td class="text-bold pr-3">{gettext("Class")}</td>
+            <td>{display_tag_value(threat_agent.agent_class)}</td>
+          </tr>
+          <tr>
+            <td class="text-bold pr-3">{gettext("Capability")}</td>
+            <td>{display_tag_value(threat_agent.capability)}</td>
+          </tr>
+          <tr>
+            <td class="text-bold pr-3">{gettext("Motivation")}</td>
+            <td>{display_tag_value(threat_agent.motivation)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </:row>
+</.box>
+
+<.live_component
+  :if={@live_action in [:new, :edit]}
+  module={ValentineWeb.WorkspaceLive.ThreatAgent.Components.FormComponent}
+  id={@threat_agent.id || :new}
+  action={@live_action}
+  threat_agent={@threat_agent}
+  current_user={@current_user}
+  patch={~p"/workspaces/#{@workspace_id}/threat_agents"}
+  on_cancel={~p"/workspaces/#{@workspace_id}/threat_agents"}
+/>

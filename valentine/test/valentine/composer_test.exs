@@ -40,6 +40,7 @@ defmodule Valentine.ComposerTest do
         cloud_profile: "some cloud_profile",
         cloud_profile_type: "some cloud_profile_type",
         url: "some url",
+        max_threat_level: :td4,
         owner: "some owner",
         permissions: %{}
       }
@@ -49,6 +50,7 @@ defmodule Valentine.ComposerTest do
       assert workspace.cloud_profile == "some cloud_profile"
       assert workspace.cloud_profile_type == "some cloud_profile_type"
       assert workspace.url == "some url"
+      assert workspace.max_threat_level == :td4
       assert workspace.owner == "some owner"
       assert workspace.permissions == %{}
     end
@@ -65,6 +67,7 @@ defmodule Valentine.ComposerTest do
         cloud_profile: "some updated cloud_profile",
         cloud_profile_type: "some updated cloud_profile_type",
         url: "some updated url",
+        max_threat_level: :td6,
         owner: "some updated owner",
         permissions: %{some: "permissions"}
       }
@@ -74,8 +77,18 @@ defmodule Valentine.ComposerTest do
       assert workspace.cloud_profile == "some updated cloud_profile"
       assert workspace.cloud_profile_type == "some updated cloud_profile_type"
       assert workspace.url == "some updated url"
+      assert workspace.max_threat_level == :td6
       assert workspace.owner == "some updated owner"
       assert workspace.permissions == %{some: "permissions"}
+    end
+
+    test "update_workspace/2 with invalid max threat level returns error changeset" do
+      workspace = workspace_fixture()
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Composer.update_workspace(workspace, %{max_threat_level: :td10})
+
+      assert "is invalid" in errors_on(changeset).max_threat_level
     end
 
     test "update_workspace/2 with invalid data returns error changeset" do
@@ -121,6 +134,16 @@ defmodule Valentine.ComposerTest do
       workspace = workspace_fixture()
       assert {:ok, %Workspace{}} = Composer.delete_workspace(workspace)
       assert_raise Ecto.NoResultsError, fn -> Composer.get_workspace!(workspace.id) end
+    end
+
+    test "delete_workspace/1 also deletes associated threat agents" do
+      workspace = workspace_fixture()
+
+      threat_agent =
+        threat_agent_fixture(%{workspace_id: workspace.id, name: "Contractor Insider"})
+
+      assert {:ok, %Workspace{}} = Composer.delete_workspace(workspace)
+      assert_raise Ecto.NoResultsError, fn -> Composer.get_threat_agent!(threat_agent.id) end
     end
 
     test "change_workspace/1 returns a workspace changeset" do
@@ -242,6 +265,9 @@ defmodule Valentine.ComposerTest do
         status: :identified,
         priority: :high,
         stride: [:spoofing],
+        mitre_tactic: "initial_access",
+        kill_chain_phase: :delivery,
+        threat_level: :td4,
         comments: "some comments",
         threat_source: "some threat_source",
         prerequisites: "some prerequisites",
@@ -256,6 +282,9 @@ defmodule Valentine.ComposerTest do
       assert threat.status == :identified
       assert threat.priority == :high
       assert threat.stride == [:spoofing]
+      assert threat.mitre_tactic == "initial_access"
+      assert threat.kill_chain_phase == :delivery
+      assert threat.threat_level == :td4
       assert threat.comments == "some comments"
       assert threat.threat_source == "some threat_source"
       assert threat.prerequisites == "some prerequisites"
@@ -276,6 +305,9 @@ defmodule Valentine.ComposerTest do
         status: :resolved,
         priority: :low,
         stride: [:tampering],
+        mitre_tactic: "execution",
+        kill_chain_phase: :exploitation,
+        threat_level: :td5,
         comments: "some updated comments",
         threat_source: "some updated threat_source",
         prerequisites: "some updated prerequisites",
@@ -290,6 +322,9 @@ defmodule Valentine.ComposerTest do
       assert threat.status == :resolved
       assert threat.priority == :low
       assert threat.stride == [:tampering]
+      assert threat.mitre_tactic == "execution"
+      assert threat.kill_chain_phase == :exploitation
+      assert threat.threat_level == :td5
       assert threat.comments == "some updated comments"
       assert threat.threat_source == "some updated threat_source"
       assert threat.prerequisites == "some updated prerequisites"
@@ -314,6 +349,27 @@ defmodule Valentine.ComposerTest do
     test "change_threat/1 returns a threat changeset" do
       threat = threat_fixture()
       assert %Ecto.Changeset{} = Composer.change_threat(threat)
+    end
+
+    test "list_threats_by_workspace/2 filters by threat level" do
+      threat = threat_fixture(%{stride: [:spoofing], threat_level: :td4})
+      _other_threat = threat_fixture(%{workspace_id: threat.workspace_id, threat_level: :td2})
+
+      assert [filtered] =
+               Composer.list_threats_by_workspace(threat.workspace_id, %{
+                 threat_level: [:td4]
+               })
+
+      assert filtered.id == threat.id
+    end
+
+    test "update_threat/2 with invalid threat level returns error changeset" do
+      threat = threat_fixture()
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Composer.update_threat(threat, %{threat_level: :td10})
+
+      assert "is invalid" in errors_on(changeset).threat_level
     end
 
     test "add_assumption_to_threat/2 adds an assumption to a threat" do
@@ -380,6 +436,77 @@ defmodule Valentine.ComposerTest do
       {:ok, %Threat{} = threat} = Composer.remove_mitigation_from_threat(threat, mitigation)
 
       assert threat.mitigations == []
+    end
+  end
+
+  describe "threat_agents" do
+    alias Valentine.Composer.ThreatAgent
+
+    import Valentine.ComposerFixtures
+
+    test "list_threat_agents/1 returns workspace threat agents" do
+      threat_agent = threat_agent_fixture()
+      _other_threat_agent = threat_agent_fixture()
+
+      assert [fetched | _] = Composer.list_threat_agents(threat_agent.workspace_id)
+      assert fetched.workspace_id == threat_agent.workspace_id
+    end
+
+    test "get_threat_agent!/1 returns the threat agent with given id" do
+      threat_agent = threat_agent_fixture()
+      assert Composer.get_threat_agent!(threat_agent.id).id == threat_agent.id
+    end
+
+    test "create_threat_agent/1 with valid data creates a threat agent" do
+      workspace = workspace_fixture()
+
+      valid_attrs = %{
+        workspace_id: workspace.id,
+        name: "Contractor Insider",
+        agent_class: "insider",
+        capability: "moderate",
+        motivation: "financial",
+        td_level: :td3
+      }
+
+      assert {:ok, %ThreatAgent{} = threat_agent} = Composer.create_threat_agent(valid_attrs)
+      assert threat_agent.name == "Contractor Insider"
+      assert threat_agent.agent_class == "insider"
+      assert threat_agent.capability == "moderate"
+      assert threat_agent.motivation == "financial"
+      assert threat_agent.td_level == :td3
+    end
+
+    test "create_threat_agent/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Composer.create_threat_agent(%{name: nil, workspace_id: nil})
+
+      assert "can't be blank" in errors_on(changeset).name
+      assert "can't be blank" in errors_on(changeset).workspace_id
+    end
+
+    test "update_threat_agent/2 updates the threat agent" do
+      threat_agent = threat_agent_fixture()
+
+      assert {:ok, %ThreatAgent{} = updated} =
+               Composer.update_threat_agent(threat_agent, %{
+                 name: "Nation-State Operator",
+                 td_level: :td6
+               })
+
+      assert updated.name == "Nation-State Operator"
+      assert updated.td_level == :td6
+    end
+
+    test "delete_threat_agent/1 deletes the threat agent" do
+      threat_agent = threat_agent_fixture()
+      assert {:ok, %ThreatAgent{}} = Composer.delete_threat_agent(threat_agent)
+      assert_raise Ecto.NoResultsError, fn -> Composer.get_threat_agent!(threat_agent.id) end
+    end
+
+    test "change_threat_agent/1 returns a threat agent changeset" do
+      threat_agent = threat_agent_fixture()
+      assert %Ecto.Changeset{} = Composer.change_threat_agent(threat_agent)
     end
   end
 

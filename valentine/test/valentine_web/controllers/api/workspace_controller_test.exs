@@ -17,6 +17,7 @@ defmodule ValentineWeb.Api.WorkspaceControllerTest do
                "owner" => api_key.owner,
                "cloud_profile" => workspace.cloud_profile,
                "cloud_profile_type" => workspace.cloud_profile_type,
+               "max_threat_level" => Atom.to_string(workspace.max_threat_level),
                "permissions" => workspace.permissions,
                "url" => workspace.url
              }

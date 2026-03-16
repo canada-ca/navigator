@@ -8,9 +8,12 @@ defmodule ValentineWeb.WorkspaceLive.Components.LabelSelectComponent do
       <div class="relative ">
         <div class="mt-1 ml-2" phx-click="toggle_dropdown" phx-target={@myself}>
           <.state_label is_small class={get_class(@items, @value)}>
-            <.octicon name={@icon} /> {if @value == nil,
-              do: @default_value,
-              else: Phoenix.Naming.humanize(@value)}
+            <.octicon name={@icon} /> {display_value(
+              @value,
+              assigns[:labels],
+              @default_value,
+              assigns[:prefix]
+            )}
           </.state_label>
         </div>
         <%= if @show_dropdown do %>
@@ -23,7 +26,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.LabelSelectComponent do
                   phx-value-id={item}
                   phx-target={@myself}
                 >
-                  {Phoenix.Naming.humanize(item)}
+                  {display_option(item, assigns[:labels])}
                 </div>
               <% end %>
             </div>
@@ -69,5 +72,19 @@ defmodule ValentineWeb.WorkspaceLive.Components.LabelSelectComponent do
       nil -> ""
       {_, class} -> class
     end
+  end
+
+  defp display_value(nil, _labels, default_value, _prefix), do: default_value
+
+  defp display_value(value, labels, _default_value, nil),
+    do: display_option(value, labels)
+
+  defp display_value(value, labels, _default_value, prefix),
+    do: "#{prefix}: #{display_option(value, labels)}"
+
+  defp display_option(value, nil), do: Phoenix.Naming.humanize(value)
+
+  defp display_option(value, labels) do
+    Map.get(labels, value) || Phoenix.Naming.humanize(value)
   end
 end

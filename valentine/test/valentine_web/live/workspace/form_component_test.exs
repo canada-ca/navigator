@@ -4,6 +4,7 @@ defmodule ValentineWeb.WorkspaceLive.FormComponentTest do
 
   import Valentine.ComposerFixtures
 
+  alias Valentine.Composer
   alias ValentineWeb.WorkspaceLive.FormComponent
 
   setup do
@@ -22,6 +23,8 @@ defmodule ValentineWeb.WorkspaceLive.FormComponentTest do
     test "renders the form with an Edit title if workspace exists", %{assigns: assigns} do
       html = render_component(FormComponent, assigns)
       assert html =~ "Edit Workspace"
+      assert html =~ "Maximum Deliberate Threat Level"
+      assert html =~ "Td4 - Organized Criminal Group"
     end
 
     test "renders the form with a New title if workspace does not exists", %{assigns: assigns} do
@@ -142,7 +145,8 @@ defmodule ValentineWeb.WorkspaceLive.FormComponentTest do
           "save",
           %{
             "workspace" => %{
-              "name" => "some name"
+              "name" => "some name",
+              "max_threat_level" => "td6"
             }
           },
           socket
@@ -150,6 +154,7 @@ defmodule ValentineWeb.WorkspaceLive.FormComponentTest do
 
       assert socket.assigns.flash["info"] == "Workspace created successfully"
       assert socket.assigns.patch == socket.assigns.patch
+      assert Enum.any?(Composer.list_workspaces(), &(&1.max_threat_level == :td6))
     end
 
     test "returns a changeset for a new workspace", %{socket: socket} do

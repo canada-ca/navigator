@@ -20,6 +20,7 @@ defmodule Valentine.Composer do
   alias Valentine.Composer.ApiKey
   alias Valentine.Composer.BrainstormItem
   alias Valentine.Composer.RepoAnalysisAgent
+  alias Valentine.Composer.ThreatAgent
 
   alias Valentine.Composer.AssumptionThreat
   alias Valentine.Composer.AssumptionMitigation
@@ -315,6 +316,16 @@ defmodule Valentine.Composer do
           else
             where(queryable, [m], field(m, ^f) in ^selected)
           end
+
+        :string ->
+          if is_nil(selected) || selected == [] do
+            queryable
+          else
+            where(queryable, [m], field(m, ^f) in ^selected)
+          end
+
+        _ ->
+          queryable
       end
     end)
   end
@@ -440,6 +451,61 @@ defmodule Valentine.Composer do
   """
   def change_threat(%Threat{} = threat, attrs \\ %{}) do
     Threat.changeset(threat, attrs)
+  end
+
+  @doc """
+  Returns the list of threat agents for a specific workspace.
+  """
+  def list_threat_agents(workspace_id) do
+    from(ta in ThreatAgent,
+      where: ta.workspace_id == ^workspace_id,
+      order_by: [asc: ta.name]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single threat agent.
+  """
+  def get_threat_agent!(id, preload \\ nil)
+
+  def get_threat_agent!(id, preload) when is_list(preload) do
+    Repo.get!(ThreatAgent, id)
+    |> Repo.preload(preload)
+  end
+
+  def get_threat_agent!(id, preload) when is_nil(preload), do: Repo.get!(ThreatAgent, id)
+
+  @doc """
+  Creates a threat agent.
+  """
+  def create_threat_agent(attrs \\ %{}) do
+    %ThreatAgent{}
+    |> ThreatAgent.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a threat agent.
+  """
+  def update_threat_agent(%ThreatAgent{} = threat_agent, attrs) do
+    threat_agent
+    |> ThreatAgent.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a threat agent.
+  """
+  def delete_threat_agent(%ThreatAgent{} = threat_agent) do
+    Repo.delete(threat_agent)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking threat agent changes.
+  """
+  def change_threat_agent(%ThreatAgent{} = threat_agent, attrs \\ %{}) do
+    ThreatAgent.changeset(threat_agent, attrs)
   end
 
   @doc """
