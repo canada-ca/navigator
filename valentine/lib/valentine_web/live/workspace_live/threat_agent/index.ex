@@ -71,33 +71,34 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    case Composer.get_threat_agent!(id) do
-      nil ->
+    try do
+      threat_agent = Composer.get_threat_agent!(id)
+
+      case Composer.delete_threat_agent(threat_agent) do
+        {:ok, _deleted} ->
+          log(
+            :info,
+            socket.assigns.current_user,
+            "Deleted threat agent",
+            %{workspace_id: socket.assigns.workspace_id, threat_agent_id: id},
+            "threat_agent"
+          )
+
+          {:noreply,
+           socket
+           |> put_flash(:info, gettext("Threat Agent deleted successfully"))
+           |> assign(
+             :threat_agents,
+             Composer.list_threat_agents(socket.assigns.workspace_id)
+           )
+           |> broadcast_workspace_update()}
+
+        {:error, _reason} ->
+          {:noreply, put_flash(socket, :error, gettext("Failed to delete Threat Agent"))}
+      end
+    rescue
+      Ecto.NoResultsError ->
         {:noreply, put_flash(socket, :error, gettext("Threat Agent not found"))}
-
-      threat_agent ->
-        case Composer.delete_threat_agent(threat_agent) do
-          {:ok, _deleted} ->
-            log(
-              :info,
-              socket.assigns.current_user,
-              "Deleted threat agent",
-              %{workspace_id: socket.assigns.workspace_id, threat_agent_id: id},
-              "threat_agent"
-            )
-
-            {:noreply,
-             socket
-             |> put_flash(:info, gettext("Threat Agent deleted successfully"))
-             |> assign(
-               :threat_agents,
-               Composer.list_threat_agents(socket.assigns.workspace_id)
-             )
-             |> broadcast_workspace_update()}
-
-          {:error, _reason} ->
-            {:noreply, put_flash(socket, :error, gettext("Failed to delete Threat Agent"))}
-        end
     end
   end
 
