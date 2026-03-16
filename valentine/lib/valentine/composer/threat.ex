@@ -142,6 +142,8 @@ defmodule Valentine.Composer.Threat do
 
   def classification_label(:threat_level, value), do: DeliberateThreatLevel.label(value)
 
+  def classification_label(:kill_chain_phase, nil), do: nil
+
   def classification_label(:kill_chain_phase, value) do
     value
     |> Phoenix.Naming.humanize()
