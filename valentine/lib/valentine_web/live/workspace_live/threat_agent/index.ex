@@ -43,7 +43,9 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
   @impl true
   def handle_info({_, {:saved, _threat_agent}}, socket) do
     {:noreply,
-     assign(socket, :threat_agents, Composer.list_threat_agents(socket.assigns.workspace_id))}
+     socket
+     |> assign(:threat_agents, Composer.list_threat_agents(socket.assigns.workspace_id))
+     |> broadcast_workspace_update()}
   end
 
   @impl true
@@ -90,7 +92,8 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
              |> assign(
                :threat_agents,
                Composer.list_threat_agents(socket.assigns.workspace_id)
-             )}
+             )
+             |> broadcast_workspace_update()}
 
           {:error, _reason} ->
             {:noreply, put_flash(socket, :error, gettext("Failed to delete Threat Agent"))}
@@ -109,6 +112,16 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
 
   def td_level_items do
     Enum.map(Composer.DeliberateThreatLevel.values(), &{&1, nil})
+  end
+
+  defp broadcast_workspace_update(socket) do
+    ValentineWeb.Endpoint.broadcast!(
+      "workspace_" <> socket.assigns.workspace_id,
+      "workspace_updated",
+      %{}
+    )
+
+    socket
   end
 
   defp get_workspace(id) do
