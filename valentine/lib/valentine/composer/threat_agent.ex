@@ -25,6 +25,7 @@ defmodule Valentine.Composer.ThreatAgent do
     threat_agent
     |> cast(attrs, [:workspace_id, :name, :agent_class, :capability, :motivation, :td_level])
     |> validate_required([:workspace_id, :name])
+    |> unique_constraint(:name, name: :threat_agents_workspace_id_name_index)
     |> foreign_key_constraint(:workspace_id)
   end
 end
