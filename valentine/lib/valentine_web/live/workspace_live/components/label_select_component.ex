@@ -14,6 +14,12 @@ defmodule ValentineWeb.WorkspaceLive.Components.LabelSelectComponent do
               @default_value,
               assigns[:prefix]
             )}
+            <.octicon name={@icon} /> {display_value(
+              @value,
+              assigns[:labels],
+              @default_value,
+              assigns[:prefix]
+            )}
           </.state_label>
         </div>
         <%= if @show_dropdown do %>
