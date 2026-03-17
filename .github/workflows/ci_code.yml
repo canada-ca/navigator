@@ -44,9 +44,6 @@ jobs:
           cache: npm
           cache-dependency-path: valentine/assets/package-lock.json
 
-      - name: Install chrome
-        uses: browser-actions/setup-chrome@v1
-
       - name: Install asset dependencies
         working-directory: ./valentine/assets
         run: npm ci
