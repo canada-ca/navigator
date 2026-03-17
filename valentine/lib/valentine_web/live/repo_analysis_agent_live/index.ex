@@ -335,10 +335,7 @@ defmodule ValentineWeb.RepoAnalysisAgentLive.Index do
   defp rerun_label(_status), do: gettext("Run again")
 
   defp repo_analysis_status_label(status) do
-    status
-    |> to_string()
-    |> String.replace("_", " ")
-    |> Phoenix.Naming.humanize()
+    DisplayHelper.repo_analysis_status_label(status)
   end
 
   defp repo_analysis_status_class(status) when status in [:completed], do: "State--open"
