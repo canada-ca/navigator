@@ -3,6 +3,9 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.MarkdownReportCompon
 
   use Gettext, backend: ValentineWeb.Gettext
 
+  alias ValentineWeb.Helpers.DisplayHelper
+  alias ValentineWeb.Helpers.ThreatModelReportHelper
+
   def render(assigns) do
     threats =
       Enum.reduce(assigns.workspace.threats, %{}, fn threat, acc ->
@@ -76,7 +79,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.MarkdownReportCompon
 
     ## <a name="impacted-assets"></a>7. #{gettext("Impacted Assets")}
 
-    #{impacted_assets_table(get_assets(workspace.threats))}
+    #{impacted_assets_table(ThreatModelReportHelper.impacted_assets(workspace.threats))}
     """
   end
 
@@ -88,7 +91,12 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.MarkdownReportCompon
 
     rows =
       Enum.map(nodes, fn {_id, entity} ->
-        type = normalize_type(entity["data"]["type"], entity["data"]["out_of_scope"])
+        type =
+          ThreatModelReportHelper.normalize_type(
+            entity["data"]["type"],
+            entity["data"]["out_of_scope"]
+          )
+
         name = entity["data"]["label"]
         description = entity["data"]["description"] || ""
 
@@ -96,7 +104,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.MarkdownReportCompon
           Enum.reduce(["data_tags", "security_tags", "technology_tags"], [], fn key, acc ->
             values = entity["data"][key] || []
             values = Enum.filter(values, &(&1 != nil))
-            acc ++ Enum.map(values, &normalize/1)
+            acc ++ Enum.map(values, &ThreatModelReportHelper.normalize_value/1)
           end)
 
         features_str = Enum.join(features, ", ")
@@ -135,7 +143,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.MarkdownReportCompon
           Enum.reduce(["data_tags", "security_tags", "technology_tags"], [], fn key, acc ->
             values = edge["data"][key] || []
             values = Enum.filter(values, &(&1 != nil))
-            acc ++ Enum.map(values, &normalize/1)
+            acc ++ Enum.map(values, &ThreatModelReportHelper.normalize_value/1)
           end)
 
         features_str = Enum.join(features, ", ")
@@ -212,9 +220,9 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.MarkdownReportCompon
           end)
           |> Enum.join(", ")
 
-        status = Phoenix.Naming.humanize(threat.status)
-        priority = Phoenix.Naming.humanize(threat.priority)
-        stride = stride_to_letter(threat.stride)
+        status = DisplayHelper.enum_label(threat.status)
+        priority = DisplayHelper.enum_label(threat.priority)
+        stride = ThreatModelReportHelper.stride_to_letter(threat.stride)
         comments = if threat.comments, do: html_to_markdown(threat.comments), else: ""
 
         "| <a name=\"t-#{threat.numeric_id}\"></a>#{id} | #{content} | #{linked_assumptions} | #{linked_mitigations} | #{status} | #{priority} | #{stride} | #{comments} |\n"
@@ -277,34 +285,8 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.MarkdownReportCompon
     header <> separator <> rows
   end
 
-  defp get_assets(threats) do
-    threats
-    |> Enum.filter(&(&1.impacted_assets != [] && &1.impacted_assets != nil))
-    |> Enum.reduce(%{}, fn t, acc ->
-      Enum.reduce(t.impacted_assets, acc, fn asset, a ->
-        Map.update(a, asset, [t.numeric_id], &(&1 ++ [t.numeric_id]))
-      end)
-    end)
-    |> Enum.with_index()
-  end
-
-  defp normalize(s), do: String.capitalize(s) |> String.replace("_", " ")
-
-  defp normalize_type(s, "false"), do: normalize(s)
-  defp normalize_type(s, "true"), do: normalize(s) <> " (Out of scope)"
-
   defp optional_content(nil), do: "*Not set*"
   defp optional_content(model), do: html_to_markdown(model.content)
-
-  defp stride_to_letter(nil), do: ""
-
-  defp stride_to_letter(data) do
-    data
-    |> Enum.map(&Atom.to_string/1)
-    |> Enum.map(&String.upcase/1)
-    |> Enum.map(&String.first/1)
-    |> Enum.join()
-  end
 
   # HTML to Markdown conversion functions
 

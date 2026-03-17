@@ -19,6 +19,8 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers do
     blob_store_url: "File Link"
   }
 
+  alias ValentineWeb.Helpers.DisplayHelper
+
   @doc """
   Formats an evidence type enum value into a user-friendly display string.
 
@@ -57,12 +59,12 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers do
 
   """
   def format_field_name(field) when is_atom(field) do
-    Map.get(@field_name_labels, field, Phoenix.Naming.humanize(field))
+    Map.get(@field_name_labels, field, DisplayHelper.enum_label(field))
   end
 
   # Private helper for default formatting of unknown types
   defp default_format(type) when is_atom(type) do
-    type |> Atom.to_string() |> String.replace("_", " ") |> String.capitalize()
+    DisplayHelper.enum_label(type)
   end
 
   @doc """

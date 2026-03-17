@@ -24,7 +24,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.FilterComponent do
         <:toggle>
           <.octicon name={"#{@icon}-16"} />
           <span>
-            {Gettext.gettext(ValentineWeb.Gettext, Phoenix.Naming.humanize(@name))}
+            {Gettext.gettext(ValentineWeb.Gettext, DisplayHelper.enum_label(@name))}
           </span>
           <%= if is_list(@filters[@name]) && length(@filters[@name]) > 0 do %>
             <.counter>
@@ -114,18 +114,6 @@ defmodule ValentineWeb.WorkspaceLive.Components.FilterComponent do
   end
 
   defp display_label(assigns, value) do
-    case Map.get(assigns, :labels) do
-      nil -> humanize(value)
-      labels when is_map(labels) -> Map.get(labels, value, humanize(value))
-    end
+    DisplayHelper.display_label(value, Map.get(assigns, :labels))
   end
-
-  defp humanize(value) when is_atom(value) do
-    value
-    |> Atom.to_string()
-    |> String.replace("_", " ")
-    |> String.capitalize()
-  end
-
-  defp humanize(value) when is_binary(value), do: value
 end

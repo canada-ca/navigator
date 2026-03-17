@@ -14,6 +14,12 @@ defmodule ValentineWeb.WorkspaceLive.Components.LabelSelectComponent do
               @default_value,
               assigns[:prefix]
             )}
+            <.octicon name={@icon} /> {display_value(
+              @value,
+              assigns[:labels],
+              @default_value,
+              assigns[:prefix]
+            )}
           </.state_label>
         </div>
         <%= if @show_dropdown do %>
@@ -82,9 +88,9 @@ defmodule ValentineWeb.WorkspaceLive.Components.LabelSelectComponent do
   defp display_value(value, labels, _default_value, prefix),
     do: "#{prefix}: #{display_option(value, labels)}"
 
-  defp display_option(value, nil), do: Phoenix.Naming.humanize(value)
+  defp display_option(value, nil), do: DisplayHelper.enum_label(value)
 
   defp display_option(value, labels) do
-    Map.get(labels, value) || Phoenix.Naming.humanize(value)
+    Map.get(labels, value) || DisplayHelper.enum_label(value)
   end
 end

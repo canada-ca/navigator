@@ -4,6 +4,7 @@ defmodule Valentine.Composer.Threat do
   import Ecto.Query
 
   alias Valentine.Composer.DeliberateThreatLevel
+  alias ValentineWeb.Helpers.DisplayHelper
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -170,9 +171,8 @@ defmodule Valentine.Composer.Threat do
   def classification_label(_, value), do: value
 
   def show_statement(threat) do
-    "#{ValentineWeb.WorkspaceLive.Threat.Components.ThreatHelpers.a_or_an(threat.threat_source,
-    true)} #{threat.threat_source} #{threat.prerequisites} can #{threat.threat_action}#{if(threat.threat_impact != nil, do: ", which leads to #{threat.threat_impact}")}#{if(threat.impacted_goal && threat.impacted_goal != [],
-    do: ", resulting in reduced " <> ValentineWeb.WorkspaceLive.Threat.Components.ThreatHelpers.join_list(threat.impacted_goal))} negatively impacting #{ValentineWeb.WorkspaceLive.Threat.Components.ThreatHelpers.join_list(threat.impacted_assets)}."
+    "#{DisplayHelper.indefinite_article(threat.threat_source, true)} #{threat.threat_source} #{threat.prerequisites} can #{threat.threat_action}#{if(threat.threat_impact != nil, do: ", which leads to #{threat.threat_impact}")}#{if(threat.impacted_goal && threat.impacted_goal != [],
+    do: ", resulting in reduced " <> DisplayHelper.join_display_list(threat.impacted_goal))} negatively impacting #{DisplayHelper.join_display_list(threat.impacted_assets)}."
   end
 
   def stride_banner(threat) do

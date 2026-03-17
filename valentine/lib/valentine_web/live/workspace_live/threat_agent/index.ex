@@ -110,7 +110,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
 
   def display_tag_value(nil), do: gettext("Not set")
   def display_tag_value(""), do: gettext("Not set")
-  def display_tag_value(value), do: value |> to_string() |> Phoenix.Naming.humanize()
+  def display_tag_value(value), do: value |> to_string() |> DisplayHelper.enum_label()
 
   def display_td_level(nil), do: gettext("Not set")
 

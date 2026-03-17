@@ -96,6 +96,7 @@ defmodule ValentineWeb do
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
+      alias ValentineWeb.Helpers.DisplayHelper
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())

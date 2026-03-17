@@ -98,7 +98,7 @@ defmodule ValentineWeb.WorkspaceLive.Show do
     |> Enum.group_by(&get_in(&1, [Access.key!(field)]))
     |> Enum.map(fn
       {nil, data} -> {gettext("Not set"), Enum.count(data)}
-      {value, data} -> {Phoenix.Naming.humanize(value), Enum.count(data)}
+      {value, data} -> {DisplayHelper.enum_label(value), Enum.count(data)}
     end)
     |> Map.new()
   end
@@ -123,7 +123,7 @@ defmodule ValentineWeb.WorkspaceLive.Show do
         acc
       end
     end)
-    |> Enum.map(fn {category, count} -> {Phoenix.Naming.humanize(category), count} end)
+    |> Enum.map(fn {category, count} -> {DisplayHelper.enum_label(category), count} end)
     |> Map.new()
   end
 
@@ -199,10 +199,7 @@ defmodule ValentineWeb.WorkspaceLive.Show do
   end
 
   defp repo_analysis_status_label(status) do
-    status
-    |> to_string()
-    |> String.replace("_", " ")
-    |> Phoenix.Naming.humanize()
+    DisplayHelper.repo_analysis_status_label(status)
   end
 
   defp repo_analysis_status_class(status) when status in [:completed], do: "State--open"

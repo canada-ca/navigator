@@ -4,6 +4,9 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent do
 
   use Gettext, backend: ValentineWeb.Gettext
 
+  alias ValentineWeb.Helpers.DisplayHelper
+  alias ValentineWeb.Helpers.ThreatModelReportHelper
+
   def render(assigns) do
     threats =
       Enum.reduce(assigns.workspace.threats, %{}, fn threat, acc ->
@@ -55,13 +58,18 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent do
         </thead>
         <tbody>
           <tr :for={{_id, entity} <- @workspace.data_flow_diagram.nodes}>
-            <td>{normalize_type(entity["data"]["type"], entity["data"]["out_of_scope"])}</td>
+            <td>
+              {ThreatModelReportHelper.normalize_type(
+                entity["data"]["type"],
+                entity["data"]["out_of_scope"]
+              )}
+            </td>
             <td>{entity["data"]["label"]}</td>
             <td>{entity["data"]["description"]}</td>
             <td>
               <ul :for={key <- ["data_tags", "security_tags", "technology_tags"]}>
                 <li :for={value <- entity["data"][key]} :if={value != nil}>
-                  {normalize(value)}
+                  {ThreatModelReportHelper.normalize_value(value)}
                 </li>
               </ul>
             </td>
@@ -98,7 +106,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent do
             <td>
               <ul :for={key <- ["data_tags", "security_tags", "technology_tags"]}>
                 <li :for={value <- edge["data"][key]} :if={value != nil}>
-                  {normalize(value)}
+                  {ThreatModelReportHelper.normalize_value(value)}
                 </li>
               </ul>
             </td>
@@ -184,9 +192,9 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent do
                 </li>
               </ul>
             </td>
-            <td>{Phoenix.Naming.humanize(threat.status)}</td>
-            <td>{Phoenix.Naming.humanize(threat.priority)}</td>
-            <td>{stride_to_letter(threat.stride)}</td>
+            <td>{DisplayHelper.enum_label(threat.status)}</td>
+            <td>{DisplayHelper.enum_label(threat.priority)}</td>
+            <td>{ThreatModelReportHelper.stride_to_letter(threat.stride)}</td>
             <td>
               {to_markdown(threat.comments)}
             </td>
@@ -240,7 +248,10 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent do
           </tr>
         </thead>
         <tbody>
-          <tr :for={{{asset, t_ids}, i} <- get_assets(@workspace.threats)} id={"AS-#{i + 1}"}>
+          <tr
+            :for={{{asset, t_ids}, i} <- ThreatModelReportHelper.impacted_assets(@workspace.threats)}
+            id={"AS-#{i + 1}"}
+          >
             <td>AS-{i + 1}</td>
             <td>{asset}</td>
             <td>
@@ -257,22 +268,6 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent do
     """
   end
 
-  defp get_assets(threats) do
-    threats
-    |> Enum.filter(&(&1.impacted_assets != [] && &1.impacted_assets != nil))
-    |> Enum.reduce(%{}, fn t, acc ->
-      Enum.reduce(t.impacted_assets, acc, fn asset, a ->
-        Map.update(a, asset, [t.numeric_id], &(&1 ++ [t.numeric_id]))
-      end)
-    end)
-    |> Enum.with_index()
-  end
-
-  defp normalize(s), do: String.capitalize(s) |> String.replace("_", " ")
-
-  defp normalize_type(s, "false"), do: normalize(s)
-  defp normalize_type(s, "true"), do: normalize(s) <> " (Out of scope)"
-
   defp optional_content(nil), do: "<i>Not set</i>"
   defp optional_content(model), do: model.content
 
@@ -281,16 +276,6 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent do
     |> String.replace(~r/h1\>/, "h4>")
     |> String.replace(~r/h2\>/, "h5>")
     |> String.replace(~r/h3\>/, "h6>")
-  end
-
-  defp stride_to_letter(nil), do: ""
-
-  defp stride_to_letter(data) do
-    data
-    |> Enum.map(&Atom.to_string/1)
-    |> Enum.map(&String.upcase/1)
-    |> Enum.map(&String.first/1)
-    |> Enum.join()
   end
 
   defp to_markdown(nil), do: ""
