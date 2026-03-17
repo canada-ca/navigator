@@ -24,6 +24,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent do
         <li><a href="#architecture">{gettext("Architecture")}</a></li>
         <li><a href="#data_flow_diagram">{gettext("Data Flow")}</a></li>
         <li><a href="#assumptions">{gettext("Assumptions")}</a></li>
+        <li><a href="#threat_agents">{gettext("Threat Agents")}</a></li>
         <li><a href="#threats">{gettext("Threats")}</a></li>
         <li><a href="#mitigations">{gettext("Mitigations")}</a></li>
         <li><a href="#impacted_assets">{gettext("Impacted Assets")}</a></li>
@@ -130,6 +131,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent do
             <th>{gettext("Assumption")}</th>
             <th>{gettext("Linked Threats")}</th>
             <th>{gettext("Linked Mitigations")}</th>
+            <th>{gettext("Tags")}</th>
             <th>{gettext("Comments")}</th>
           </tr>
         </thead>
@@ -152,13 +154,40 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent do
               </ul>
             </td>
             <td>
+              <ul>
+                <li :for={tag <- ThreatModelReportHelper.report_tags(assumption.tags)}>{tag}</li>
+              </ul>
+            </td>
+            <td>
               {to_markdown(assumption.comments)}
             </td>
           </tr>
         </tbody>
       </table>
 
-      <h3 id="threats">5. {gettext("Threats")}</h3>
+      <h3 id="threat_agents">5. {gettext("Threat Agents")}</h3>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>{gettext("Name")}</th>
+            <th>{gettext("Class")}</th>
+            <th>{gettext("Capability")}</th>
+            <th>{gettext("Motivation")}</th>
+            <th>{gettext("Threat Level")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr :for={threat_agent <- @workspace.threat_agents || []}>
+            <td>{threat_agent.name}</td>
+            <td>{threat_agent.agent_class}</td>
+            <td>{threat_agent.capability}</td>
+            <td>{threat_agent.motivation}</td>
+            <td>{ThreatModelReportHelper.threat_agent_td_level_label(threat_agent.td_level)}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 id="threats">6. {gettext("Threats")}</h3>
       <table class="report-table">
         <thead>
           <tr>
@@ -169,6 +198,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent do
             <th>{gettext("Status")}</th>
             <th>{gettext("Priority")}</th>
             <th>{gettext("STRIDE")}</th>
+            <th>{gettext("Tags")}</th>
             <th>{gettext("Comments")}</th>
           </tr>
         </thead>
@@ -196,13 +226,20 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent do
             <td>{DisplayHelper.enum_label(threat.priority)}</td>
             <td>{ThreatModelReportHelper.stride_to_letter(threat.stride)}</td>
             <td>
-              {to_markdown(threat.comments)}
+              <ul>
+                <li :for={tag <- ThreatModelReportHelper.report_tags(threat.tags)}>{tag}</li>
+              </ul>
+            </td>
+            <td>
+              {to_markdown(
+                ThreatModelReportHelper.deduplicated_tag_comments(threat.comments, threat.tags)
+              )}
             </td>
           </tr>
         </tbody>
       </table>
 
-      <h3 id="mitigations">6. {gettext("Mitigations")}</h3>
+      <h3 id="mitigations">7. {gettext("Mitigations")}</h3>
       <table class="report-table">
         <thead>
           <tr>
@@ -210,6 +247,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent do
             <th>{gettext("Mitigation")}</th>
             <th>{gettext("Threats Mitigating")}</th>
             <th>{gettext("Assumptions")}</th>
+            <th>{gettext("Tags")}</th>
             <th>{gettext("Comments")}</th>
           </tr>
         </thead>
@@ -232,13 +270,18 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent do
               </ul>
             </td>
             <td>
+              <ul>
+                <li :for={tag <- ThreatModelReportHelper.report_tags(mitigation.tags)}>{tag}</li>
+              </ul>
+            </td>
+            <td>
               {to_markdown(mitigation.comments)}
             </td>
           </tr>
         </tbody>
       </table>
 
-      <h3 id="impacted_assets">7. {gettext("Impacted Assets")}</h3>
+      <h3 id="impacted_assets">8. {gettext("Impacted Assets")}</h3>
       <table class="report-table">
         <thead>
           <tr>

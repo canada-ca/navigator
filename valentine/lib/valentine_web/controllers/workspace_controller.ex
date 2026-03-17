@@ -146,6 +146,7 @@ defmodule ValentineWeb.WorkspaceController do
       :application_information,
       :architecture,
       :data_flow_diagram,
+      :threat_agents,
       mitigations: [:assumptions, :threats],
       threats: [:assumptions, :mitigations],
       assumptions: [:threats, :mitigations]
