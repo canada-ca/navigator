@@ -1,7 +1,16 @@
 {
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
   "dependencies": {
     "apexcharts": "^4.2.0",
+    "cytoscape": "^3.33.1",
     "cytoscape-edgehandles": "^4.0.1",
     "quill": "^2.0.2"
+  },
+  "devDependencies": {
+    "jsdom": "^29.0.0",
+    "vitest": "^4.1.0"
   }
 }

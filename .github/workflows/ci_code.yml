@@ -37,8 +37,16 @@ jobs:
           otp-version: 27.2
           elixir-version: 1.18.4
 
-      - name: Install chrome
-        uses: browser-actions/setup-chrome@v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: valentine/assets/package-lock.json
+
+      - name: Install asset dependencies
+        working-directory: ./valentine/assets
+        run: npm ci
 
       - name: Install dependencies
         working-directory: ./valentine
@@ -47,6 +55,10 @@ jobs:
       - name: Compile dependencies
         working-directory: ./valentine
         run: mix deps.compile
+
+      - name: Run JavaScript tests
+        working-directory: ./valentine/assets
+        run: npm test
 
       - name: Test and lint
         working-directory: ./valentine
