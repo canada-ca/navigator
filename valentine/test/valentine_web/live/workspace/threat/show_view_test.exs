@@ -20,6 +20,8 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowViewTest do
 
       assert html =~ "Edit Threat Statement"
       assert html =~ threat.threat_source
+      assert html =~ "Current classification"
+      assert html =~ "MITRE Tactic"
     end
   end
 end

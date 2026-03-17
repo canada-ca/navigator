@@ -9,12 +9,15 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
     workspace = Composer.get_workspace!(workspace_id, [:assumptions, :mitigations])
     ValentineWeb.Endpoint.subscribe("workspace_" <> workspace.id)
 
+    threats = Composer.list_threats_by_workspace(workspace.id, %{})
+
     {:ok,
      socket
      |> assign(:workspace_id, workspace_id)
      |> assign(:workspace, workspace)
      |> assign(:filters, %{})
-     |> assign(:threats, Composer.list_threats_by_workspace(workspace.id, %{}))}
+     |> assign(:threats, threats)
+     |> assign(:mitre_tactic_values, mitre_tactic_values(threats))}
   end
 
   @impl true
@@ -51,6 +54,12 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
       threat ->
         case Composer.delete_threat(threat) do
           {:ok, _} ->
+            threats =
+              Composer.list_threats_by_workspace(
+                socket.assigns.workspace_id,
+                socket.assigns.filters
+              )
+
             log(
               :info,
               socket.assigns.current_user,
@@ -68,13 +77,8 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
             {:noreply,
              socket
              |> put_flash(:info, gettext("Threat deleted successfully"))
-             |> assign(
-               :threats,
-               Composer.list_threats_by_workspace(
-                 socket.assigns.workspace_id,
-                 socket.assigns.filters
-               )
-             )}
+             |> assign(:mitre_tactic_values, mitre_tactic_values(threats))
+             |> assign(:threats, threats)}
 
           {:error, _} ->
             {:noreply, socket |> put_flash(:error, gettext("Failed to delete threat"))}
@@ -84,25 +88,25 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
 
   @impl true
   def handle_event("clear_filters", _params, socket) do
+    threats = Composer.list_threats_by_workspace(socket.assigns.workspace_id, %{})
+
     {:noreply,
      socket
      |> assign(:filters, %{})
-     |> assign(
-       :threats,
-       Composer.list_threats_by_workspace(socket.assigns.workspace_id, %{})
-     )}
+     |> assign(:threats, threats)
+     |> assign(:mitre_tactic_values, mitre_tactic_values(threats))}
   end
 
   @impl true
   def handle_info({:update_filter, filters}, socket) do
+    threats = Composer.list_threats_by_workspace(socket.assigns.workspace_id, filters)
+
     {
       :noreply,
       socket
       |> assign(:filters, filters)
-      |> assign(
-        :threats,
-        Composer.list_threats_by_workspace(socket.assigns.workspace_id, filters)
-      )
+      |> assign(:threats, threats)
+      |> assign(:mitre_tactic_values, mitre_tactic_values(threats))
     }
   end
 
@@ -111,21 +115,30 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
         {_, {:saved, _threat}},
         socket
       ) do
+    threats =
+      Composer.list_threats_by_workspace(socket.assigns.workspace_id, socket.assigns.filters)
+
     {:noreply,
-     assign(
-       socket,
-       :threats,
-       Composer.list_threats_by_workspace(socket.assigns.workspace_id, socket.assigns.filters)
-     )}
+     socket
+     |> assign(:threats, threats)
+     |> assign(:mitre_tactic_values, mitre_tactic_values(threats))}
   end
 
   @impl true
   def handle_info(%{topic: "workspace_" <> workspace_id}, socket) do
+    threats = Composer.list_threats_by_workspace(workspace_id, socket.assigns.filters)
+
     {:noreply,
-     assign(
-       socket,
-       :threats,
-       Composer.list_threats_by_workspace(workspace_id, socket.assigns.filters)
-     )}
+     socket
+     |> assign(:threats, threats)
+     |> assign(:mitre_tactic_values, mitre_tactic_values(threats))}
+  end
+
+  defp mitre_tactic_values(threats) do
+    threats
+    |> Enum.map(& &1.mitre_tactic)
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+    |> Enum.sort()
   end
 end

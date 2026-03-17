@@ -19,6 +19,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.IndexViewTest do
 
       assert html =~ "Listing Threats"
       assert html =~ threat.threat_source
+      assert html =~ "Threat level"
     end
   end
 end
