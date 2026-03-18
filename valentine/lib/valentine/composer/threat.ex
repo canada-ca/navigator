@@ -3,6 +3,9 @@ defmodule Valentine.Composer.Threat do
   import Ecto.Changeset
   import Ecto.Query
 
+  alias Valentine.Composer.DeliberateThreatLevel
+  alias ValentineWeb.Helpers.DisplayHelper
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   @derive {Jason.Encoder,
@@ -13,6 +16,9 @@ defmodule Valentine.Composer.Threat do
              :status,
              :priority,
              :stride,
+             :mitre_tactic,
+             :kill_chain_phase,
+             :threat_level,
              :comments,
              :threat_source,
              :prerequisites,
@@ -23,6 +29,25 @@ defmodule Valentine.Composer.Threat do
              :tags
            ]}
 
+  @threat_levels DeliberateThreatLevel.values()
+  @stride_categories [
+    :spoofing,
+    :tampering,
+    :repudiation,
+    :information_disclosure,
+    :denial_of_service,
+    :elevation_of_privilege
+  ]
+  @kill_chain_phases [
+    :reconnaissance,
+    :weaponization,
+    :delivery,
+    :exploitation,
+    :installation,
+    :command_and_control,
+    :actions_on_objectives
+  ]
+
   schema "threats" do
     belongs_to :workspace, Valentine.Composer.Workspace
 
@@ -32,14 +57,11 @@ defmodule Valentine.Composer.Threat do
 
     field :stride,
           {:array, Ecto.Enum},
-          values: [
-            :spoofing,
-            :tampering,
-            :repudiation,
-            :information_disclosure,
-            :denial_of_service,
-            :elevation_of_privilege
-          ]
+          values: @stride_categories
+
+    field :mitre_tactic, :string
+    field :kill_chain_phase, Ecto.Enum, values: @kill_chain_phases
+    field :threat_level, Ecto.Enum, values: @threat_levels
 
     field :comments, :string
     field :threat_source, :string
@@ -70,6 +92,9 @@ defmodule Valentine.Composer.Threat do
       :status,
       :priority,
       :stride,
+      :mitre_tactic,
+      :kill_chain_phase,
+      :threat_level,
       :comments,
       :threat_source,
       :prerequisites,
@@ -112,10 +137,42 @@ defmodule Valentine.Composer.Threat do
     end
   end
 
+  def stride_categories, do: @stride_categories
+
+  def kill_chain_phases, do: @kill_chain_phases
+
+  # Normalize threat_level values before looking up a label.
+  # Supports both atoms and strings, and treats empty string as nil.
+  def classification_label(:threat_level, ""), do: nil
+
+  def classification_label(:threat_level, value) when is_atom(value) do
+    DeliberateThreatLevel.label(value)
+  end
+
+  def classification_label(:threat_level, value) when is_binary(value) do
+    try do
+      value
+      |> String.to_existing_atom()
+      |> DeliberateThreatLevel.label()
+    rescue
+      ArgumentError ->
+        nil
+    end
+  end
+
+  def classification_label(:kill_chain_phase, nil), do: nil
+
+  def classification_label(:kill_chain_phase, value) do
+    value
+    |> Phoenix.Naming.humanize()
+  end
+
+  def classification_label(_, nil), do: nil
+  def classification_label(_, value), do: value
+
   def show_statement(threat) do
-    "#{ValentineWeb.WorkspaceLive.Threat.Components.ThreatHelpers.a_or_an(threat.threat_source,
-    true)} #{threat.threat_source} #{threat.prerequisites} can #{threat.threat_action}#{if(threat.threat_impact != nil, do: ", which leads to #{threat.threat_impact}")}#{if(threat.impacted_goal && threat.impacted_goal != [],
-    do: ", resulting in reduced " <> ValentineWeb.WorkspaceLive.Threat.Components.ThreatHelpers.join_list(threat.impacted_goal))} negatively impacting #{ValentineWeb.WorkspaceLive.Threat.Components.ThreatHelpers.join_list(threat.impacted_assets)}."
+    "#{DisplayHelper.indefinite_article(threat.threat_source, true)} #{threat.threat_source} #{threat.prerequisites} can #{threat.threat_action}#{if(threat.threat_impact != nil, do: ", which leads to #{threat.threat_impact}")}#{if(threat.impacted_goal && threat.impacted_goal != [],
+    do: ", resulting in reduced " <> DisplayHelper.join_display_list(threat.impacted_goal))} negatively impacting #{DisplayHelper.join_display_list(threat.impacted_assets)}."
   end
 
   def stride_banner(threat) do

@@ -78,6 +78,25 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.IndexViewTest do
       assert html =~ "some updated content"
     end
 
+    test "opens the categorizer from the listing", %{
+      conn: conn,
+      assumption: assumption,
+      workspace_id: workspace_id
+    } do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
+      {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace_id}/assumptions")
+
+      assert index_live
+             |> element("#categorize-assumption-#{assumption.id}")
+             |> render_click() =~ "Categorize this assumption based on NIST controls"
+
+      assert_patch(
+        index_live,
+        ~p"/workspaces/#{workspace_id}/assumptions/#{assumption.id}/categorize"
+      )
+    end
+
     test "deletes assumption in listing", %{
       conn: conn,
       assumption: assumption,

@@ -33,6 +33,12 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
     |> assign(:assumption, Composer.get_assumption!(id))
   end
 
+  defp apply_action(socket, :categorize, %{"id" => id}) do
+    socket
+    |> assign(:page_title, gettext("Categorize Assumption"))
+    |> assign(:assumption, Composer.get_assumption!(id, [:mitigations, :threats]))
+  end
+
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(
@@ -84,6 +90,15 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
         Composer.list_assumptions_by_workspace(socket.assigns.workspace_id, filters)
       )
     }
+  end
+
+  @impl true
+  def handle_info(%{topic: "workspace_" <> workspace_id}, socket) do
+    workspace = get_workspace(workspace_id)
+
+    {:noreply,
+     socket
+     |> assign(:assumptions, get_sorted_assumptions(workspace))}
   end
 
   @impl true

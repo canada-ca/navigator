@@ -418,6 +418,284 @@
     /* Anchor item-level action menu */
 }
 
+.repo-analysis-card {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    padding: 1rem 1.25rem;
+}
+
+.repo-analysis-collapsible {
+    display: block;
+    overflow: hidden;
+}
+
+.repo-analysis-collapsible.repo-analysis-card {
+    gap: 0;
+    padding: 0;
+}
+
+.repo-analysis-collapsible__summary {
+    list-style: none;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .9rem 1.1rem;
+    cursor: pointer;
+}
+
+.repo-analysis-collapsible__summary::-webkit-details-marker {
+    display: none;
+}
+
+.repo-analysis-collapsible__summary-main {
+    min-width: 0;
+    flex: 1;
+}
+
+.repo-analysis-collapsible__summary-title {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--color-fg-default);
+}
+
+.repo-analysis-collapsible__summary-subtitle {
+    margin-top: .2rem;
+    font-size: .92rem;
+    color: var(--color-fg-muted);
+    word-break: break-word;
+}
+
+.repo-analysis-collapsible__summary-side {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: .5rem;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.repo-analysis-collapsible__summary-link {
+    font-size: .88rem;
+    white-space: nowrap;
+}
+
+.repo-analysis-collapsible__chevron {
+    color: var(--color-fg-muted);
+    transition: transform .15s ease;
+}
+
+.repo-analysis-collapsible[open] .repo-analysis-collapsible__chevron {
+    transform: rotate(180deg);
+}
+
+.repo-analysis-collapsible__content {
+    padding: 0 1.1rem 1rem;
+    border-top: 1px solid var(--color-border-default);
+}
+
+.repo-analysis-collapsible__content .repo-analysis-card__actions {
+    margin-bottom: .75rem;
+}
+
+.repo-analysis-collapsible--embedded .repo-analysis-collapsible__summary {
+    padding: 1rem 1.25rem;
+}
+
+.repo-analysis-collapsible--embedded .repo-analysis-collapsible__content {
+    padding: 0 1.25rem 1rem;
+}
+
+.repo-analysis-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.repo-analysis-card__heading {
+    min-width: 0;
+    flex: 1;
+}
+
+.repo-analysis-card__title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--color-fg-default);
+}
+
+.repo-analysis-card__subtitle {
+    margin-top: .25rem;
+    font-size: .95rem;
+    color: var(--color-fg-muted);
+    word-break: break-word;
+}
+
+.repo-analysis-card__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.repo-analysis-card__message {
+    font-size: .95rem;
+    line-height: 1.45;
+    color: var(--color-fg-default);
+}
+
+.repo-analysis-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: .6rem;
+}
+
+.repo-analysis-meta-item,
+.repo-analysis-detail-card {
+    padding: .65rem .8rem;
+    border: 1px solid var(--color-border-default);
+    border-radius: 10px;
+    background: var(--color-canvas-subtle);
+}
+
+.repo-analysis-meta-label {
+    display: block;
+    margin-bottom: .3rem;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--color-fg-muted);
+}
+
+.repo-analysis-meta-value,
+.repo-analysis-detail-value {
+    font-size: .92rem;
+    line-height: 1.45;
+    color: var(--color-fg-default);
+    word-break: break-word;
+}
+
+.repo-analysis-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: .6rem;
+}
+
+.repo-analysis-progress-block {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+}
+
+.repo-analysis-progress-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.repo-analysis-progress-text {
+    font-size: .88rem;
+    color: var(--color-fg-muted);
+}
+
+.repo-analysis-alert {
+    padding: .7rem .85rem;
+    border-radius: 10px;
+    border: 1px solid var(--color-danger-muted, rgba(209, 36, 47, 0.25));
+    background: var(--color-danger-subtle, #ffebe9);
+    color: var(--color-danger-fg, #cf222e);
+    font-size: .9rem;
+    line-height: 1.4;
+}
+
+.repo-analysis-history-heading {
+    margin-bottom: .75rem;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--color-fg-muted);
+}
+
+.repo-analysis-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+}
+
+.repo-analysis-history-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .9rem 1rem;
+    border: 1px solid var(--color-border-default);
+    border-radius: 10px;
+    background: var(--color-canvas-subtle);
+}
+
+.repo-analysis-history-main {
+    min-width: 0;
+    flex: 1;
+}
+
+.repo-analysis-history-topline {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+
+.repo-analysis-history-message {
+    color: var(--color-fg-default);
+    line-height: 1.4;
+}
+
+.repo-analysis-history-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: .65rem;
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .repo-analysis-card {
+        padding: .85rem;
+    }
+
+    .repo-analysis-collapsible__summary,
+    .repo-analysis-collapsible--embedded .repo-analysis-collapsible__summary {
+        padding: .85rem;
+    }
+
+    .repo-analysis-collapsible__content,
+    .repo-analysis-collapsible--embedded .repo-analysis-collapsible__content {
+        padding: 0 .85rem .85rem;
+    }
+
+    .repo-analysis-card__header,
+    .repo-analysis-collapsible__summary,
+    .repo-analysis-progress-row,
+    .repo-analysis-history-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .repo-analysis-card__actions,
+    .repo-analysis-collapsible__summary-side,
+    .repo-analysis-history-side {
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
+}
+
 .brainstorm-masonry-item [data-role="type-items"] .Box:hover {
     background: var(--color-canvas-default);
 }
@@ -698,6 +976,112 @@ div:has(> button.rtl-btn) {
 .report-table thead,
 .report-table tbody {
     width: 100% !important;
+}
+
+.threat-model-print-hint {
+    max-width: 60rem;
+    margin: 0 0 1rem;
+    color: var(--color-fg-muted);
+}
+
+.threat-model-report-page {
+    max-width: 1100px;
+}
+
+.threat-model-report-page table {
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+.threat-model-report-page th,
+.threat-model-report-page td {
+    padding: 0.5rem;
+    border: 1px solid var(--color-border-default);
+    text-align: left;
+    vertical-align: top;
+}
+
+.threat-model-report-page th {
+    background-color: var(--color-canvas-subtle);
+}
+
+.threat-model-report-page img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.threat-model-report-page ul,
+.threat-model-report-page ol {
+    padding-left: 1.5rem;
+}
+
+@page {
+    margin: 0.5in;
+}
+
+@media print {
+
+    html,
+    body {
+        background: #fff !important;
+    }
+
+    body {
+        color: #111;
+    }
+
+    .Header,
+    .Layout-sidebar,
+    #far_side_drawer,
+    .threat-model-actions,
+    .threat-model-print-hint {
+        display: none !important;
+    }
+
+    .Layout,
+    .Layout-main,
+    .Layout-main>.d-flex,
+    .Layout-main .flex-auto {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    .Layout {
+        padding: 0 !important;
+    }
+
+    .Layout-main {
+        padding: 0 !important;
+    }
+
+    .threat-model-report-page {
+        max-width: none;
+    }
+
+    .threat-model-report-page h1,
+    .threat-model-report-page h2,
+    .threat-model-report-page h3,
+    .threat-model-report-page h4,
+    .threat-model-report-page h5,
+    .threat-model-report-page h6 {
+        break-after: avoid-page;
+        page-break-after: avoid;
+    }
+
+    .threat-model-report-page img,
+    .threat-model-report-page table,
+    .threat-model-report-page tr,
+    .threat-model-report-page .Box {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .threat-model-report-page a {
+        color: inherit !important;
+        text-decoration: none;
+    }
 }
 
 /* Resize handle */

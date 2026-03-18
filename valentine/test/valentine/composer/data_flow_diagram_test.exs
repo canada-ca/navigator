@@ -340,6 +340,88 @@ defmodule Valentine.Composer.DataFlowDiagramTest do
     assert DataFlowDiagram.to_json(workspace_id) == "{\"nodes\":{},\"edges\":{}}"
   end
 
+  test "replace_diagram/2 persists imported nodes and edges", %{workspace_id: workspace_id} do
+    imported_nodes = %{
+      "node-import-1" => %{
+        "data" => %{
+          "id" => "node-import-1",
+          "data_tags" => [],
+          "description" => nil,
+          "label" => "External User",
+          "linked_threats" => [],
+          "out_of_scope" => "false",
+          "parent" => nil,
+          "security_tags" => [],
+          "technology_tags" => [],
+          "type" => "actor"
+        },
+        "grabbable" => "true",
+        "position" => %{"x" => 0, "y" => 0}
+      }
+    }
+
+    imported_edges = %{
+      "edge-import-1" => %{
+        "data" => %{
+          "id" => "edge-import-1",
+          "data_tags" => [],
+          "description" => nil,
+          "label" => "Request",
+          "linked_threats" => [],
+          "out_of_scope" => "false",
+          "security_tags" => [],
+          "source" => "node-import-1",
+          "target" => "node-import-1",
+          "technology_tags" => [],
+          "type" => "edge"
+        }
+      }
+    }
+
+    updated_dfd =
+      DataFlowDiagram.replace_diagram(workspace_id, %{
+        nodes: imported_nodes,
+        edges: imported_edges
+      })
+
+    assert updated_dfd.nodes == imported_nodes
+    assert updated_dfd.edges == imported_edges
+
+    persisted_dfd = DataFlowDiagram.get(workspace_id, false)
+    assert persisted_dfd.nodes == imported_nodes
+    assert persisted_dfd.edges == imported_edges
+  end
+
+  test "replace_diagram/2 can be undone through existing history", %{workspace_id: workspace_id} do
+    original_node = DataFlowDiagram.add_node(workspace_id, %{"type" => "test"})
+
+    imported_nodes = %{
+      "node-import-1" => %{
+        "data" => %{
+          "id" => "node-import-1",
+          "data_tags" => [],
+          "description" => nil,
+          "label" => "Imported Service",
+          "linked_threats" => [],
+          "out_of_scope" => "false",
+          "parent" => nil,
+          "security_tags" => [],
+          "technology_tags" => [],
+          "type" => "process"
+        },
+        "grabbable" => "true",
+        "position" => %{"x" => 0, "y" => 0}
+      }
+    }
+
+    DataFlowDiagram.replace_diagram(workspace_id, %{nodes: imported_nodes, edges: %{}})
+
+    restored = DataFlowDiagram.undo(workspace_id, %{})
+
+    assert Map.has_key?(restored.nodes, original_node["data"]["id"])
+    refute Map.has_key?(restored.nodes, "node-import-1")
+  end
+
   test "update_metadata/2 updates node metadata", %{workspace_id: workspace_id} do
     node = DataFlowDiagram.add_node(workspace_id, %{"type" => "test"})
     new_metadata = %{"id" => node["data"]["id"], "field" => "label", "value" => "New Label"}

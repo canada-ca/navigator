@@ -29,6 +29,12 @@ defmodule ValentineWeb.WorkspaceLive.Index do
     |> assign(:workspace, %Workspace{})
   end
 
+  defp apply_action(socket, :github_import, _params) do
+    socket
+    |> assign(:page_title, gettext("Import from GitHub"))
+    |> assign(:workspace, %Workspace{})
+  end
+
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, gettext("New Workspace"))
@@ -68,6 +74,19 @@ defmodule ValentineWeb.WorkspaceLive.Index do
 
   @impl true
   def handle_info({ValentineWeb.WorkspaceLive.FormComponent, {:saved, _workspace}}, socket) do
+    {:noreply,
+     assign(
+       socket,
+       :workspaces,
+       Composer.list_workspaces_by_identity(socket.assigns.current_user)
+     )}
+  end
+
+  @impl true
+  def handle_info(
+        {ValentineWeb.WorkspaceLive.GitHubImportComponent, {:saved, _workspace}},
+        socket
+      ) do
     {:noreply,
      assign(
        socket,

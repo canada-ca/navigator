@@ -163,6 +163,20 @@
       </.button_group>
     </div>
     <div class="d-flex flex-column mr-2">
+      <span class="text-small text-bold mb-1">{gettext("Import")}</span>
+      <.button_group class="mr-2">
+        <.button
+          id="open-mermaid-import"
+          is_icon_button
+          aria-label={gettext("Import Mermaid diagram")}
+          title={gettext("Import Mermaid diagram")}
+          phx-click="open_mermaid_import"
+        >
+          <.octicon name="upload-24" />
+        </.button>
+      </.button_group>
+    </div>
+    <div class="d-flex flex-column mr-2">
       <span class="text-small text-bold mb-1">{gettext("Export")}</span>
       <.button_group class="mr-2">
         <a href={"/workspaces/#{@workspace_id}/data_flow/mermaid"} target="_blank">
@@ -194,6 +208,7 @@
       Map.merge(@selected_elements["nodes"], @selected_elements["edges"]) |> Map.keys() |> hd()
     }
     workspace_id={@workspace_id}
+    touched={@touched}
   />
 </div>
 
@@ -222,3 +237,116 @@
     Map.merge(@selected_elements["nodes"], @selected_elements["edges"]) |> Map.keys() |> hd()
   }
 />
+
+<%= if @show_mermaid_import do %>
+  <div class="cluster-dialog-overlay" role="presentation">
+    <div
+      class="Box Box--overlay p-0 cluster-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="mermaid-import-title"
+    >
+      <div class="Box-header cluster-dialog-header">
+        <h3 class="Box-title" id="mermaid-import-title">
+          <.octicon name="upload-16" class="mr-2" /> {gettext("Import Mermaid diagram")}
+        </h3>
+        <button
+          class="Box-btn-octicon btn-octicon"
+          phx-click="close_mermaid_import"
+          type="button"
+          aria-label={gettext("Close dialog")}
+        >
+          <.octicon name="x-16" />
+        </button>
+      </div>
+      <div class="Box-body cluster-dialog-body">
+        <p class="color-fg-muted mb-3 text-small">
+          {gettext(
+            "Best results come from stateDiagram-v2, but Navigator also accepts supported stateDiagram, flowchart, and graph variants."
+          )}
+        </p>
+
+        <%= if @mermaid_import_error do %>
+          <div class="flash flash-error mb-3" id="mermaid-import-error">
+            {@mermaid_import_error}
+          </div>
+        <% end %>
+
+        <.form
+          for={%{}}
+          as={:mermaid_import}
+          id="mermaid-import-form"
+          phx-submit="preview_mermaid_import"
+        >
+          <fieldset class="fieldset-group">
+            <legend class="sr-only">{gettext("Mermaid source")}</legend>
+            <div class="form-group mb-3">
+              <label
+                class="form-label d-block text-small color-fg-muted mb-1 uppercase"
+                for="mermaid-import-source"
+              >
+                {gettext("Mermaid source")}
+              </label>
+              <textarea
+                id="mermaid-import-source"
+                name="mermaid_import[source]"
+                rows="14"
+                class="form-control width-full"
+              ><%= @mermaid_import_source %></textarea>
+              <p class="form-help-text mt-1 mb-0 text-small color-fg-subtle">
+                {gettext("Preview warnings before replacing the current workspace diagram.")}
+              </p>
+            </div>
+          </fieldset>
+
+          <div class="d-flex flex-justify-end gap-2 mb-3">
+            <.button type="button" phx-click="close_mermaid_import" class="btn-sm mr-2">
+              {gettext("Cancel")}
+            </.button>
+            <.button type="submit" is_primary class="btn-sm" id="preview-mermaid-import">
+              <.octicon name="beaker-16" class="mr-1" />
+              {gettext("Preview import")}
+            </.button>
+          </div>
+        </.form>
+
+        <%= if @mermaid_import_preview do %>
+          <div id="mermaid-import-preview">
+            <div class="flash flash-warn mb-3">
+              <strong>{gettext("Import summary")}</strong>
+              <span class="ml-2">
+                {gettext("%{nodes} nodes, %{edges} edges, %{boundaries} trust boundaries",
+                  nodes: @mermaid_import_preview.summary.nodes,
+                  edges: @mermaid_import_preview.summary.edges,
+                  boundaries: @mermaid_import_preview.summary.trust_boundaries
+                )}
+              </span>
+            </div>
+
+            <%= if @mermaid_import_preview.warnings != [] do %>
+              <div class="Box mb-3">
+                <div class="Box-header">
+                  <h4 class="Box-title">{gettext("Warnings")}</h4>
+                </div>
+                <div class="Box-body">
+                  <ul class="mb-0">
+                    <%= for warning <- @mermaid_import_preview.warnings do %>
+                      <li class="mb-2">{warning.message}</li>
+                    <% end %>
+                  </ul>
+                </div>
+              </div>
+            <% end %>
+
+            <div class="d-flex flex-justify-end">
+              <.button id="confirm-mermaid-import" phx-click="confirm_mermaid_import" is_primary>
+                <.octicon name="check-16" class="mr-1" />
+                {gettext("Import diagram")}
+              </.button>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>

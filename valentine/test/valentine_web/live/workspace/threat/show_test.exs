@@ -245,6 +245,19 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
       assert updated_socket.assigns.changes[:comments] == "Comments"
     end
 
+    test "preserves mitre tactic text values", %{socket: socket} do
+      socket = put_in(socket.assigns.changes, %{})
+
+      {:noreply, updated_socket} =
+        ValentineWeb.WorkspaceLive.Threat.Show.handle_event(
+          "update_field",
+          %{"_target" => ["mitre_tactic"], "mitre_tactic" => "Initial Access"},
+          socket
+        )
+
+      assert updated_socket.assigns.changes[:mitre_tactic] == "Initial Access"
+    end
+
     test "updates field value in changeset to nil if there are no matches", %{
       socket: socket
     } do

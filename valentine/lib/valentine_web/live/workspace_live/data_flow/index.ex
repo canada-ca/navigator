@@ -7,6 +7,7 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
   alias Phoenix.PubSub
 
   alias Valentine.Composer.DataFlowDiagram
+  alias ValentineWeb.Workspace.Mermaid.Import, as: MermaidImport
 
   @impl true
   def mount(%{"workspace_id" => workspace_id} = _params, _session, socket) do
@@ -27,6 +28,10 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
      |> assign(:selected_elements, %{"nodes" => %{}, "edges" => %{}})
      |> assign(:show_threat_statement_generator, false)
      |> assign(:show_threat_statement_linker, false)
+     |> assign(:show_mermaid_import, false)
+     |> assign(:mermaid_import_source, "")
+     |> assign(:mermaid_import_preview, nil)
+     |> assign(:mermaid_import_error, nil)
      |> assign(:touched, true)
      |> assign(:workspace_id, workspace_id)
      |> assign(:workspace, workspace)}
@@ -114,6 +119,83 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
     {:noreply,
      socket
      |> assign(:show_threat_statement_linker, !socket.assigns.show_threat_statement_linker)}
+  end
+
+  @impl true
+  def handle_event("open_mermaid_import", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_mermaid_import, true)
+     |> assign(:mermaid_import_error, nil)
+     |> assign(:mermaid_import_preview, nil)}
+  end
+
+  @impl true
+  def handle_event("close_mermaid_import", _params, socket) do
+    {:noreply, reset_mermaid_import(socket)}
+  end
+
+  @impl true
+  def handle_event("preview_mermaid_import", %{"mermaid_import" => %{"source" => source}}, socket) do
+    case MermaidImport.preview(source) do
+      {:ok, preview} ->
+        {:noreply,
+         socket
+         |> assign(:show_mermaid_import, true)
+         |> assign(:mermaid_import_source, source)
+         |> assign(:mermaid_import_error, nil)
+         |> assign(
+           :mermaid_import_preview,
+           append_replacement_warning(preview, socket.assigns.dfd)
+         )}
+
+      {:error, reason} ->
+        {:noreply,
+         socket
+         |> assign(:show_mermaid_import, true)
+         |> assign(:mermaid_import_source, source)
+         |> assign(:mermaid_import_preview, nil)
+         |> assign(:mermaid_import_error, reason)}
+    end
+  end
+
+  @impl true
+  def handle_event(
+        "confirm_mermaid_import",
+        _params,
+        %{assigns: %{mermaid_import_preview: nil}} = socket
+      ) do
+    {:noreply,
+     socket |> put_flash(:error, gettext("Preview a Mermaid diagram before importing."))}
+  end
+
+  @impl true
+  def handle_event("confirm_mermaid_import", _params, socket) do
+    preview = socket.assigns.mermaid_import_preview
+
+    updated_dfd =
+      DataFlowDiagram.replace_diagram(socket.assigns.workspace_id, %{
+        nodes: preview.nodes,
+        edges: preview.edges
+      })
+
+    broadcast("workspace_dataflow:#{socket.assigns.workspace_id}", %{
+      event: "import_mermaid",
+      payload: updated_dfd
+    })
+
+    {:noreply,
+     socket
+     |> assign(:dfd, updated_dfd)
+     |> assign(:saved, true)
+     |> assign(:selected_elements, %{"nodes" => %{}, "edges" => %{}})
+     |> assign(:touched, !socket.assigns.touched)
+     |> push_event("updateGraph", %{
+       event: "refresh_graph",
+       payload: %{nodes: Map.values(updated_dfd.nodes), edges: Map.values(updated_dfd.edges)}
+     })
+     |> reset_mermaid_import()
+     |> put_flash(:info, gettext("Mermaid diagram imported successfully"))}
   end
 
   # Handle keyboard shortcuts
@@ -260,6 +342,15 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
              payload: %{nodes: Map.values(payload.nodes), edges: Map.values(payload.edges)}
            }}
 
+        "import_mermaid" ->
+          {socket
+           |> assign(:dfd, payload)
+           |> assign(:selected_elements, %{"nodes" => %{}, "edges" => %{}}),
+           %{
+             event: "refresh_graph",
+             payload: %{nodes: Map.values(payload.nodes), edges: Map.values(payload.edges)}
+           }}
+
         _ ->
           {socket, %{event: event, payload: payload}}
       end
@@ -267,7 +358,7 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
     {:noreply,
      updated_socket
      |> push_event("updateGraph", canvas_payload)
-     |> assign(:saved, if(event == :saved, do: true, else: false))}
+     |> assign(:saved, if(event in [:saved, "import_mermaid"], do: true, else: false))}
   end
 
   # Handle info from components
@@ -279,10 +370,32 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
   @impl true
   def handle_info({:update_metadata, params}, socket) do
     handle_event("update_metadata", params, socket)
-    {:noreply, socket}
   end
 
   defp broadcast(topic, payload) do
     PubSub.broadcast_from!(Valentine.PubSub, self(), topic, payload)
+  end
+
+  defp append_replacement_warning(preview, dfd) do
+    if map_size(dfd.nodes) == 0 and map_size(dfd.edges) == 0 do
+      preview
+    else
+      replacement_warning = %{
+        code: :replacement,
+        message: "Importing Mermaid will replace the current diagram in this workspace."
+      }
+
+      Map.update!(preview, :warnings, fn warnings ->
+        Enum.reject(warnings, &(&1.code == :replacement)) ++ [replacement_warning]
+      end)
+    end
+  end
+
+  defp reset_mermaid_import(socket) do
+    socket
+    |> assign(:show_mermaid_import, false)
+    |> assign(:mermaid_import_source, "")
+    |> assign(:mermaid_import_preview, nil)
+    |> assign(:mermaid_import_error, nil)
   end
 end

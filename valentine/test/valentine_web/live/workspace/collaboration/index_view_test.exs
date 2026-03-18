@@ -1,6 +1,5 @@
 defmodule ValentineWeb.WorkspaceLive.Collaboration.IndexViewTest do
   use ValentineWeb.ConnCase
-
   import Phoenix.LiveViewTest
   import Valentine.ComposerFixtures
 
@@ -81,7 +80,7 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.IndexViewTest do
       assert index_live
              |> element(~s{[id="form-for-#{some_user.email}"]})
              |> render_change(%{"permission" => "none"}) =~
-               "<input checked=\"checked\" class=\"radio-input FormControl-radio\" id=\"#{some_user.email}-__none\" name=\"permission\" type=\"radio\" value=\"none\"/>"
+               "<input checked=\"\" class=\"radio-input FormControl-radio\" id=\"#{some_user.email}-__none\" name=\"permission\" type=\"radio\" value=\"none\"/>"
     end
   end
 end

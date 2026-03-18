@@ -63,6 +63,15 @@
 />
 
 <.live_component
+  :if={@live_action in [:categorize]}
+  module={ValentineWeb.WorkspaceLive.Assumption.Components.ControlCategorizer}
+  id={@assumption.id}
+  assumption={@assumption}
+  workspace_id={@workspace_id}
+  patch={~p"/workspaces/#{@workspace_id}/assumptions"}
+/>
+
+<.live_component
   :if={@live_action in [:mitigations]}
   module={ValentineWeb.WorkspaceLive.Components.EntityLinkerComponent}
   id={@assumption.id}

@@ -7,26 +7,41 @@ defmodule Valentine.Application do
 
   @impl true
   def start(_type, _args) do
-    children = [
-      ValentineWeb.Telemetry,
-      Valentine.Repo,
-      {DNSCluster, query: Application.get_env(:valentine, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: Valentine.PubSub},
-      ValentineWeb.Presence,
-      # Start the Finch HTTP client for sending emails
-      {Finch, name: Valentine.Finch},
-      # Start a worker by calling: Valentine.Worker.start_link(arg)
-      # {Valentine.Worker, arg},
-      # Start the cache
-      {Cachex, [:valentine]},
-      # Start to serve requests, typically the last entry
-      ValentineWeb.Endpoint
-    ]
+    children =
+      [
+        ValentineWeb.Telemetry,
+        Valentine.Repo,
+        Valentine.Jido,
+        {Task.Supervisor, name: Valentine.TaskSupervisor},
+        maybe_repo_analysis_recovery_child(),
+        {DNSCluster, query: Application.get_env(:valentine, :dns_cluster_query) || :ignore},
+        {Phoenix.PubSub, name: Valentine.PubSub},
+        ValentineWeb.Presence,
+        # Start the Finch HTTP client for sending emails
+        {Finch, name: Valentine.Finch},
+        # Start a worker by calling: Valentine.Worker.start_link(arg)
+        # {Valentine.Worker, arg},
+        # Start the cache
+        {Cachex, [:valentine]},
+        # Start to serve requests, typically the last entry
+        ValentineWeb.Endpoint
+      ]
+      |> Enum.reject(&is_nil/1)
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Valentine.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  defp maybe_repo_analysis_recovery_child do
+    repo_analysis_config = Application.get_env(:valentine, :repo_analysis, [])
+
+    if Keyword.get(repo_analysis_config, :start_recovery, true) do
+      Valentine.RepoAnalysis.Recovery
+    else
+      nil
+    end
   end
 
   # Tell Phoenix to update the endpoint configuration

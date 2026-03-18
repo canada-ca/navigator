@@ -14,10 +14,11 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
       active_module: "some_active_module",
       active_action: "some_active_action",
       async_result: Phoenix.LiveView.AsyncResult.loading(),
-      chain: %LangChain.Chains.LLMChain{},
+      messages: [],
+      delta: nil,
       id: "chat-component",
-      skills: [],
-      workspace_id: workspace.id
+      workspace_id: workspace.id,
+      current_user: "test_user@example.com"
     }
 
     socket = %Phoenix.LiveView.Socket{
@@ -37,15 +38,9 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
 
     test "displas a message if messages exist", %{assigns: assigns} do
       assigns =
-        Map.put(assigns, :chain, %{
-          delta: nil,
-          messages: [
-            %LangChain.Message{
-              role: :user,
-              content: "Hello, world!"
-            }
-          ]
-        })
+        assigns
+        |> Map.put(:messages, [%{role: :user, content: "Hello, world!"}])
+        |> Map.put(:delta, nil)
 
       html = render_component(ChatComponent, assigns)
       assert html =~ "Hello, world!"
@@ -53,35 +48,12 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
 
     test "displays a message delta if it exists", %{assigns: assigns} do
       assigns =
-        Map.put(assigns, :chain, %{
-          delta: %LangChain.MessageDelta{
-            role: :system,
-            content: "{\"content\":\"I am a system"
-          },
-          messages: [
-            %LangChain.Message{
-              role: :user,
-              content: "Hello, world!"
-            }
-          ]
-        })
+        assigns
+        |> Map.put(:delta, "{\"content\":\"I am a system")
+        |> Map.put(:messages, [%{role: :user, content: "Hello, world!"}])
 
       html = render_component(ChatComponent, assigns)
       assert html =~ "I am a system"
-    end
-
-    test "displays skills buttons if skills are set", %{assigns: assigns} do
-      assigns =
-        Map.put(assigns, :skills, [
-          %{
-            "id" => "some_skill_id",
-            "description" => "some_skill_description"
-          }
-        ])
-
-      html = render_component(ChatComponent, assigns)
-      assert html =~ "some_skill_id"
-      assert html =~ "some_skill_description"
     end
 
     test "displays a chat input container", %{assigns: assigns} do
@@ -96,7 +68,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
     test "properly assigns all the right values", %{socket: socket} do
       socket = Map.put(socket, :assigns, Map.put(socket.assigns, :myself, %{}))
       {:ok, updated_socket} = ChatComponent.mount(socket)
-      assert updated_socket.assigns.skills == []
+      assert updated_socket.assigns.messages == []
+      assert updated_socket.assigns.delta == nil
       assert updated_socket.assigns.usage == nil
       assert updated_socket.assigns.async_result.loading == true
     end
@@ -106,31 +79,24 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
     setup [:create_component]
 
     test "updates the socket with the chat_complete data", %{socket: socket} do
-      data = %{
-        content:
-          Jason.encode!(%{
-            "skills" => [
-              %{
-                "id" => "some_skill_id",
-                "description" => "some_skill_description"
-              }
-            ]
-          })
-      }
+      data = %{content: "Assistant reply"}
 
       {:ok, updated_socket} = ChatComponent.update(%{chat_complete: data}, socket)
-      assert updated_socket.assigns.skills == Jason.decode!(data.content)["skills"]
+      assert List.last(updated_socket.assigns.messages).content == data.content
+    end
+
+    test "renders assistant text content", %{assigns: assigns} do
+      assigns = Map.put(assigns, :messages, [%{role: :assistant, content: "Rendered reply"}])
+
+      html = render_component(ChatComponent, assigns)
+      assert html =~ "Rendered reply"
     end
 
     test "updates the socket with the chat_response delta data", %{socket: socket} do
-      data =
-        %LangChain.MessageDelta{
-          role: :system,
-          content: "{\"content\":\"I am a system"
-        }
+      chunk = "{\"content\":\"I am a system"
 
-      {:ok, updated_socket} = ChatComponent.update(%{chat_response: data}, socket)
-      assert updated_socket.assigns.chain.delta == data
+      {:ok, updated_socket} = ChatComponent.update(%{chat_response: chunk}, socket)
+      assert updated_socket.assigns.delta == chunk
     end
 
     test "updates the socket with the skill_result data", %{socket: socket} do
@@ -142,12 +108,12 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
 
       {:ok, updated_socket} = ChatComponent.update(%{skill_result: data}, socket)
 
-      assert hd(updated_socket.assigns.chain.messages).content ==
+      assert hd(updated_socket.assigns.messages).content ==
                "The user clicked the button with id: some_id and the result was: some_status - some_msg"
     end
 
     test "updates the socket with the usage_update data", %{socket: socket} do
-      usage = %LangChain.TokenUsage{}
+      usage = %{input_tokens: 0, output_tokens: 0}
       {:ok, updated_socket} = ChatComponent.update(%{usage_update: usage}, socket)
       assert updated_socket.assigns.usage == usage
     end
@@ -158,6 +124,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
       assigns = %{
         active_module: "some_active_module",
         active_action: "some_active_action",
+        workspace_id: socket.assigns.workspace_id,
+        current_user: socket.assigns.current_user,
         some_key: "some_value"
       }
 
@@ -199,18 +167,10 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
         Map.put(
           socket,
           :assigns,
-          Map.put(socket.assigns, :chain, %{
-            messages: [
-              %LangChain.Message{
-                role: :system,
-                content: "I am a system"
-              },
-              %LangChain.Message{
-                role: :user,
-                content: "Hello, world!"
-              }
-            ]
-          })
+          Map.put(socket.assigns, :messages, [
+            %{role: :system, content: "I am a system"},
+            %{role: :user, content: "Hello, world!"}
+          ])
         )
 
       socket =
@@ -223,50 +183,50 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
       {:noreply, updated_socket} =
         ChatComponent.handle_event("chat_submit", %{"value" => value}, socket)
 
-      assert length(updated_socket.assigns.chain.messages) == 0
+      assert length(updated_socket.assigns.messages) == 0
     end
 
     test "adds a new system and user message to the llm chain", %{socket: socket} do
       value = "Hello, world!"
 
-      {:noreply, updated_socket} =
-        ChatComponent.handle_event("chat_submit", %{"value" => value}, socket)
-
-      assert length(updated_socket.assigns.chain.messages) == 2
-      assert hd(updated_socket.assigns.chain.messages).role == :system
-      assert hd(tl(updated_socket.assigns.chain.messages)).role == :user
-      assert hd(tl(updated_socket.assigns.chain.messages)).content == value
-    end
-
-    test "executes skills if the id is a skill", %{socket: socket} do
       socket =
         Map.put(
           socket,
           :assigns,
-          Map.put(socket.assigns, :skills, [
-            %{
-              "id" => "some_skill_id",
-              "description" => "some_skill_description"
-            }
+          Map.put(socket.assigns, :myself, "myself")
+        )
+
+      {:noreply, updated_socket} =
+        ChatComponent.handle_event("chat_submit", %{"value" => value}, socket)
+
+      assert length(updated_socket.assigns.messages) == 2
+      assert hd(updated_socket.assigns.messages).role == :system
+      assert hd(tl(updated_socket.assigns.messages)).role == :user
+      assert hd(tl(updated_socket.assigns.messages)).content == value
+    end
+
+    test "reuses a single system message across submits", %{socket: socket} do
+      socket =
+        Map.put(
+          socket,
+          :assigns,
+          socket.assigns
+          |> Map.put(:myself, "myself")
+          |> Map.put(:messages, [
+            %{role: :system, content: "old system prompt"},
+            %{role: :assistant, content: "prior answer"}
           ])
         )
 
-      id = "some_skill_id"
-
       {:noreply, updated_socket} =
-        ChatComponent.handle_event("execute_skill", %{"id" => id}, socket)
+        ChatComponent.handle_event("chat_submit", %{"value" => "Hello again"}, socket)
 
-      assert updated_socket.assigns.skills == []
-      refute Map.has_key?(updated_socket.assigns, :flash)
-    end
+      system_messages = Enum.filter(updated_socket.assigns.messages, &(&1.role == :system))
 
-    test "does not execute skills if the id is not a skill", %{socket: socket} do
-      id = "some_id"
-
-      {:noreply, updated_socket} =
-        ChatComponent.handle_event("execute_skill", %{"id" => id}, socket)
-
-      assert updated_socket.assigns.skills == []
+      assert length(system_messages) == 1
+      assert Enum.at(updated_socket.assigns.messages, 1).role == :assistant
+      assert List.last(updated_socket.assigns.messages).role == :user
+      assert List.last(updated_socket.assigns.messages).content == "Hello again"
     end
   end
 
@@ -274,8 +234,9 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponentTest do
     setup [:create_component]
 
     test "runs the chain", %{socket: socket} do
+      socket = Map.put(socket, :assigns, Map.put(socket.assigns, :myself, %{}))
       updated_socket = ChatComponent.run_chain(socket)
-      assert updated_socket.assigns.chain != nil
+      assert updated_socket.assigns.async_result != nil
     end
   end
 end

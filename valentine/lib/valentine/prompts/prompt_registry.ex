@@ -47,15 +47,7 @@ defmodule Valentine.Prompts.PromptRegistry do
     content
   end
 
-  def get_schema(module_name, action) do
-    case Map.get(@modules, module_name) do
-      nil ->
-        base_schema()
-
-      module ->
-        merge_skills(module.get_skills(action))
-    end
-  end
+  def get_schema(_module_name, _action), do: base_schema()
 
   def get_system_prompt(module_name, action, workspace_id) do
     case Map.get(@modules, module_name) do
@@ -76,12 +68,10 @@ defmodule Valentine.Prompts.PromptRegistry do
 
   def base_prompt() do
     """
-    PLEASE RESPOND WITH JSON.
-
     FACTS:
     1. You are an expert threat modeling assistant focused on helping users manage their workspaces effectively.
     2. Each workspace contains multiple components: application information, architecture, data flows, assumptions, threats, and mitigations. Depending on context, more information about each of these will be provided to you.
-    3. As part of your response, you can suggest up to two (2) actions based on your skills, this will depend on the response schema format. You yourself cannot perform these actions, but the actions will be rendered as buttons for a user to click. As uses to click on the buttons to perform the actions on your behalf.
+    3. Respond with clear, direct prose only.
     """
   end
 
@@ -97,57 +87,10 @@ defmodule Valentine.Prompts.PromptRegistry do
             description: "The main response text that will be shown to the user"
           }
         },
-        required: [
-          "content"
-        ],
+        required: ["content"],
         additionalProperties: false
       }
     }
-  end
-
-  defp merge_skills([]), do: base_schema()
-
-  defp merge_skills(skills) do
-    schema = base_schema()
-
-    skill_data = %{
-      type: "array",
-      description: "Array of actionable skills that can be performed",
-      items: %{
-        type: "object",
-        properties: %{
-          id: %{
-            type: "string",
-            description: "Unique identifier for this skill"
-          },
-          type: %{
-            type: "string",
-            enum: skills,
-            description: "The type of action this skill represents"
-          },
-          description: %{
-            type: "string",
-            description: "Human readable description of what this skill will do"
-          },
-          data: %{
-            type: "string",
-            description:
-              "Optional data to send with the skill as a JSON string ex: if a name is required for an action, send it here '{'name':'John Doe'}'. If something is to be analyzed, include the ID here."
-          }
-        },
-        required: [
-          "id",
-          "type",
-          "description",
-          "data"
-        ],
-        additionalProperties: false
-      }
-    }
-
-    schema
-    |> put_in([:schema, :properties, :skills], skill_data)
-    |> put_in([:schema, :required], ["content", "skills"])
   end
 
   defp random_tag_line() do

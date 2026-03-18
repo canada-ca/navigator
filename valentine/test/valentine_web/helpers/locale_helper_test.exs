@@ -16,7 +16,7 @@ defmodule ValentineWeb.Helpers.LocaleHelperTest do
 
   describe "on_mount/4" do
     test "sets the locale from parameters", %{socket: socket} do
-      {:halt, socket} = LocaleHelper.on_mount(:default, %{"locale" => "de"}, %{}, socket)
+      {:cont, socket} = LocaleHelper.on_mount(:default, %{"locale" => "de"}, %{}, socket)
 
       assert socket.assigns.locale == "de"
     end

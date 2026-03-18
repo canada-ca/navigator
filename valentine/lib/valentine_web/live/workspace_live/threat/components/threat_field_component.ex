@@ -21,5 +21,5 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Components.ThreatFieldComponent do
   defp render_value(value, _) when is_binary(value), do: value
 
   defp render_value(value, _) when is_list(value),
-    do: ValentineWeb.WorkspaceLive.Threat.Components.ThreatHelpers.join_list(value)
+    do: DisplayHelper.join_display_list(value)
 end

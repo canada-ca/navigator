@@ -17,7 +17,7 @@ defmodule ValentineWeb do
   those modules here.
   """
 
-  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt primer_live)
+  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt primer_live .well-known)
 
   def router do
     quote do
@@ -96,6 +96,7 @@ defmodule ValentineWeb do
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
+      alias ValentineWeb.Helpers.DisplayHelper
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())

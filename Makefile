@@ -1,4 +1,4 @@
-phony: cover dev docker install setup test
+.PHONY: cover dev docker fmt install js_test setup test usage_rules
 
 cover:
 	cd valentine && mix test --cover
@@ -19,7 +19,11 @@ setup:
 	cd valentine && mix deps.get && mix ecto.create && mix ecto.migrate && mix run priv/repo/seeds.exs && cd assets && npm install
 
 test:
+	cd valentine/assets && npm test
 	cd valentine && MIX_ENV=test mix test
+
+js_test:
+	cd valentine/assets && npm test
 
 usage_rules:
 	cd valentine && mix usage_rules.sync AGENTS.md --all --inline usage_rules:all --link-to-folder deps

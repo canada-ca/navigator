@@ -32,6 +32,7 @@ import Session from "../vendor/session-hook"
 import EnhancedSelect from "../vendor/enhanced_select"
 import BrainstormDrag from "../vendor/drag-and-drop"
 import AutoSelect from "../vendor/autoselect"
+import NativePrint from "../vendor/native-print-hook"
 import "../css/app.css"
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
@@ -48,7 +49,8 @@ let liveSocket = new LiveSocket("/live", Socket, {
     Session,
     EnhancedSelect,
     BrainstormDrag,
-    AutoSelect
+    AutoSelect,
+    NativePrint
   },
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken }

@@ -59,7 +59,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.ControlCategorizerTes
 
     test "displays a usage warning", %{assigns: assigns} do
       assigns =
-        Map.put(assigns, :usage, %LangChain.TokenUsage{input: 1_000_000, output: 1_000_000})
+        Map.put(assigns, :usage, %{input_tokens: 1_000_000, output_tokens: 1_000_000})
 
       html = render_component(ControlCategorizer, assigns)
 
@@ -165,6 +165,30 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.ControlCategorizerTes
              ]
     end
 
+    test "normalizes a single control object and atom keys", %{socket: socket} do
+      data = %{
+        content:
+          Jason.encode!(%{
+            "controls" => %{
+              control: "AC-1",
+              name: "Access Control Policy",
+              rational: "This mitigation governs access control requirements"
+            }
+          })
+      }
+
+      {:ok, updated_socket} =
+        ControlCategorizer.update(%{chat_complete: data}, socket)
+
+      assert updated_socket.assigns.suggestion == [
+               %{
+                 "control" => "AC-1",
+                 "name" => "Access Control Policy",
+                 "rational" => "This mitigation governs access control requirements"
+               }
+             ]
+    end
+
     test "returns an error if the chat_complete data is not valid JSON", %{socket: socket} do
       data = %{
         content: "invalid_json"
@@ -177,7 +201,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.ControlCategorizerTes
     end
 
     test "updates the socket with the usage_update data", %{socket: socket} do
-      usage = %LangChain.TokenUsage{}
+      usage = %{input_tokens: 0, output_tokens: 0}
 
       {:ok, updated_socket} =
         ControlCategorizer.update(%{usage_update: usage}, socket)

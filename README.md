@@ -10,6 +10,8 @@ Navigator is a real-time collaborative threat modeling tool that combines human 
 
 IMPORTANT: This project is undergoing active development and may experience breaking changes. This project is also still missing feature and has bugs. Please review the [issues](https://github.com/canada-ca/navigator/issues) for more information. If you have any specific questions, please contact [max.neuvians@cds-snc.ca](mailto:max.neuvians@cds-snc.ca).
 
+NOTE: Navigator should be deployed in an environment with the appropriate safeguards in place to protect the confidentiality, integrity, and availability of the data that will be stored there. For example, before using Navigator to conduct threat modeling and other analysis at the Protected B level, Navigator should be deployed to an environment with security controls in place commesurate with the hosting of that data. Departmental Risk Management processes should be followed, including the completion of a security assessment where required.
+
 ## Features
 
 1. Threat modeling with [STRIDE](https://en.wikipedia.org/wiki/STRIDE_model) based on a pre-defined [threat grammar](https://catalog.workshops.aws/threatmodel/en-US/what-can-go-wrong/threat-grammar). For more information see [Threat Composer](https://github.com/awslabs/threat-composer).
@@ -75,6 +77,23 @@ cd assets
 npm i 
 ```
 
+## OpenSpec workflow
+
+This repository uses OpenSpec for spec-driven development.
+
+- `openspec/specs/` contains the current-state baseline: what the system currently does.
+- `openspec/changes/` contains proposed deltas: what a feature or behavior change will modify.
+- Main specs in `openspec/specs/` do not need an extra "implemented" marker. If they exist, they describe the currently implemented behavior.
+- New feature work should usually start by asking the AI agent to create an OpenSpec change for you, then implementing it, and finally syncing the accepted behavior back into the baseline spec during archive.
+
+Typical agent-driven workflow:
+
+1. Tell your AI: `/opsx:propose <what-you-want-to-build>`.
+2. Review the generated change under `openspec/changes/<change-name>/`.
+3. Tell your AI to implement the approved change.
+4. Tell your AI to archive the change once the code and specs are in sync.
+
+
 ## OpenAI on Azure
 
 You can also use OpenAI on Azure. You need to provide the following environment variables:
@@ -126,6 +145,8 @@ Navigator est un outil collaboratif de modélisation des menaces en temps réel 
 ![Capture d’écran d’un diagramme de flux de données dans Navigator](screenshots/data_flow_diagram.png)
 
 IMPORTANT : Ce projet est en cours de développement et peut subir des modifications importantes. Il manque encore des fonctionnalités à ce projet et il comporte des bogues. Veuillez examiner les [problèmes](https://github.com/canada-ca/navigator/issues) pour plus de renseignements. Si vous avez des questions spécifiques, veuillez contacter : [max.neuvians@cds-snc.ca](mailto:max.neuvians@cds-snc.ca).
+
+REMARQUE : Navigator doit être déployé dans un environnement doté des mesures de protection appropriées afin de garantir la confidentialité, l'intégrité et la disponibilité des données qui y seront stockées. Par exemple, avant d'utiliser Navigator pour mener des analyses de modélisation des menaces et d'autres analyses au niveau Protégé B, Navigator doit être déployé dans un environnement disposant de contrôles de sécurité proportionnés à l'hébergement de ces données. Les processus de gestion des risques ministériels doivent être suivis, y compris la réalisation d'une évaluation de sécurité lorsque cela est requis.
 
 ## Fonctionnalités
 
@@ -192,6 +213,22 @@ mix run priv/repo/seeds.exs
 cd assets
 npm i 
 ```
+
+## Flux de travail OpenSpec
+
+Ce dépôt utilise OpenSpec pour le développement piloté par les spécifications.
+
+- `openspec/specs/` contient la base de référence de l'état actuel : ce que le système fait aujourd'hui.
+- `openspec/changes/` contient les deltas proposés : ce qu'une nouvelle fonctionnalité ou un changement de comportement modifiera.
+- Les spécifications principales dans `openspec/specs/` n'ont pas besoin d'un marqueur supplémentaire comme « implemented ». Si elles existent, elles décrivent le comportement déjà en place.
+- En général, le travail sur une nouvelle fonctionnalité devrait commencer en demandant à l'agent IA de créer un changement OpenSpec, puis être implémenté, puis synchronisé dans la spécification de référence au moment de l'archivage.
+
+Flux de travail typique avec l'agent :
+
+1. Dites à votre IA : `/opsx:propose <ce-que-vous-voulez-construire>`.
+2. Examinez le changement généré dans `openspec/changes/<change-name>/`.
+3. Demandez à votre IA d'implémenter le changement approuvé.
+4. Demandez à votre IA d'archiver le changement une fois que le code et les spécifications sont synchronisés.
 
 ## OpenAI sur Azure 
 Vous pouvez également utiliser OpenAI sur Azure. Vous devez fournir les variables d'environnement suivantes :

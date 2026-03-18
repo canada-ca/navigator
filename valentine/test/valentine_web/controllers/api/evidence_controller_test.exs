@@ -77,6 +77,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
 
       evidence_params = %{
         "name" => "Test Evidence",
+        "description" => "Test description",
         "evidence_type" => "json_data",
         "content" => %{"data" => "test"}
       }
@@ -111,6 +112,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
 
       evidence_params = %{
         "name" => "Test Evidence",
+        "description" => "Test description",
         "evidence_type" => "json_data",
         "content" => %{"data" => "test"}
       }
@@ -145,6 +147,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
 
       evidence_params = %{
         "name" => "Test Evidence",
+        "description" => "Test description",
         "evidence_type" => "json_data",
         "content" => %{"data" => "test"}
       }
@@ -181,6 +184,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
 
       evidence_params = %{
         "name" => "Test Evidence",
+        "description" => "Test description",
         "evidence_type" => "json_data",
         "content" => %{"data" => "test"}
       }
@@ -221,6 +225,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
 
       evidence_params = %{
         "name" => "Test Evidence",
+        "description" => "Test description",
         "evidence_type" => "json_data",
         "content" => %{"data" => "test"}
       }
@@ -259,6 +264,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
 
       evidence_params = %{
         "name" => "Test Evidence",
+        "description" => "Test description",
         "evidence_type" => "json_data",
         "content" => %{"data" => "test"}
       }
@@ -285,6 +291,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
     test "accepts use_ai flag in linking parameters", %{conn: conn, api_key: api_key} do
       evidence_params = %{
         "name" => "Test Evidence",
+        "description" => "Test description",
         "evidence_type" => "json_data",
         "content" => %{"data" => "test"},
         "nist_controls" => ["AC-1"]
@@ -306,6 +313,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
       assert %{
                "evidence" => %{
                  "name" => "Test Evidence",
+                 "description" => "Test description",
                  "nist_controls" => ["AC-1"]
                }
              } = json_response(conn, 201)
@@ -317,6 +325,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
     } do
       evidence_params = %{
         "name" => "Orphaned Evidence",
+        "description" => "Test description",
         "evidence_type" => "json_data",
         "content" => %{"data" => "test"},
         "nist_controls" => ["AC-1"]
@@ -358,6 +367,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
     test "returns validation errors for invalid NIST controls", %{conn: conn, api_key: api_key} do
       evidence_params = %{
         "name" => "Test Evidence",
+        "description" => "Test description",
         "evidence_type" => "json_data",
         "content" => %{"data" => "test"},
         "nist_controls" => ["AC-1", "INVALID-ID"]
@@ -381,6 +391,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
     } do
       evidence_params = %{
         "name" => "Test Evidence",
+        "description" => "Test description",
         "evidence_type" => "json_data"
         # Missing content field
       }
@@ -394,7 +405,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
                }
              } = json_response(conn, 422)
 
-      assert error_message =~ "must be provided when evidence_type is json_data"
+      assert error_message =~ "must be provided for this evidence type"
     end
 
     test "returns validation errors for blob_store_link without blob_store_url", %{
@@ -403,6 +414,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
     } do
       evidence_params = %{
         "name" => "Test Evidence",
+        "description" => "Test description",
         "evidence_type" => "blob_store_link"
         # Missing blob_store_url field
       }
@@ -416,7 +428,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
                }
              } = json_response(conn, 422)
 
-      assert error_message =~ "must be provided when evidence_type is blob_store_link"
+      assert error_message =~ "must be provided for this evidence type"
     end
 
     test "links evidence to entities based on NIST control overlap", %{
@@ -449,6 +461,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
       # Create evidence with NIST controls that overlap with entity tags
       evidence_params = %{
         "name" => "NIST Control Evidence",
+        "description" => "Test description",
         "evidence_type" => "json_data",
         "content" => %{"audit_findings" => "AC-1 and AU-12 controls verified"},
         "nist_controls" => ["AC-1", "AU-12"]
@@ -487,6 +500,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
       # Create evidence with NIST controls
       evidence_params = %{
         "name" => "NIST Control Evidence",
+        "description" => "Test description",
         "evidence_type" => "json_data",
         "content" => %{"audit_findings" => "AC-1 controls verified"},
         "nist_controls" => ["AC-1"]
@@ -528,6 +542,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
 
       evidence_params = %{
         "name" => "Test Evidence",
+        "description" => "Test description",
         "evidence_type" => "json_data",
         "content" => %{"data" => "test"},
         # Would match assumption_with_tags
@@ -571,6 +586,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
 
       evidence_params = %{
         "name" => "Evidence Without NIST Controls",
+        "description" => "Test description",
         "evidence_type" => "json_data",
         "content" => %{"data" => "test"}
         # No nist_controls field
@@ -603,6 +619,7 @@ defmodule ValentineWeb.Api.EvidenceControllerTest do
 
       evidence_params = %{
         "name" => "Evidence With Empty NIST Controls",
+        "description" => "Test description",
         "evidence_type" => "json_data",
         "content" => %{"data" => "test"},
         # Empty array

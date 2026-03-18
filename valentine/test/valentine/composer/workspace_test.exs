@@ -5,6 +5,7 @@ defmodule Valentine.Composer.WorkspaceTest do
   alias Valentine.Composer.Assumption
   alias Valentine.Composer.Mitigation
   alias Valentine.Composer.Threat
+  alias Valentine.Composer.Evidence
 
   describe "check_workspace_permissions" do
     test "returns owner if the identity matches the workspace owner" do
@@ -59,6 +60,104 @@ defmodule Valentine.Composer.WorkspaceTest do
                "AC-1" => [%Assumption{tags: ["AC-1"]}, %Mitigation{tags: ["AC-1"]}],
                "AC-2" => [%Mitigation{tags: ["AC-2"]}],
                "AC-3" => [%Threat{tags: ["AC-3"]}]
+             }
+    end
+  end
+
+  describe "get_evidence_by_controls/1" do
+    test "groups evidence by NIST control IDs" do
+      collection = [
+        %Evidence{id: "1", numeric_id: 1, name: "Evidence 1", nist_controls: ["AC-1"]},
+        %Evidence{id: "2", numeric_id: 2, name: "Evidence 2", nist_controls: ["AC-2"]},
+        %Evidence{id: "3", numeric_id: 3, name: "Evidence 3", nist_controls: ["AC-1", "SC-7"]}
+      ]
+
+      result = Workspace.get_evidence_by_controls(collection)
+
+      # Order is reversed due to prepending for O(n) performance
+      assert result["AC-1"] == [
+               %Evidence{
+                 id: "3",
+                 numeric_id: 3,
+                 name: "Evidence 3",
+                 nist_controls: ["AC-1", "SC-7"]
+               },
+               %Evidence{id: "1", numeric_id: 1, name: "Evidence 1", nist_controls: ["AC-1"]}
+             ]
+
+      assert result["AC-2"] == [
+               %Evidence{id: "2", numeric_id: 2, name: "Evidence 2", nist_controls: ["AC-2"]}
+             ]
+
+      assert result["SC-7"] == [
+               %Evidence{
+                 id: "3",
+                 numeric_id: 3,
+                 name: "Evidence 3",
+                 nist_controls: ["AC-1", "SC-7"]
+               }
+             ]
+    end
+
+    test "filters out evidence without nist_controls" do
+      collection = [
+        %Evidence{id: "1", numeric_id: 1, name: "Evidence 1", nist_controls: ["AC-1"]},
+        %Evidence{id: "2", numeric_id: 2, name: "Evidence 2", nist_controls: nil},
+        %Evidence{id: "3", numeric_id: 3, name: "Evidence 3", nist_controls: ["SC-7"]}
+      ]
+
+      result = Workspace.get_evidence_by_controls(collection)
+
+      assert result == %{
+               "AC-1" => [
+                 %Evidence{id: "1", numeric_id: 1, name: "Evidence 1", nist_controls: ["AC-1"]}
+               ],
+               "SC-7" => [
+                 %Evidence{id: "3", numeric_id: 3, name: "Evidence 3", nist_controls: ["SC-7"]}
+               ]
+             }
+    end
+
+    test "filters out control IDs that don't match the NIST ID regex" do
+      collection = [
+        %Evidence{id: "1", numeric_id: 1, name: "Evidence 1", nist_controls: ["AC-1"]},
+        %Evidence{id: "2", numeric_id: 2, name: "Evidence 2", nist_controls: ["invalid", "SC-7"]},
+        %Evidence{id: "3", numeric_id: 3, name: "Evidence 3", nist_controls: ["not-a-control"]}
+      ]
+
+      result = Workspace.get_evidence_by_controls(collection)
+
+      assert result == %{
+               "AC-1" => [
+                 %Evidence{id: "1", numeric_id: 1, name: "Evidence 1", nist_controls: ["AC-1"]}
+               ],
+               "SC-7" => [
+                 %Evidence{
+                   id: "2",
+                   numeric_id: 2,
+                   name: "Evidence 2",
+                   nist_controls: ["invalid", "SC-7"]
+                 }
+               ]
+             }
+    end
+
+    test "returns empty map when collection is empty" do
+      assert Workspace.get_evidence_by_controls([]) == %{}
+    end
+
+    test "handles evidence with empty nist_controls array" do
+      collection = [
+        %Evidence{id: "1", numeric_id: 1, name: "Evidence 1", nist_controls: []},
+        %Evidence{id: "2", numeric_id: 2, name: "Evidence 2", nist_controls: ["AC-1"]}
+      ]
+
+      result = Workspace.get_evidence_by_controls(collection)
+
+      assert result == %{
+               "AC-1" => [
+                 %Evidence{id: "2", numeric_id: 2, name: "Evidence 2", nist_controls: ["AC-1"]}
+               ]
              }
     end
   end

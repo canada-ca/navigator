@@ -24,7 +24,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.FilterComponent do
         <:toggle>
           <.octicon name={"#{@icon}-16"} />
           <span>
-            {Gettext.gettext(ValentineWeb.Gettext, Phoenix.Naming.humanize(@name))}
+            {Gettext.gettext(ValentineWeb.Gettext, DisplayHelper.enum_label(@name))}
           </span>
           <%= if is_list(@filters[@name]) && length(@filters[@name]) > 0 do %>
             <.counter>
@@ -47,7 +47,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.FilterComponent do
               phx-target={@myself}
               phx-value-checked={value}
             >
-              {Gettext.gettext(ValentineWeb.Gettext, humanize(value))}
+              {Gettext.gettext(ValentineWeb.Gettext, display_label(assigns, value))}
             </.action_list_item>
           <% end %>
         </.action_list>
@@ -113,12 +113,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.FilterComponent do
     {:noreply, assign(socket, filters: filters)}
   end
 
-  defp humanize(value) when is_atom(value) do
-    value
-    |> Atom.to_string()
-    |> String.replace("_", " ")
-    |> String.capitalize()
+  defp display_label(assigns, value) do
+    DisplayHelper.display_label(value, Map.get(assigns, :labels))
   end
-
-  defp humanize(value) when is_binary(value), do: value
 end

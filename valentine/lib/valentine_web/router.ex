@@ -10,7 +10,7 @@ defmodule ValentineWeb.Router do
 
     plug :put_secure_browser_headers, %{
       "content-security-policy" =>
-        "default-src 'self' style-src 'self' 'unsafe-inline' img-src 'self' data:"
+        "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
     }
   end
 
@@ -87,8 +87,11 @@ defmodule ValentineWeb.Router do
         ValentineWeb.Helpers.PresenceHelper,
         ValentineWeb.Helpers.ThemeHelper
       ] do
+      live "/agents", RepoAnalysisAgentLive.Index, :index
+
       live "/workspaces", WorkspaceLive.Index, :index
       live "/workspaces/import", WorkspaceLive.Index, :import
+      live "/workspaces/import/github", WorkspaceLive.Index, :github_import
       live "/workspaces/new", WorkspaceLive.Index, :new
       live "/workspaces/:workspace_id/edit", WorkspaceLive.Index, :edit
 
@@ -97,6 +100,10 @@ defmodule ValentineWeb.Router do
       live "/workspaces/:workspace_id/assumptions", WorkspaceLive.Assumption.Index, :index
       live "/workspaces/:workspace_id/assumptions/new", WorkspaceLive.Assumption.Index, :new
       live "/workspaces/:workspace_id/assumptions/:id/edit", WorkspaceLive.Assumption.Index, :edit
+
+      live "/workspaces/:workspace_id/assumptions/:id/categorize",
+           WorkspaceLive.Assumption.Index,
+           :categorize
 
       live "/workspaces/:workspace_id/assumptions/:id/mitigations",
            WorkspaceLive.Assumption.Index,
@@ -134,7 +141,31 @@ defmodule ValentineWeb.Router do
            WorkspaceLive.Mitigation.Index,
            :threats
 
+      live "/workspaces/:workspace_id/threat_agents", WorkspaceLive.ThreatAgent.Index, :index
+
+      live "/workspaces/:workspace_id/threat_agents/new",
+           WorkspaceLive.ThreatAgent.Index,
+           :new
+
+      live "/workspaces/:workspace_id/threat_agents/:id/edit",
+           WorkspaceLive.ThreatAgent.Index,
+           :edit
+
       live "/workspaces/:workspace_id/evidence", WorkspaceLive.Evidence.Index, :index
+      live "/workspaces/:workspace_id/evidence/new", WorkspaceLive.Evidence.Show, :new
+      live "/workspaces/:workspace_id/evidence/:id", WorkspaceLive.Evidence.Show, :edit
+
+      live "/workspaces/:workspace_id/evidence/:id/assumptions",
+           WorkspaceLive.Evidence.Index,
+           :assumptions
+
+      live "/workspaces/:workspace_id/evidence/:id/threats",
+           WorkspaceLive.Evidence.Index,
+           :threats
+
+      live "/workspaces/:workspace_id/evidence/:id/mitigations",
+           WorkspaceLive.Evidence.Index,
+           :mitigations
 
       live "/workspaces/:workspace_id/threats", WorkspaceLive.Threat.Index, :index
       live "/workspaces/:workspace_id/threats/new", WorkspaceLive.Threat.Show, :new

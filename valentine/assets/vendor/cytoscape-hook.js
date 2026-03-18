@@ -551,8 +551,7 @@ const CytoscapeHook = {
     },
 
     save() {
-        this.cy.fit();
-        let base64 = this.cy.png();
+        let base64 = this.cy.png({ full: true });
         this.pushEventTo(this.el, "export", { base64: base64 });
     },
 
@@ -571,13 +570,13 @@ const CytoscapeHook = {
 
     refreshGraph({ nodes, edges }) {
         console.log("Refreshing graph with:", nodes, edges);
-        
+
         // Clear existing elements
         this.cy.elements().remove();
-        
+
         // Add new elements
         this.cy.add([...nodes, ...edges]);
-        
+
         // Fit the view to show all elements
         this.cy.fit();
     },

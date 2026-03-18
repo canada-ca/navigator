@@ -56,6 +56,20 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.IndexTest do
       assert updated_socket.assigns.page_title == "Listing Assumptions"
       assert updated_socket.assigns.workspace_id == workspace_id
     end
+
+    test "sets page title for categorize action", %{socket: socket, assumption: assumption} do
+      socket = put_in(socket.assigns.live_action, :categorize)
+
+      {:noreply, updated_socket} =
+        ValentineWeb.WorkspaceLive.Assumption.Index.handle_params(
+          %{"id" => assumption.id},
+          "",
+          socket
+        )
+
+      assert updated_socket.assigns.page_title == "Categorize Assumption"
+      assert updated_socket.assigns.assumption.id == assumption.id
+    end
   end
 
   describe "handle_info {:saved, _assumption}" do

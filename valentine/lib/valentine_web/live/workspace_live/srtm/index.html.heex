@@ -61,7 +61,47 @@
   </:header>
 
   <div class="clearfix">
-    <div class="col-12 col-md-4 float-left py-4 pl-4">
+    <div class="col-12 col-md-8 float-left py-4 pl-4 pr-0">
+      <div class="clearfix">
+        <div class="p-4 border border-right-0 rounded-left-2 col-12 col-md-6 float-left">
+          <div class="f4">{gettext("In scope")}</div>
+          <div class="float-left">
+            <div class="f2 text-bold">{map_size(@controls[:in_scope])}</div>
+          </div>
+          <div class="float-right">
+            <div class="mt-2">{calculate_percentage(@controls, :in_scope)}%</div>
+          </div>
+          <div class="col-12 float-left">
+            <.progress is_inline style="width: 100%;">
+              <:item
+                width={calculate_percentage(@controls, :in_scope)}
+                state={scope_progress_class(:in_scope)}
+              >
+              </:item>
+            </.progress>
+          </div>
+        </div>
+        <div class="p-4 border rounded-right-2 col-12 col-md-6 float-left">
+          <div class="f4">{gettext("Out of scope")}</div>
+          <div class="float-left">
+            <div class="f2 text-bold">{map_size(@controls[:out_of_scope])}</div>
+          </div>
+          <div class="float-right">
+            <div class="mt-2">{calculate_percentage(@controls, :out_of_scope)}%</div>
+          </div>
+          <div class="col-12 float-left">
+            <.progress is_inline style="width: 100%;">
+              <:item
+                width={calculate_percentage(@controls, :out_of_scope)}
+                state={scope_progress_class(:out_of_scope)}
+              >
+              </:item>
+            </.progress>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4 float-left py-4 pl-4 pr-4 d-flex flex-column flex-justify-center">
       <div class="p-4 border rounded-2">
         <div class="f4">{gettext("Not allocated")}</div>
         <div class="clearfix">
@@ -83,105 +123,140 @@
         </div>
       </div>
     </div>
-    <div class="col-12 col-md-8 float-left p-4">
-      <div class="clearfix">
-        <div class="p-4 border border-right-0 rounded-left-2 col-12 col-md-6 float-left">
-          <div class="f4">{gettext("Out of scope")}</div>
-          <div class="float-left">
-            <div class="f2 text-bold">{map_size(@controls[:out_of_scope])}</div>
-          </div>
-          <div class="float-right">
-            <div class="mt-2">{calculate_percentage(@controls, :out_of_scope)}%</div>
-          </div>
-          <div class="col-12 float-left">
-            <.progress is_inline style="width: 100%;">
-              <:item
-                width={calculate_percentage(@controls, :out_of_scope)}
-                state={scope_progress_class(:out_of_scope)}
-              >
-              </:item>
-            </.progress>
-          </div>
-        </div>
-        <div class="p-4 border rounded-right-2 col-12 col-md-6 float-left">
-          <div class="f4">{gettext("In scope")}</div>
-          <div class="float-left">
-            <div class="f2 text-bold">{map_size(@controls[:in_scope])}</div>
-          </div>
-          <div class="float-right">
-            <div class="mt-2">{calculate_percentage(@controls, :in_scope)}%</div>
-          </div>
-          <div class="col-12 float-left">
-            <.progress is_inline style="width: 100%;">
-              <:item
-                width={calculate_percentage(@controls, :in_scope)}
-                state={scope_progress_class(:in_scope)}
-              >
-              </:item>
-            </.progress>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
   <div class="clearfix m-2">
     <.live_component
       module={ValentineWeb.WorkspaceLive.Components.TabNavComponent}
       id="tabs-component-srtm"
       tabs={[
-        %{label: gettext("Not allocated"), id: "not_allocated"},
+        %{label: gettext("In scope"), id: "in_scope"},
         %{label: gettext("Out of scope"), id: "out_of_scope"},
-        %{label: gettext("In scope"), id: "in_scope"}
+        %{label: gettext("Not allocated"), id: "not_allocated"}
       ]}
     >
       <:tab_content :let={tab}>
-        <%= for {_nist_id, items} <- Enum.sort(@controls[String.to_existing_atom(tab)]) do %>
-          <%= case {String.to_existing_atom(tab), items} do %>
-            <% {:not_allocated, [control]} -> %>
-              <div class="p-3">
-                <div class="">{control.nist_id}</div>
-                <div class="">{control.name}</div>
-                <details>
-                  <summary class="mt-2">
-                    {gettext("More information")}
-                  </summary>
-                  <div class="mt-1 pl-4">
-                    {control.description}
-                  </div>
-                </details>
-              </div>
-            <% {_, [{control, related_items}]} -> %>
-              <div class="p-3">
-                <div class="">{control.nist_id}</div>
-                <div class="">{control.name}</div>
-                <%= for item <- related_items do %>
-                  <div class="mt-2">
-                    <details>
-                      <summary class="">
-                        <%= case String.to_existing_atom(tab) do %>
-                          <% :out_of_scope -> %>
-                            {gettext("Covered by assumption")}:
-                          <% :in_scope -> %>
-                            <%= case item do %>
-                              <% _ = %Valentine.Composer.Threat{} -> %>
-                                {gettext("Threatened by")}:
-                              <% _ -> %>
-                                {gettext("Mitigated by")}:
-                            <% end %>
-                        <% end %>
-                        {item_content(item)}
-                      </summary>
-                      <%= if item.comments do %>
-                        <div class="mt-1 pl-4">
-                          <ValentineWeb.WorkspaceLive.Components.MarkdownComponent.render text={
-                            item.comments
-                          } />
-                        </div>
+        <% tab_atom = String.to_existing_atom(tab) %>
+        <% # Calculate evidence counts for the in-scope tab %>
+        <% evidence_counts =
+          if tab_atom == :in_scope do
+            count_controls_by_evidence(@controls[:in_scope], @evidence_by_control)
+          else
+            %{all: 0, has_evidence: 0, needs_evidence: 0}
+          end %>
+
+        <% # Show evidence filter only in the "In scope" tab %>
+        <%= if tab_atom == :in_scope do %>
+          <.underline_nav aria_label={gettext("Filter by evidence status")}>
+            <:item
+              is_selected={@evidence_filter == :all}
+              phx-click="select_evidence_filter"
+              phx-value-item="all"
+            >
+              <span>{gettext("All")}</span>
+              <.counter>{evidence_counts.all}</.counter>
+            </:item>
+            <:item
+              is_selected={@evidence_filter == :needs_evidence}
+              phx-click="select_evidence_filter"
+              phx-value-item="needs_evidence"
+            >
+              <span>{gettext("Needs evidence")}</span>
+              <.counter>{evidence_counts.needs_evidence}</.counter>
+            </:item>
+            <:item
+              is_selected={@evidence_filter == :has_evidence}
+              phx-click="select_evidence_filter"
+              phx-value-item="has_evidence"
+            >
+              <span>{gettext("Evidence attached")}</span>
+              <.counter>{evidence_counts.has_evidence}</.counter>
+            </:item>
+          </.underline_nav>
+        <% end %>
+
+        <% # Apply filtering for in-scope controls %>
+        <% filtered_controls =
+          if tab_atom == :in_scope do
+            filter_in_scope_by_evidence(
+              @controls[tab_atom],
+              @evidence_by_control,
+              @evidence_filter
+            )
+          else
+            @controls[tab_atom]
+          end %>
+
+        <% # Show empty state if no results %>
+        <%= if map_size(filtered_controls) == 0 do %>
+          <.blankslate class="color-bg-default">
+            <:octicon name="shield-lock-24" />
+            <h3>{gettext("No results found")}</h3>
+            <p>{gettext("You may have filters set that are hiding controls")}</p>
+          </.blankslate>
+        <% else %>
+          <%= for {_nist_id, items} <- Enum.sort(filtered_controls) do %>
+            <%= case {tab_atom, items} do %>
+              <% {:not_allocated, [control]} -> %>
+                <div class="p-3">
+                  <div class="">{control.nist_id}</div>
+                  <div class="">{control.name}</div>
+                  <details>
+                    <summary class="mt-2">
+                      {gettext("More information")}
+                    </summary>
+                    <div class="mt-1 pl-4">
+                      {control.description}
+                    </div>
+                  </details>
+                </div>
+              <% {_, [{control, related_items}]} -> %>
+                <div class="p-3">
+                  <div class="">
+                    {control.nist_id}
+                    <%= if tab_atom == :in_scope do %>
+                      <%= for evidence <- sort_evidence_by_numeric_id(Map.get(@evidence_by_control, control.nist_id, [])) do %>
+                        <a
+                          href={~p"/workspaces/#{@workspace.id}/evidence/#{evidence.id}"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="ml-1 cursor-pointer"
+                          title={evidence.name}
+                        >
+                          <.state_label is_small is_open>#{evidence.numeric_id}</.state_label>
+                        </a>
                       <% end %>
-                    </details>
+                    <% end %>
                   </div>
-                <% end %>
-              </div>
+                  <div class="">{control.name}</div>
+                  <%= for item <- related_items do %>
+                    <div class="mt-2">
+                      <details>
+                        <summary class="">
+                          <%= case tab_atom do %>
+                            <% :out_of_scope -> %>
+                              {gettext("Covered by assumption")}:
+                            <% :in_scope -> %>
+                              <%= case item do %>
+                                <% _ = %Valentine.Composer.Threat{} -> %>
+                                  {gettext("Threatened by")}:
+                                <% _ -> %>
+                                  {gettext("Mitigated by")}:
+                              <% end %>
+                          <% end %>
+                          {item_content(item)}
+                        </summary>
+                        <%= if item.comments do %>
+                          <div class="mt-1 pl-4">
+                            <ValentineWeb.WorkspaceLive.Components.MarkdownComponent.render text={
+                              item.comments
+                            } />
+                          </div>
+                        <% end %>
+                      </details>
+                    </div>
+                  <% end %>
+                </div>
+            <% end %>
           <% end %>
         <% end %>
       </:tab_content>

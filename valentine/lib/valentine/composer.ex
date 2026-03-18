@@ -19,6 +19,8 @@ defmodule Valentine.Composer do
   alias Valentine.Composer.User
   alias Valentine.Composer.ApiKey
   alias Valentine.Composer.BrainstormItem
+  alias Valentine.Composer.RepoAnalysisAgent
+  alias Valentine.Composer.ThreatAgent
 
   alias Valentine.Composer.AssumptionThreat
   alias Valentine.Composer.AssumptionMitigation
@@ -165,6 +167,80 @@ defmodule Valentine.Composer do
   end
 
   @doc """
+  Returns the list of repo analysis agents for a specific owner.
+  """
+  def list_repo_analysis_agents_by_owner(owner) do
+    from(agent in RepoAnalysisAgent,
+      where: agent.owner == ^owner,
+      preload: [:workspace],
+      order_by: [desc: agent.requested_at, desc: agent.inserted_at]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns the list of repo analysis agents for a specific workspace.
+  """
+  def list_repo_analysis_agents_by_workspace(workspace_id) do
+    from(agent in RepoAnalysisAgent,
+      where: agent.workspace_id == ^workspace_id,
+      order_by: [desc: agent.requested_at, desc: agent.inserted_at]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single repo analysis agent.
+  """
+  def get_repo_analysis_agent!(id, preload \\ [:workspace]) do
+    Repo.get!(RepoAnalysisAgent, id)
+    |> Repo.preload(preload)
+  end
+
+  @doc """
+  Gets a single repo analysis agent for an owner.
+  """
+  def get_repo_analysis_agent_for_owner(id, owner, preload \\ [:workspace]) do
+    from(agent in RepoAnalysisAgent,
+      where: agent.id == ^id and agent.owner == ^owner,
+      preload: ^preload
+    )
+    |> Repo.one()
+  end
+
+  @doc """
+  Creates a repo analysis agent record.
+  """
+  def create_repo_analysis_agent(attrs \\ %{}) do
+    %RepoAnalysisAgent{}
+    |> RepoAnalysisAgent.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a repo analysis agent record.
+  """
+  def update_repo_analysis_agent(%RepoAnalysisAgent{} = repo_analysis_agent, attrs) do
+    repo_analysis_agent
+    |> RepoAnalysisAgent.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Marks a repo analysis agent as cancellation requested.
+  """
+  def request_repo_analysis_agent_cancel(%RepoAnalysisAgent{} = repo_analysis_agent) do
+    update_repo_analysis_agent(repo_analysis_agent, %{cancel_requested_at: DateTime.utc_now()})
+  end
+
+  @doc """
+  Returns an Ecto changeset for repo analysis agent changes.
+  """
+  def change_repo_analysis_agent(%RepoAnalysisAgent{} = repo_analysis_agent, attrs \\ %{}) do
+    RepoAnalysisAgent.changeset(repo_analysis_agent, attrs)
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking workspace changes.
 
   ## Examples
@@ -240,6 +316,16 @@ defmodule Valentine.Composer do
           else
             where(queryable, [m], field(m, ^f) in ^selected)
           end
+
+        :string ->
+          if is_nil(selected) || selected == [] do
+            queryable
+          else
+            where(queryable, [m], field(m, ^f) in ^selected)
+          end
+
+        _ ->
+          queryable
       end
     end)
   end
@@ -365,6 +451,61 @@ defmodule Valentine.Composer do
   """
   def change_threat(%Threat{} = threat, attrs \\ %{}) do
     Threat.changeset(threat, attrs)
+  end
+
+  @doc """
+  Returns the list of threat agents for a specific workspace.
+  """
+  def list_threat_agents(workspace_id) do
+    from(ta in ThreatAgent,
+      where: ta.workspace_id == ^workspace_id,
+      order_by: [asc: ta.name]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single threat agent.
+  """
+  def get_threat_agent!(id, preload \\ nil)
+
+  def get_threat_agent!(id, preload) when is_list(preload) do
+    Repo.get!(ThreatAgent, id)
+    |> Repo.preload(preload)
+  end
+
+  def get_threat_agent!(id, preload) when is_nil(preload), do: Repo.get!(ThreatAgent, id)
+
+  @doc """
+  Creates a threat agent.
+  """
+  def create_threat_agent(attrs \\ %{}) do
+    %ThreatAgent{}
+    |> ThreatAgent.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a threat agent.
+  """
+  def update_threat_agent(%ThreatAgent{} = threat_agent, attrs) do
+    threat_agent
+    |> ThreatAgent.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a threat agent.
+  """
+  def delete_threat_agent(%ThreatAgent{} = threat_agent) do
+    Repo.delete(threat_agent)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking threat agent changes.
+  """
+  def change_threat_agent(%ThreatAgent{} = threat_agent, attrs \\ %{}) do
+    ThreatAgent.changeset(threat_agent, attrs)
   end
 
   @doc """
@@ -896,6 +1037,63 @@ defmodule Valentine.Composer do
       {1, nil} -> {:ok, assumption |> Repo.preload(:mitigations, force: true)}
       {:error, _} -> {:error, assumption}
     end
+  end
+
+  def add_assumption_to_evidence(%Evidence{} = evidence, %Assumption{} = assumption) do
+    %EvidenceAssumption{evidence_id: evidence.id, assumption_id: assumption.id}
+    |> Repo.insert(on_conflict: :nothing, conflict_target: [:evidence_id, :assumption_id])
+    |> case do
+      {:ok, _} -> {:ok, evidence |> Repo.preload(:assumptions, force: true)}
+      {:error, _} -> {:error, evidence}
+    end
+  end
+
+  def remove_assumption_from_evidence(%Evidence{} = evidence, %Assumption{} = assumption) do
+    Repo.delete_all(
+      from(ea in EvidenceAssumption,
+        where: ea.evidence_id == ^evidence.id and ea.assumption_id == ^assumption.id
+      )
+    )
+
+    {:ok, evidence |> Repo.preload(:assumptions, force: true)}
+  end
+
+  def add_threat_to_evidence(%Evidence{} = evidence, %Threat{} = threat) do
+    %EvidenceThreat{evidence_id: evidence.id, threat_id: threat.id}
+    |> Repo.insert(on_conflict: :nothing, conflict_target: [:evidence_id, :threat_id])
+    |> case do
+      {:ok, _} -> {:ok, evidence |> Repo.preload(:threats, force: true)}
+      {:error, _} -> {:error, evidence}
+    end
+  end
+
+  def remove_threat_from_evidence(%Evidence{} = evidence, %Threat{} = threat) do
+    Repo.delete_all(
+      from(et in EvidenceThreat,
+        where: et.evidence_id == ^evidence.id and et.threat_id == ^threat.id
+      )
+    )
+
+    {:ok, evidence |> Repo.preload(:threats, force: true)}
+  end
+
+  def add_mitigation_to_evidence(%Evidence{} = evidence, %Mitigation{} = mitigation) do
+    %EvidenceMitigation{evidence_id: evidence.id, mitigation_id: mitigation.id}
+    |> Repo.insert(on_conflict: :nothing, conflict_target: [:evidence_id, :mitigation_id])
+    |> case do
+      {:ok, _} -> {:ok, evidence |> Repo.preload(:mitigations, force: true)}
+      {:error, _} -> {:error, evidence}
+    end
+  end
+
+  def remove_mitigation_from_evidence(%Evidence{} = evidence, %Mitigation{} = mitigation) do
+    Repo.delete_all(
+      from(em in EvidenceMitigation,
+        where: em.evidence_id == ^evidence.id and em.mitigation_id == ^mitigation.id
+      )
+    )
+
+    {:ok, evidence |> Repo.preload(:mitigations, force: true)}
   end
 
   @doc """
@@ -1798,7 +1996,14 @@ defmodule Valentine.Composer do
       ** (Ecto.NoResultsError)
 
   """
-  def get_evidence!(id), do: Repo.get!(Evidence, id)
+  def get_evidence!(id, _preload \\ nil)
+
+  def get_evidence!(id, preload) when is_list(preload) do
+    Repo.get!(Evidence, id)
+    |> Repo.preload(preload)
+  end
+
+  def get_evidence!(id, preload) when is_nil(preload), do: Repo.get!(Evidence, id)
 
   @doc """
   Creates evidence.
@@ -1951,12 +2156,11 @@ defmodule Valentine.Composer do
       assumption = get_assumption!(assumption_id)
 
       if assumption.workspace_id == evidence.workspace_id do
-        case %EvidenceAssumption{evidence_id: evidence.id, assumption_id: assumption.id}
-             |> Repo.insert() do
-          {:ok, _} -> :ok
-          # Ignore duplicates or constraint errors
-          {:error, _} -> :ok
-        end
+        Repo.insert(
+          %EvidenceAssumption{evidence_id: evidence.id, assumption_id: assumption.id},
+          on_conflict: :nothing,
+          conflict_target: [:evidence_id, :assumption_id]
+        )
       end
     rescue
       Ecto.NoResultsError -> :ok
@@ -1968,12 +2172,11 @@ defmodule Valentine.Composer do
       threat = get_threat!(threat_id)
 
       if threat.workspace_id == evidence.workspace_id do
-        case %EvidenceThreat{evidence_id: evidence.id, threat_id: threat.id}
-             |> Repo.insert() do
-          {:ok, _} -> :ok
-          # Ignore duplicates or constraint errors
-          {:error, _} -> :ok
-        end
+        Repo.insert(
+          %EvidenceThreat{evidence_id: evidence.id, threat_id: threat.id},
+          on_conflict: :nothing,
+          conflict_target: [:evidence_id, :threat_id]
+        )
       end
     rescue
       Ecto.NoResultsError -> :ok
@@ -1997,36 +2200,33 @@ defmodule Valentine.Composer do
     assumptions = find_assumptions_by_nist_tags(workspace_id, nist_controls)
 
     Enum.each(assumptions, fn assumption ->
-      case %EvidenceAssumption{evidence_id: evidence.id, assumption_id: assumption.id}
-           |> Repo.insert() do
-        {:ok, _} -> :ok
-        # Ignore duplicates or constraint errors
-        {:error, _} -> :ok
-      end
+      Repo.insert(
+        %EvidenceAssumption{evidence_id: evidence.id, assumption_id: assumption.id},
+        on_conflict: :nothing,
+        conflict_target: [:evidence_id, :assumption_id]
+      )
     end)
 
     # Find threats with overlapping NIST controls in tags
     threats = find_threats_by_nist_tags(workspace_id, nist_controls)
 
     Enum.each(threats, fn threat ->
-      case %EvidenceThreat{evidence_id: evidence.id, threat_id: threat.id}
-           |> Repo.insert() do
-        {:ok, _} -> :ok
-        # Ignore duplicates or constraint errors
-        {:error, _} -> :ok
-      end
+      Repo.insert(
+        %EvidenceThreat{evidence_id: evidence.id, threat_id: threat.id},
+        on_conflict: :nothing,
+        conflict_target: [:evidence_id, :threat_id]
+      )
     end)
 
     # Find mitigations with overlapping NIST controls in tags
     mitigations = find_mitigations_by_nist_tags(workspace_id, nist_controls)
 
     Enum.each(mitigations, fn mitigation ->
-      case %EvidenceMitigation{evidence_id: evidence.id, mitigation_id: mitigation.id}
-           |> Repo.insert() do
-        {:ok, _} -> :ok
-        # Ignore duplicates or constraint errors
-        {:error, _} -> :ok
-      end
+      Repo.insert(
+        %EvidenceMitigation{evidence_id: evidence.id, mitigation_id: mitigation.id},
+        on_conflict: :nothing,
+        conflict_target: [:evidence_id, :mitigation_id]
+      )
     end)
   end
 
@@ -2056,12 +2256,11 @@ defmodule Valentine.Composer do
       mitigation = get_mitigation!(mitigation_id)
 
       if mitigation.workspace_id == evidence.workspace_id do
-        case %EvidenceMitigation{evidence_id: evidence.id, mitigation_id: mitigation.id}
-             |> Repo.insert() do
-          {:ok, _} -> :ok
-          # Ignore duplicates or constraint errors
-          {:error, _} -> :ok
-        end
+        Repo.insert(
+          %EvidenceMitigation{evidence_id: evidence.id, mitigation_id: mitigation.id},
+          on_conflict: :nothing,
+          conflict_target: [:evidence_id, :mitigation_id]
+        )
       end
     rescue
       Ecto.NoResultsError -> :ok

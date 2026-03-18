@@ -37,6 +37,26 @@
       values={Ecto.Enum.values(Valentine.Composer.Threat, :stride)}
       filters={@filters}
     />
+    <.live_component
+      module={ValentineWeb.WorkspaceLive.Components.FilterComponent}
+      id="threat-level-filter"
+      class="mx-1"
+      icon="shield"
+      name={:threat_level}
+      values={Valentine.Composer.DeliberateThreatLevel.values()}
+      labels={Valentine.Composer.DeliberateThreatLevel.labels()}
+      filters={@filters}
+    />
+    <.live_component
+      :if={@mitre_tactic_values != []}
+      module={ValentineWeb.WorkspaceLive.Components.FilterComponent}
+      id="mitre-tactic-filter"
+      class="mx-1"
+      icon="filter"
+      name={:mitre_tactic}
+      values={@mitre_tactic_values}
+      filters={@filters}
+    />
   </:header>
   <div class="stream-row hidden">
     <%= if length(@threats) == 0 do %>
