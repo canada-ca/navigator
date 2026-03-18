@@ -423,6 +423,19 @@ defmodule Valentine.Composer.DataFlowDiagram do
     |> Composer.update_data_flow_diagram(Map.from_struct(dfd))
   end
 
+  def replace_diagram(workspace_id, %{nodes: nodes, edges: edges}) do
+    updated_dfd =
+      workspace_id
+      |> get()
+      |> Map.put(:nodes, nodes)
+      |> Map.put(:edges, edges)
+      |> put_with_history()
+
+    save(workspace_id)
+
+    updated_dfd
+  end
+
   def to_json(workspace_id) do
     dfd = get(workspace_id)
 
