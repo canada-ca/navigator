@@ -7,6 +7,9 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   alias Valentine.Composer.BrainstormItem
   alias Phoenix.PubSub
 
+  @builder_required_types [:threat, :attack_vector, :impact, :asset]
+  @builder_eligible_statuses [:candidate, :used]
+
   @impl true
   def mount(%{"workspace_id" => workspace_id} = _params, _session, socket) do
     workspace = Composer.get_workspace!(workspace_id)
@@ -40,6 +43,8 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
       |> Map.keys()
       |> Enum.sort()
 
+    builder_missing_types = builder_missing_types(workspace_id)
+
     {:ok,
      socket
      |> assign(:workspace_id, workspace_id)
@@ -50,6 +55,10 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
      |> assign(:undo_queue, [])
      |> assign(:editing_item, nil)
      |> assign(:assigning_cluster_item, nil)
+     |> assign(:show_threat_builder, false)
+     |> assign(:builder_cluster_key, nil)
+     |> assign(:builder_missing_types, builder_missing_types)
+     |> assign(:builder_ready, builder_missing_types == [])
      |> assign(:type_order, type_order)}
   end
 
@@ -394,6 +403,29 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
      |> refresh_items()}
   end
 
+  # Threat Builder Events
+  @impl true
+  def handle_event("open_threat_builder", params, socket) do
+    cluster_key = Map.get(params, "cluster_key")
+
+    if socket.assigns.builder_ready do
+      {:noreply,
+       socket
+       |> assign(:show_threat_builder, true)
+       |> assign(:builder_cluster_key, cluster_key)}
+    else
+      {:noreply,
+       put_flash(
+         socket,
+         :error,
+         gettext(
+           "Add or promote %{types} cards to Candidate or Used before building a threat",
+           types: builder_missing_types_label(socket.assigns.builder_missing_types)
+         )
+       )}
+    end
+  end
+
   # Handle real-time updates from other users
   @impl true
   def handle_info({:item_created, _item}, socket) do
@@ -410,6 +442,32 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
 
   def handle_info({:types_reordered, order}, socket) do
     {:noreply, assign(socket, :type_order, order)}
+  end
+
+  # Threat Builder Messages
+  def handle_info(:close_threat_builder, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_threat_builder, false)
+     |> assign(:builder_cluster_key, nil)}
+  end
+
+  def handle_info({:threats_created, threats}, socket) do
+    threat_count = length(threats)
+
+    message =
+      if threat_count == 1 do
+        gettext("Threat created successfully")
+      else
+        gettext("%{count} threats created successfully", count: threat_count)
+      end
+
+    {:noreply,
+     socket
+     |> assign(:show_threat_builder, false)
+     |> assign(:builder_cluster_key, nil)
+     |> refresh_items()
+     |> put_flash(:info, message)}
   end
 
   # Clean up old undo entries
@@ -461,6 +519,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
     # Reconcile existing type order (remove missing, append new)
     type_order = socket.assigns[:type_order] || []
     current_types = Map.keys(items_by_type) |> Enum.sort()
+    builder_missing_types = builder_missing_types(workspace_id)
 
     preserved = Enum.filter(type_order, &(&1 in current_types))
     new_types = current_types -- preserved
@@ -469,6 +528,8 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
     socket
     |> assign(:items_by_type, items_by_type)
     |> assign(:total_items, total_items)
+    |> assign(:builder_missing_types, builder_missing_types)
+    |> assign(:builder_ready, builder_missing_types == [])
     |> assign(:type_order, reconciled_order)
   end
 
@@ -593,6 +654,24 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   defp type_icon(:data_store), do: "database-16"
   defp type_icon(:external_entity), do: "globe-16"
   defp type_icon(_), do: "circle-16"
+
+  defp builder_missing_types(workspace_id) do
+    workspace_id
+    |> Composer.list_brainstorm_items()
+    |> Enum.filter(&(&1.status in @builder_eligible_statuses))
+    |> Enum.group_by(& &1.type)
+    |> then(fn grouped ->
+      Enum.filter(@builder_required_types, fn type ->
+        Map.get(grouped, type, []) == []
+      end)
+    end)
+  end
+
+  defp builder_missing_types_label(types) do
+    types
+    |> Enum.map(&type_display_name/1)
+    |> Enum.join(", ")
+  end
 
   # Status color classes for labels
   defp status_color_class(:draft), do: "Label--accent"

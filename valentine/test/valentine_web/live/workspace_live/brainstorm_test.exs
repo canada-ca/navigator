@@ -13,6 +13,13 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
     brainstorm_item_fixture(%{workspace_id: workspace.id, type: :threat, raw_text: "Test threat"})
   end
 
+  defp create_candidate_item(workspace, type, raw_text) do
+    item = brainstorm_item_fixture(%{workspace_id: workspace.id, type: type, raw_text: raw_text})
+    {:ok, item} = Valentine.Composer.update_brainstorm_item(item, %{status: :clustered})
+    {:ok, item} = Valentine.Composer.update_brainstorm_item(item, %{status: :candidate})
+    item
+  end
+
   describe "Index" do
     setup [:create_workspace]
 
@@ -151,6 +158,199 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
 
       html = render(index_live)
       assert html =~ "Test threat"
+    end
+
+    test "disables build threat until required eligible cards exist", %{
+      conn: conn,
+      workspace: workspace
+    } do
+      _brainstorm_item = create_brainstorm_item(workspace)
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+      {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{workspace.id}/brainstorm")
+
+      assert html =~ "Build Threat"
+
+      assert html =~
+               "Add or promote Threat, Attack Vector, Impact, Asset cards to Candidate or Used to unlock the builder."
+    end
+
+    test "opens the threat builder when required candidate cards exist", %{
+      conn: conn,
+      workspace: workspace
+    } do
+      create_candidate_item(workspace, :threat, "external attacker")
+      create_candidate_item(workspace, :attack_vector, "steals a session token")
+      create_candidate_item(workspace, :impact, "accesses privileged data")
+      create_candidate_item(workspace, :asset, "customer portal")
+
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+      {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace.id}/brainstorm")
+
+      assert index_live |> element("button", "Build Threat") |> render_click()
+
+      html = render(index_live)
+      assert html =~ "Statement Builder"
+      assert html =~ "Only Candidate and Used cards appear here"
+      assert html =~ "Select threat..."
+      refute html =~ "Add or promote Threat, Attack Vector, Impact, Asset cards"
+    end
+
+    test "selecting required cards clears validation and renders preview", %{
+      conn: conn,
+      workspace: workspace
+    } do
+      threat = create_candidate_item(workspace, :threat, "external attacker")
+      attack_vector = create_candidate_item(workspace, :attack_vector, "steals a session token")
+      impact = create_candidate_item(workspace, :impact, "accesses privileged data")
+      asset = create_candidate_item(workspace, :asset, "customer portal")
+
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+      {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace.id}/brainstorm")
+
+      assert index_live |> element("button", "Build Threat") |> render_click()
+
+      assert index_live
+             |> element("form.threat-builder-selection-form")
+             |> render_change(%{"_target" => ["threat"], "threat" => threat.id})
+
+      assert index_live
+             |> element("form.threat-builder-selection-form")
+             |> render_change(%{
+               "_target" => ["attack_vector"],
+               "threat" => threat.id,
+               "attack_vector" => attack_vector.id
+             })
+
+      assert index_live
+             |> element("form.threat-builder-selection-form")
+             |> render_change(%{
+               "_target" => ["impact"],
+               "threat" => threat.id,
+               "attack_vector" => attack_vector.id,
+               "impact" => impact.id
+             })
+
+      assert index_live
+             |> element("form.threat-builder-selection-form")
+             |> render_change(%{
+               "_target" => ["asset"],
+               "threat" => threat.id,
+               "attack_vector" => attack_vector.id,
+               "impact" => impact.id,
+               "asset" => asset.id
+             })
+
+      html = render(index_live)
+      refute html =~ "Select a Threat card"
+      refute html =~ "Select a Attack Vector card"
+      refute html =~ "Select a Impact card"
+      refute html =~ "Select a Asset card"
+      assert html =~ "external attacker"
+      assert html =~ "steals a session token"
+      assert html =~ "accesses privileged data"
+      assert html =~ "customer portal"
+      assert html =~ "1 threat will be created"
+    end
+
+    test "selecting multiple assets includes all selected assets in the preview", %{
+      conn: conn,
+      workspace: workspace
+    } do
+      threat = create_candidate_item(workspace, :threat, "external attacker")
+      attack_vector = create_candidate_item(workspace, :attack_vector, "steals a session token")
+      impact = create_candidate_item(workspace, :impact, "accesses privileged data")
+      asset_one = create_candidate_item(workspace, :asset, "customer portal")
+      asset_two = create_candidate_item(workspace, :asset, "billing service")
+
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+      {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace.id}/brainstorm")
+
+      assert index_live |> element("button", "Build Threat") |> render_click()
+
+      assert index_live
+             |> element("form.threat-builder-selection-form")
+             |> render_change(%{"_target" => ["threat"], "threat" => threat.id})
+
+      assert index_live
+             |> element("form.threat-builder-selection-form")
+             |> render_change(%{
+               "_target" => ["attack_vector"],
+               "threat" => threat.id,
+               "attack_vector" => attack_vector.id
+             })
+
+      assert index_live
+             |> element("form.threat-builder-selection-form")
+             |> render_change(%{
+               "_target" => ["impact"],
+               "threat" => threat.id,
+               "attack_vector" => attack_vector.id,
+               "impact" => impact.id
+             })
+
+      assert index_live
+             |> element("form.threat-builder-selection-form")
+             |> render_change(%{
+               "_target" => ["asset"],
+               "threat" => threat.id,
+               "attack_vector" => attack_vector.id,
+               "impact" => impact.id,
+               "asset" => [asset_one.id, asset_two.id]
+             })
+
+      html = render(index_live)
+      assert html =~ "customer portal"
+      assert html =~ "billing service"
+    end
+
+    test "preview hides stride banner when no stride category is inferred", %{
+      conn: conn,
+      workspace: workspace
+    } do
+      threat = create_candidate_item(workspace, :threat, "external attacker")
+      attack_vector = create_candidate_item(workspace, :attack_vector, "observes normal traffic")
+      impact = create_candidate_item(workspace, :impact, "delays incident detection")
+      asset = create_candidate_item(workspace, :asset, "customer portal")
+
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+      {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace.id}/brainstorm")
+
+      assert index_live |> element("button", "Build Threat") |> render_click()
+
+      assert index_live
+             |> element("form.threat-builder-selection-form")
+             |> render_change(%{"_target" => ["threat"], "threat" => threat.id})
+
+      assert index_live
+             |> element("form.threat-builder-selection-form")
+             |> render_change(%{
+               "_target" => ["attack_vector"],
+               "threat" => threat.id,
+               "attack_vector" => attack_vector.id
+             })
+
+      assert index_live
+             |> element("form.threat-builder-selection-form")
+             |> render_change(%{
+               "_target" => ["impact"],
+               "threat" => threat.id,
+               "attack_vector" => attack_vector.id,
+               "impact" => impact.id
+             })
+
+      assert index_live
+             |> element("form.threat-builder-selection-form")
+             |> render_change(%{
+               "_target" => ["asset"],
+               "threat" => threat.id,
+               "attack_vector" => attack_vector.id,
+               "impact" => impact.id,
+               "asset" => [asset.id]
+             })
+
+      html = render(index_live)
+      refute html =~ ">STRIDE<"
+      refute html =~ "Label--accent"
     end
   end
 

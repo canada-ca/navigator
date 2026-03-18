@@ -346,8 +346,9 @@ msgstr "Espace de travail supprimé avec succès"
 #: lib/valentine_web/live/workspace_live/api_key/components/api_key_component.ex:45
 #: lib/valentine_web/live/workspace_live/assumption/components/control_categorizer.ex:58
 #: lib/valentine_web/live/workspace_live/assumption/components/form_component.ex:53
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:239
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:475
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:197
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:269
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:505
 #: lib/valentine_web/live/workspace_live/components/entity_linker_component.ex:45
 #: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:57
 #: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:304
@@ -368,6 +369,7 @@ msgstr "Enregistrer l'espace de travail"
 
 #: lib/valentine_web/live/workspace_live/api_key/components/api_key_component.ex:42
 #: lib/valentine_web/live/workspace_live/assumption/components/form_component.ex:50
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:207
 #: lib/valentine_web/live/workspace_live/form_component.ex:100
 #: lib/valentine_web/live/workspace_live/mitigation/components/form_component.ex:50
 #: lib/valentine_web/live/workspace_live/threat_agent/components/form_component.ex:76
@@ -422,7 +424,7 @@ msgstr "Informations sur l'application"
 #: lib/valentine_web/live/workspace_live/application_information/index.html.heex:8
 #: lib/valentine_web/live/workspace_live/architecture/index.html.heex:8
 #: lib/valentine_web/live/workspace_live/assumption/components/control_categorizer.ex:53
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:232
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:262
 #: lib/valentine_web/live/workspace_live/components/assumption_component.ex:136
 #: lib/valentine_web/live/workspace_live/components/entity_linker_component.ex:43
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:138
@@ -641,7 +643,7 @@ msgid "Assumptions help you to make better decisions by identifying the things y
 msgstr "Les hypothèses vous aident à prendre de meilleures décisions en identifiant les choses que vous croyez être vraies."
 
 #: lib/valentine_web/live/workspace_live/assumption/components/form_component.ex:33
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:208
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:238
 #: lib/valentine_web/live/workspace_live/mitigation/components/form_component.ex:33
 #, elixir-autogen, elixir-format
 msgid "Content"
@@ -776,9 +778,13 @@ msgstr "Nouvelle déclaration de menace"
 msgid "No results found"
 msgstr "Aucun résultat trouvé"
 
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:146
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:626
 #: lib/valentine_web/live/workspace_live/components/assumption_component.ex:108
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:110
-#: lib/valentine_web/live/workspace_live/components/threat_component.ex:104
+msgid " (already used)"
+msgstr " (déjà utilisée)"
+
 #: lib/valentine_web/live/workspace_live/evidence/show.html.heex:48
 #: lib/valentine_web/live/workspace_live/threat/show.html.heex:153
 #, elixir-autogen, elixir-format
@@ -790,6 +796,7 @@ msgstr "Aperçu"
 msgid "Start by clicking ANY field you like and work from there..."
 msgstr "Commencez par cliquer sur le champ de votre choix et partez de là..."
 
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:460
 #: lib/valentine_web/live/workspace_live/threat/show.ex:226
 #: lib/valentine_web/live/workspace_live/threat/show.ex:231
 #, elixir-autogen, elixir-format
@@ -1595,7 +1602,7 @@ msgstr "%{percent}%"
 msgid "A repository import is already running for this workspace"
 msgstr "Une importation de depot est deja en cours pour cet espace de travail"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:135
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:165
 #, elixir-autogen, elixir-format
 msgid "Active (not archived)"
 msgstr "Actif (non archive)"
@@ -1623,12 +1630,12 @@ msgstr "Tache d'agent introuvable"
 msgid "All"
 msgstr "Tous"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:364
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:394
 #, elixir-autogen, elixir-format
 msgid "Archive"
 msgstr "Archiver"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:140
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:170
 #, elixir-autogen, elixir-format
 msgid "Archived"
 msgstr "Archive"
@@ -1638,22 +1645,22 @@ msgstr "Archive"
 msgid "Are you sure you want to delete this evidence?"
 msgstr "Voulez-vous vraiment supprimer cette preuve ?"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:385
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:415
 #, elixir-autogen, elixir-format
 msgid "Are you sure you want to delete this item?"
 msgstr "Voulez-vous vraiment supprimer cet element ?"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:479
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:509
 #, elixir-autogen, elixir-format
 msgid "Assign"
 msgstr "Assigner"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:415
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:445
 #, elixir-autogen, elixir-format
 msgid "Assign to Cluster"
 msgstr "Assigner au groupe"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:341
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:371
 #, elixir-autogen, elixir-format
 msgid "Assign to cluster"
 msgstr "Assigner au groupe"
@@ -1673,7 +1680,7 @@ msgstr "Retour aux espaces de travail"
 msgid "Brainstorm"
 msgstr "Remue-meninges"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:63
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:72
 #: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:3
 #, elixir-autogen, elixir-format
 msgid "Brainstorm Board"
@@ -1691,17 +1698,17 @@ msgstr "Annulation demandee"
 msgid "Cancellation requested"
 msgstr "Annulation demandee"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:104
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:134
 #, elixir-autogen, elixir-format
 msgid "Capture your threat modeling ideas here. Add items and they'll be organized by category automatically."
 msgstr "Capturez ici vos idees de modelisation des menaces. Ajoutez des elements et ils seront organises automatiquement par categorie."
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:186
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:216
 #, elixir-autogen, elixir-format
 msgid "Category"
 msgstr "Categorie"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:438
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:468
 #, elixir-autogen, elixir-format
 msgid "Choose Existing Cluster"
 msgstr "Choisir un groupe existant"
@@ -1711,23 +1718,23 @@ msgstr "Choisir un groupe existant"
 msgid "Clear"
 msgstr "Effacer"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:421
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:451
 #: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:257
 #, elixir-autogen, elixir-format
 msgid "Close dialog"
 msgstr "Fermer la boite de dialogue"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:158
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:188
 #, elixir-autogen, elixir-format
 msgid "Cluster"
 msgstr "Groupe"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:262
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:292
 #, elixir-autogen, elixir-format
 msgid "Cluster key"
 msgstr "Cle du groupe"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:435
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:465
 #, elixir-autogen, elixir-format
 msgid "Cluster selection"
 msgstr "Selection du groupe"
@@ -1744,7 +1751,7 @@ msgstr "Termine"
 msgid "Created"
 msgstr "Cree"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:386
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:416
 #, elixir-autogen, elixir-format
 msgid "Delete item"
 msgstr "Supprimer l'element"
@@ -1754,7 +1761,7 @@ msgstr "Supprimer l'element"
 msgid "Describe this evidence..."
 msgstr "Decrivez cette preuve..."
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:147
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:177
 #, elixir-autogen, elixir-format
 msgid "Drag to reorder category"
 msgstr "Faites glisser pour reordonner la categorie"
@@ -1771,12 +1778,12 @@ msgstr "Modifier"
 msgid "Edit Evidence"
 msgstr "Modifier la preuve"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:331
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:361
 #, elixir-autogen, elixir-format
 msgid "Edit item"
 msgstr "Modifier l'element"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:465
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:495
 #, elixir-autogen, elixir-format
 msgid "Enter new cluster name..."
 msgstr "Saisissez un nouveau nom de groupe..."
@@ -1843,7 +1850,7 @@ msgstr "Ex. : https://example.com/evidence.pdf"
 msgid "Export to Mermaid.js"
 msgstr "Exporter vers Mermaid.js"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:347
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:356
 #, elixir-autogen, elixir-format
 msgid "Failed to assign cluster"
 msgstr "Echec de l'assignation au groupe"
@@ -1853,17 +1860,17 @@ msgstr "Echec de l'assignation au groupe"
 msgid "Failed to delete evidence"
 msgstr "Echec de la suppression de la preuve"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:176
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:185
 #, elixir-autogen, elixir-format
 msgid "Failed to delete item"
 msgstr "Echec de la suppression de l'element"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:250
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:259
 #, elixir-autogen, elixir-format
 msgid "Failed to move item"
 msgstr "Echec du deplacement de l'element"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:202
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:211
 #, elixir-autogen, elixir-format
 msgid "Failed to restore item"
 msgstr "Echec de la restauration de l'element"
@@ -1896,7 +1903,7 @@ msgstr "%{threats} menaces, %{assumptions} hypotheses, %{mitigations} attenuatio
 msgid "History"
 msgstr "Historique"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:469
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:499
 #, elixir-autogen, elixir-format
 msgid "If you enter a new cluster name it will be created and used."
 msgstr "Si vous saisissez un nouveau nom de groupe, il sera cree et utilise."
@@ -1909,38 +1916,38 @@ msgstr "Si vous saisissez un nouveau nom de groupe, il sera cree et utilise."
 msgid "Import from GitHub"
 msgstr "Importer depuis GitHub"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:342
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:351
 #, elixir-autogen, elixir-format
 msgid "Item assigned to cluster"
 msgstr "Element assigne au groupe"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:132
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:162
 #, elixir-autogen, elixir-format
 msgid "Item counts"
 msgstr "Nombre d'elements"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:171
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:180
 #, elixir-autogen, elixir-format
 msgid "Item deleted. Undo available."
 msgstr "Element supprime. Annulation possible."
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:208
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:217
 #, elixir-autogen, elixir-format
 msgid "Item no longer available for undo"
 msgstr "L'element n'est plus disponible pour annulation"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:197
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:206
 #, elixir-autogen, elixir-format
 msgid "Item restored successfully"
 msgstr "Element restaure avec succes"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:118
-#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:138
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:127
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:147
 #, elixir-autogen, elixir-format
 msgid "Item updated successfully"
 msgstr "Element mis a jour avec succes"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:159
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:189
 #, elixir-autogen, elixir-format
 msgid "Items in cluster"
 msgstr "Elements du groupe"
@@ -1963,17 +1970,17 @@ msgstr "Lier la preuve"
 msgid "Link URL"
 msgstr "URL du lien"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:288
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:318
 #, elixir-autogen, elixir-format
 msgid "Mark as Candidate"
 msgstr "Marquer comme candidat"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:277
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:307
 #, elixir-autogen, elixir-format
 msgid "Mark as Clustered"
 msgstr "Marquer comme groupe"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:299
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:329
 #, elixir-autogen, elixir-format
 msgid "Mark as Used"
 msgstr "Marquer comme utilise"
@@ -2002,7 +2009,7 @@ msgstr "Nouvelle preuve"
 msgid "No agents yet"
 msgstr "Aucun agent pour l'instant"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:454
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:484
 #, elixir-autogen, elixir-format
 msgid "No clusters exist yet for this category. Create one below."
 msgstr "Aucun groupe n'existe encore pour cette categorie. Creez-en un ci-dessous."
@@ -2028,7 +2035,7 @@ msgstr "Ouvrir l'espace de travail"
 msgid "Optional"
 msgstr "Facultatif"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:461
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:491
 #, elixir-autogen, elixir-format
 msgid "Or Create New Cluster"
 msgstr "Ou creer un nouveau groupe"
@@ -2048,12 +2055,12 @@ msgstr "Collez le contenu JSON ici - {...}"
 msgid "Pending workspace"
 msgstr "Espace de travail en attente"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:450
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:480
 #, elixir-autogen, elixir-format
 msgid "Pick one of the existing clusters for this category (type)."
 msgstr "Choisissez l'un des groupes existants pour cette categorie (type)."
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:93
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:102
 #, elixir-autogen, elixir-format
 msgid "Please select a category for your item"
 msgstr "Veuillez selectionner une categorie pour votre element"
@@ -2089,7 +2096,7 @@ msgstr "Retablir (Ctrl+Y)"
 msgid "Remove"
 msgstr "Retirer"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:352
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:382
 #, elixir-autogen, elixir-format
 msgid "Remove from cluster"
 msgstr "Retirer du groupe"
@@ -2129,8 +2136,8 @@ msgstr "Importation du depot"
 msgid "Requested"
 msgstr "Demande"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:321
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:375
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:351
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:405
 #, elixir-autogen, elixir-format
 msgid "Restore to Draft"
 msgstr "Retablir comme brouillon"
@@ -2145,7 +2152,7 @@ msgstr "Reessayer"
 msgid "Retry import"
 msgstr "Reessayer l'importation"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:310
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:340
 #, elixir-autogen, elixir-format
 msgid "Revert to Candidate"
 msgstr "Revenir a l'etat candidat"
@@ -2165,18 +2172,18 @@ msgstr "Relancer l'importation"
 msgid "Search items..."
 msgstr "Rechercher des elements..."
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:443
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:473
 #, elixir-autogen, elixir-format
 msgid "Select a cluster"
 msgstr "Selectionner un groupe"
 
 #: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:23
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:191
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:221
 #, elixir-autogen, elixir-format
 msgid "Select category..."
 msgstr "Selectionner une categorie..."
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:102
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:132
 #, elixir-autogen, elixir-format
 msgid "Start Brainstorming!"
 msgstr "Commencer le remue-meninges !"
@@ -2202,7 +2209,7 @@ msgstr "Demarre"
 msgid "Starting..."
 msgstr "Demarrage..."
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:224
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:233
 #, elixir-autogen, elixir-format
 msgid "Status updated successfully"
 msgstr "Statut mis a jour avec succes"
@@ -2246,7 +2253,7 @@ msgstr "Annuler (Ctrl+Z)"
 msgid "Updated"
 msgstr "Mis a jour"
 
-#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:109
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:139
 #, elixir-autogen, elixir-format
 msgid "Use the form above to add your first brainstorm item."
 msgstr "Utilisez le formulaire ci-dessus pour ajouter votre premier element de remue-meninges."
@@ -2541,3 +2548,154 @@ msgstr "Prévisualisez les avertissements avant de remplacer le diagramme actuel
 #, elixir-autogen, elixir-format
 msgid "Warnings"
 msgstr "Avertissements"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:462
+#, elixir-autogen, elixir-format
+msgid "%{count} threats created successfully"
+msgstr "%{count} menaces créées avec succès"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:186
+#, elixir-autogen, elixir-format
+msgid "1 threat will be created"
+msgstr "1 menace sera créée"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.ex:421
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:104
+#, elixir-autogen, elixir-format
+msgid "Add or promote %{types} cards to Candidate or Used before building a threat"
+msgstr "Ajoutez ou faites passer les cartes %{types} à l'état Candidate ou Used avant de construire une menace"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:116
+#, elixir-autogen, elixir-format
+msgid "Add or promote %{types} cards to Candidate or Used to unlock the builder."
+msgstr "Ajoutez ou faites passer les cartes %{types} à l'état Candidate ou Used pour déverrouiller le générateur."
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:76
+#, elixir-autogen, elixir-format
+msgid "Add or promote these categories to Candidate or Used before building a threat: %{types}"
+msgstr "Ajoutez ces catégories, ou faites-les passer à l'état Candidate ou Used, avant de construire une menace : %{types}"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:111
+#, elixir-autogen, elixir-format
+msgid "Build Threat"
+msgstr "Construire une menace"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:102
+#, elixir-autogen, elixir-format
+msgid "Build a threat from eligible brainstorm cards"
+msgstr "Construire une menace à partir de cartes de brainstorming admissibles"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:57
+#, elixir-autogen, elixir-format
+msgid "Build from brainstorm cards"
+msgstr "Construire à partir des cartes de brainstorming"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:65
+#, elixir-autogen, elixir-format
+msgid "Candidate"
+msgstr "Candidate"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:166
+#, elixir-autogen, elixir-format
+msgid "Choose a threat, attack vector, impact, and asset card to generate the final statement preview."
+msgstr "Choisissez une carte de menace, de vecteur d'attaque, d'impact et de ressource afin de générer l'aperçu de l'énoncé final."
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:188
+#, elixir-autogen, elixir-format
+msgid "Complete the required selections to continue"
+msgstr "Complétez les sélections requises pour continuer"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:64
+#, elixir-autogen, elixir-format
+msgid "Eligible card statuses"
+msgstr "États admissibles des cartes"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:74
+#, elixir-autogen, elixir-format
+msgid "More brainstorm cards are needed"
+msgstr "D'autres cartes de brainstorming sont nécessaires"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:237
+#, elixir-autogen, elixir-format
+msgid "Move brainstorm cards in this category to Candidate or Used on the board."
+msgstr "Faites passer les cartes de brainstorming de cette catégorie à l'état Candidate ou Used sur le tableau."
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:470
+#, elixir-autogen, elixir-format
+msgid "No eligible %{type} cards are available"
+msgstr "Aucune carte admissible de type %{type} n'est disponible"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:233
+#, elixir-autogen, elixir-format
+msgid "No eligible %{type} cards available"
+msgstr "Aucune carte admissible de type %{type} disponible"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:114
+#, elixir-autogen, elixir-format
+msgid "Optional context"
+msgstr "Contexte facultatif"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:88
+#, elixir-autogen, elixir-format
+msgid "Required components"
+msgstr "Composants requis"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:147
+#, elixir-autogen, elixir-format
+msgid "Review the generated statement before saving."
+msgstr "Vérifiez l'énoncé généré avant de l'enregistrer."
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:209
+#, elixir-autogen, elixir-format
+msgid "Save Threat"
+msgstr "Enregistrer la menace"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:265
+#, elixir-autogen, elixir-format
+msgid "Select %{type}..."
+msgstr "Sélectionner %{type}..."
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:479
+#, elixir-autogen, elixir-format
+msgid "Select a %{type} card"
+msgstr "Sélectionnez une carte %{type}"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:245
+#, elixir-autogen, elixir-format
+msgid "Select assets"
+msgstr "Sélectionner les ressources"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:59
+#, elixir-autogen, elixir-format
+msgid "Select one eligible card from each required category. Only Candidate and Used cards appear here."
+msgstr "Sélectionnez une carte admissible dans chaque catégorie requise. Seules les cartes Candidate et Used apparaissent ici."
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:260
+#, elixir-autogen, elixir-format
+msgid "Select one or more impacted assets."
+msgstr "Sélectionnez une ou plusieurs ressources impactées."
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:164
+#, elixir-autogen, elixir-format
+msgid "Select required components"
+msgstr "Sélectionnez les composants requis"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:51
+#, elixir-autogen, elixir-format
+msgid "Statement Builder"
+msgstr "Générateur d'énoncés"
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:90
+#, elixir-autogen, elixir-format
+msgid "Threat, attack vector, threat impact, and at least one asset are required."
+msgstr "Une menace, un vecteur d'attaque, un impact de menace et au moins une ressource sont requis."
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:115
+#, elixir-autogen, elixir-format
+msgid "Use these cards to enrich the generated statement."
+msgstr "Utilisez ces cartes pour enrichir l'énoncé généré."
+
+#: lib/valentine_web/live/workspace_live/brainstorm/components/threat_builder_component.ex:66
+#, elixir-autogen, elixir-format
+msgid "Used"
+msgstr "Utilisée"

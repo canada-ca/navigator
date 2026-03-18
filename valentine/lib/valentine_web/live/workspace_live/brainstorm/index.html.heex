@@ -90,6 +90,36 @@
           {gettext("Clear")}
         </.button>
       </.form>
+      
+<!-- Threat Builder Button -->
+      <div :if={@total_items > 0} class="brainstorm-builder-cta">
+        <.button
+          phx-click="open_threat_builder"
+          class="btn-primary"
+          is_disabled={!@builder_ready}
+          title={
+            if @builder_ready,
+              do: gettext("Build a threat from eligible brainstorm cards"),
+              else:
+                gettext(
+                  "Add or promote %{types} cards to Candidate or Used before building a threat",
+                  types: builder_missing_types_label(@builder_missing_types)
+                )
+          }
+        >
+          <.octicon name="shield-16" />
+          {gettext("Build Threat")}
+        </.button>
+
+        <%= if not @builder_ready do %>
+          <p class="brainstorm-builder-hint text-small color-fg-muted mb-0">
+            {gettext(
+              "Add or promote %{types} cards to Candidate or Used to unlock the builder.",
+              types: builder_missing_types_label(@builder_missing_types)
+            )}
+          </p>
+        <% end %>
+      </div>
     </div>
   </div>
   
@@ -483,5 +513,15 @@
         </div>
       </div>
     </div>
+  <% end %>
+  
+<!-- Threat Builder Component -->
+  <%= if @show_threat_builder do %>
+    <.live_component
+      module={ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponent}
+      id="threat-builder"
+      workspace_id={@workspace_id}
+      cluster_key={@builder_cluster_key}
+    />
   <% end %>
 </div>
