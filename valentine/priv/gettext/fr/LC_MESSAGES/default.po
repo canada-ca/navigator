@@ -87,10 +87,10 @@ msgid "Workspaces"
 msgstr "Espaces de travail"
 
 #: lib/valentine_web/components/layouts/app.html.heex:155
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:25
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:33
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:20
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:29
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:28
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:37
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:23
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:33
 #, elixir-autogen, elixir-format
 msgid "Application Information"
 msgstr "Informations sur l'application"
@@ -98,10 +98,10 @@ msgstr "Informations sur l'application"
 #: lib/valentine_web/components/layouts/app.html.heex:169
 #: lib/valentine_web/live/workspace_live/architecture/index.ex:42
 #: lib/valentine_web/live/workspace_live/architecture/index.html.heex:2
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:26
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:37
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:21
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:34
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:29
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:41
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:24
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:38
 #, elixir-autogen, elixir-format
 msgid "Architecture"
 msgstr "Architecture"
@@ -110,23 +110,23 @@ msgstr "Architecture"
 #: lib/valentine_web/live/workspace_live/components/evidence_component.ex:70
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:48
 #: lib/valentine_web/live/workspace_live/components/threat_component.ex:62
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:28
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:65
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:194
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:229
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:23
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:117
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:159
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:204
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:31
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:69
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:231
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:274
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:26
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:126
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:196
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:249
 #, elixir-autogen, elixir-format
 msgid "Assumptions"
 msgstr "Hypothèses"
 
 #: lib/valentine_web/components/layouts/app.html.heex:183
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:27
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:41
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:22
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:37
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:30
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:45
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:25
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:41
 #, elixir-autogen, elixir-format
 msgid "Data Flow"
 msgstr "Flux de données"
@@ -140,12 +140,12 @@ msgstr "Menu"
 #: lib/valentine_web/live/workspace_live/components/assumption_component.ex:59
 #: lib/valentine_web/live/workspace_live/components/evidence_component.ex:92
 #: lib/valentine_web/live/workspace_live/components/threat_component.ex:73
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:30
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:73
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:194
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:25
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:160
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:34
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:81
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:231
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:29
 #: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:197
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:242
 #, elixir-autogen, elixir-format
 msgid "Mitigations"
 msgstr "Atténuations"
@@ -176,10 +176,10 @@ msgstr "Modèle de menace"
 #: lib/valentine_web/live/workspace_live/components/assumption_component.ex:46
 #: lib/valentine_web/live/workspace_live/components/evidence_component.ex:81
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:61
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:29
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:69
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:24
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:153
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:33
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:77
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:28
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:190
 #, elixir-autogen, elixir-format
 msgid "Threats"
 msgstr "Menaces"
@@ -244,7 +244,7 @@ msgstr "Retour à tous les espaces de travail"
 msgid "Details"
 msgstr "Détails"
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:166
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:180
 #, elixir-autogen, elixir-format
 msgid "Export"
 msgstr "Exporter"
@@ -276,7 +276,7 @@ msgstr "Statut des atténuations"
 
 #: lib/valentine_web/live/workspace_live/show.ex:100
 #: lib/valentine_web/live/workspace_live/threat/show.ex:278
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:435
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:432
 #: lib/valentine_web/live/workspace_live/threat_agent/components/form_component.ex:68
 #: lib/valentine_web/live/workspace_live/threat_agent/index.ex:111
 #: lib/valentine_web/live/workspace_live/threat_agent/index.ex:112
@@ -350,6 +350,7 @@ msgstr "Espace de travail supprimé avec succès"
 #: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:475
 #: lib/valentine_web/live/workspace_live/components/entity_linker_component.ex:45
 #: lib/valentine_web/live/workspace_live/data_flow/components/threat_statement_generator_component.ex:57
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:304
 #: lib/valentine_web/live/workspace_live/form_component.ex:103
 #: lib/valentine_web/live/workspace_live/github_import_component.ex:97
 #: lib/valentine_web/live/workspace_live/import_component.ex:41
@@ -402,10 +403,12 @@ msgstr "Vous avez sélectionné un type de fichier inacceptable"
 #: lib/valentine_web/live/workspace_live/evidence/show.html.heex:25
 #: lib/valentine_web/live/workspace_live/form_component.ex:40
 #: lib/valentine_web/live/workspace_live/threat_agent/components/form_component.ex:32
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:85
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:123
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:50
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:84
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:93
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:136
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:210
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:54
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:93
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:172
 #, elixir-autogen, elixir-format
 msgid "Name"
 msgstr "Nom"
@@ -476,7 +479,7 @@ msgstr "Limites"
 msgid "Clear entire diagram"
 msgstr "Effacer tout le diagramme"
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.ex:42
+#: lib/valentine_web/live/workspace_live/data_flow/index.ex:47
 #: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:2
 #, elixir-autogen, elixir-format
 msgid "Data flow diagram"
@@ -488,8 +491,8 @@ msgid "Destructive actions"
 msgstr "Actions destructrices"
 
 #: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:53
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:49
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:45
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:53
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:49
 #, elixir-autogen, elixir-format
 msgid "Entities"
 msgstr "Entités"
@@ -652,7 +655,7 @@ msgstr "Enregistrer l'hypothèse"
 #: lib/valentine_web/live/workspace_live/components/assumption_component.ex:123
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:125
 #: lib/valentine_web/live/workspace_live/components/threat_component.ex:119
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:166
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:163
 #, elixir-autogen, elixir-format
 msgid "Add a comment..."
 msgstr "Ajouter un commentaire..."
@@ -674,13 +677,13 @@ msgstr "Effacer tous les filtres"
 #: lib/valentine_web/live/workspace_live/components/assumption_component.ex:102
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:104
 #: lib/valentine_web/live/workspace_live/components/threat_component.ex:98
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:150
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:162
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:194
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:229
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:125
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:164
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:205
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:147
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:175
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:231
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:274
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:135
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:202
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:251
 #, elixir-autogen, elixir-format
 msgid "Comments"
 msgstr "Commentaires"
@@ -713,12 +716,12 @@ msgstr "Échec de la suppression de la menace"
 msgid "Filters"
 msgstr "Filtres"
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:361
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:358
 #, elixir-autogen, elixir-format
 msgid "Inputs for mitigation"
 msgstr "Entrées pour l'atténuation"
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:385
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:382
 #, elixir-autogen, elixir-format
 msgid "Inputs for prioritization"
 msgstr "Entrées pour la priorisation"
@@ -728,14 +731,14 @@ msgstr "Entrées pour la priorisation"
 msgid "Let's write a threat statement!"
 msgstr "Écrivons une déclaration de menace!"
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:189
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:186
 #, elixir-autogen, elixir-format
 msgid "Linked Assumptions"
 msgstr "Hypothèses liées"
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:231
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:162
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:124
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:228
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:175
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:133
 #, elixir-autogen, elixir-format
 msgid "Linked Mitigations"
 msgstr "Atteintes liées"
@@ -754,7 +757,7 @@ msgstr "Liste des menaces"
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:130
 #: lib/valentine_web/live/workspace_live/components/threat_component.ex:124
 #: lib/valentine_web/live/workspace_live/evidence/show.html.heex:62
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:171
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:168
 #, elixir-autogen, elixir-format
 msgid "Markdown is supported"
 msgstr "Le Markdown est pris en charge"
@@ -777,7 +780,7 @@ msgstr "Aucun résultat trouvé"
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:110
 #: lib/valentine_web/live/workspace_live/components/threat_component.ex:104
 #: lib/valentine_web/live/workspace_live/evidence/show.html.heex:48
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:156
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:153
 #, elixir-autogen, elixir-format
 msgid "Preview"
 msgstr "Aperçu"
@@ -813,7 +816,7 @@ msgstr "Déclaration de menace mise à jour avec succès"
 #: lib/valentine_web/live/workspace_live/components/mitigation_component.ex:109
 #: lib/valentine_web/live/workspace_live/components/threat_component.ex:103
 #: lib/valentine_web/live/workspace_live/evidence/show.html.heex:47
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:155
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:152
 #, elixir-autogen, elixir-format
 msgid "Write"
 msgstr "Écrire"
@@ -823,9 +826,9 @@ msgstr "Écrire"
 msgid "You may have filters set that are hiding threats"
 msgstr "Vous avez peut-être des filtres qui masquent des menaces"
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:288
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:194
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:162
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:285
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:231
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:199
 #, elixir-autogen, elixir-format
 msgid "Priority"
 msgstr "Priorité"
@@ -835,9 +838,9 @@ msgstr "Priorité"
 msgid "Statement"
 msgstr "Déclaration"
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:271
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:194
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:161
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:268
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:231
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:198
 #, elixir-autogen, elixir-format
 msgid "Status"
 msgstr "Statut"
@@ -909,8 +912,8 @@ msgid "Categorize this mitigation based on NIST controls"
 msgstr "Catégoriser cette atténuation en fonction des contrôles NIST"
 
 #: lib/valentine_web/live/workspace_live/mitigation/components/control_categorizer.ex:35
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:229
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:202
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:274
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:247
 #, elixir-autogen, elixir-format
 msgid "Mitigation"
 msgstr "Atténuation"
@@ -1071,133 +1074,133 @@ msgstr "pour"
 msgid "Threat model"
 msgstr "Modèle de menace"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:23
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:17
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:26
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:20
 #, elixir-autogen, elixir-format
 msgid "Table of Contents"
 msgstr "Table des matières"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:260
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:238
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:306
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:289
 #, elixir-autogen, elixir-format
 msgid "Asset"
 msgstr "Actif"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:260
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:237
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:306
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:288
 #, elixir-autogen, elixir-format
 msgid "Asset ID"
 msgstr "ID de l'actif"
 
 #: lib/valentine_web/live/workspace_live/assumption/components/control_categorizer.ex:35
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:162
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:122
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:175
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:131
 #, elixir-autogen, elixir-format
 msgid "Assumption"
 msgstr "Hypothèse"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:162
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:121
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:175
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:130
 #, elixir-autogen, elixir-format
 msgid "Assumption ID"
 msgstr "ID de l'hypothèse"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:57
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:80
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:61
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:89
 #, elixir-autogen, elixir-format
 msgid "Data flow definitions"
 msgstr "Définitions de flux de données"
 
 #: lib/valentine_web/live/workspace_live/evidence/show.html.heex:40
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:85
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:123
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:51
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:85
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:93
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:136
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:55
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:94
 #, elixir-autogen, elixir-format
 msgid "Description"
 msgstr "Description"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:85
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:123
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:52
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:88
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:93
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:136
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:56
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:97
 #, elixir-autogen, elixir-format
 msgid "Features"
 msgstr "Caractéristiques"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:31
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:77
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:26
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:233
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:35
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:85
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:30
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:284
 #, elixir-autogen, elixir-format
 msgid "Impacted Assets"
 msgstr "Actifs impactés"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:162
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:123
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:175
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:132
 #, elixir-autogen, elixir-format
 msgid "Linked Threats"
 msgstr "Menaces liées"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:85
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:123
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:53
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:89
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:93
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:136
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:57
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:98
 #, elixir-autogen, elixir-format
 msgid "Linked threats"
 msgstr "Menaces liées"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:229
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:201
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:274
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:246
 #, elixir-autogen, elixir-format
 msgid "Mitigation ID"
 msgstr "ID de l'atténuation"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:260
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:239
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:306
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:290
 #, elixir-autogen, elixir-format
 msgid "Related Threats"
 msgstr "Menaces liées"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:194
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:163
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:231
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:200
 #, elixir-autogen, elixir-format
 msgid "STRIDE"
 msgstr "STRIDE"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:123
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:86
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:136
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:95
 #, elixir-autogen, elixir-format
 msgid "Source"
 msgstr "Source"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:123
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:87
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:136
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:96
 #, elixir-autogen, elixir-format
 msgid "Target"
 msgstr "Cible"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:194
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:158
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:231
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:195
 #, elixir-autogen, elixir-format
 msgid "Threat"
 msgstr "Menace"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:194
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:157
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:231
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:194
 #, elixir-autogen, elixir-format
 msgid "Threat ID"
 msgstr "ID de la menace"
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:229
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:203
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:274
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:248
 #, elixir-autogen, elixir-format
 msgid "Threats Mitigating"
 msgstr "Menaces atténuantes"
 
 #: lib/valentine_web/live/workspace_live/show.html.heex:289
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:85
-#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:49
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:93
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:53
 #, elixir-autogen, elixir-format
 msgid "Type"
 msgstr "Type"
@@ -1415,12 +1418,12 @@ msgstr "Écrire : Peut modifier n'importe quel aspect du modèle de menace."
 msgid "You can set the following permissions:"
 msgstr "Vous pouvez définir les autorisations suivantes :"
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:201
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:198
 #, elixir-autogen, elixir-format
 msgid "New assumption"
 msgstr "Nouvelle hypothèse"
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:243
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:240
 #, elixir-autogen, elixir-format
 msgid "New mitigation"
 msgstr "Nouvelle atténuation"
@@ -1531,7 +1534,7 @@ msgstr "Le monde est ouvert à ceux qui automatisent"
 msgid "This is the only time you will see this API key. Please copy and store it securely."
 msgstr "C'est la seule fois où vous verrez cette clé API. Veuillez la copier et la stocker en toute sécurité."
 
-#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:21
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:24
 #, elixir-autogen, elixir-format
 msgid "Threat Model Report"
 msgstr "Rapport de modèle de menace"
@@ -1709,6 +1712,7 @@ msgid "Clear"
 msgstr "Effacer"
 
 #: lib/valentine_web/live/workspace_live/brainstorm/index.html.heex:421
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:257
 #, elixir-autogen, elixir-format
 msgid "Close dialog"
 msgstr "Fermer la boite de dialogue"
@@ -1833,8 +1837,8 @@ msgstr "Les preuves apparaitront ici une fois que vous en aurez cree avec le bou
 msgid "Ex: https://example.com/evidence.pdf"
 msgstr "Ex. : https://example.com/evidence.pdf"
 
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:171
-#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:172
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:185
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:186
 #, elixir-autogen, elixir-format
 msgid "Export to Mermaid.js"
 msgstr "Exporter vers Mermaid.js"
@@ -2136,7 +2140,7 @@ msgstr "Retablir comme brouillon"
 msgid "Retry"
 msgstr "Reessayer"
 
-#: lib/valentine_web/live/workspace_live/show.ex:223
+#: lib/valentine_web/live/workspace_live/show.ex:220
 #, elixir-autogen, elixir-format
 msgid "Retry import"
 msgstr "Reessayer l'importation"
@@ -2151,7 +2155,7 @@ msgstr "Revenir a l'etat candidat"
 msgid "Run again"
 msgstr "Relancer"
 
-#: lib/valentine_web/live/workspace_live/show.ex:224
+#: lib/valentine_web/live/workspace_live/show.ex:221
 #, elixir-autogen, elixir-format
 msgid "Run import again"
 msgstr "Relancer l'importation"
@@ -2205,6 +2209,12 @@ msgstr "Statut mis a jour avec succes"
 
 #: lib/valentine_web/live/workspace_live/components/evidence_component.ex:47
 #: lib/valentine_web/live/workspace_live/evidence/show.html.heex:201
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:175
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:231
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:274
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:134
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:201
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:250
 #, elixir-autogen, elixir-format
 msgid "Tags"
 msgstr "Etiquettes"
@@ -2312,6 +2322,8 @@ msgstr "Ajouter votre premier acteur de menace"
 
 #: lib/valentine_web/live/workspace_live/threat_agent/components/form_component.ex:50
 #: lib/valentine_web/live/workspace_live/threat_agent/index.html.heex:80
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:210
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:174
 #, elixir-autogen, elixir-format
 msgid "Capability"
 msgstr "Capacité"
@@ -2332,16 +2344,18 @@ msgid "Categorize this assumption based on NIST controls"
 msgstr "Catégoriser cette atténuation en fonction des contrôles NIST"
 
 #: lib/valentine_web/live/workspace_live/threat_agent/index.html.heex:76
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:210
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:173
 #, elixir-autogen, elixir-format
 msgid "Class"
 msgstr "Classe"
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:326
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:323
 #, elixir-autogen, elixir-format
 msgid "Classification"
 msgstr "Classification"
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:409
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:406
 #, elixir-autogen, elixir-format
 msgid "Current classification"
 msgstr "Classification actuelle"
@@ -2367,7 +2381,7 @@ msgstr "Échec de la suppression de l'acteur de menace"
 msgid "Failed to update Threat Agent"
 msgstr "Échec de la mise à jour de l'acteur de menace"
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:416
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:413
 #, elixir-autogen, elixir-format
 msgid "Kill Chain Phase"
 msgstr "Phase de la chaîne d'attaque"
@@ -2378,12 +2392,12 @@ msgstr "Phase de la chaîne d'attaque"
 msgid "Listing Threat Agents"
 msgstr "Liste des acteurs de menace"
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:334
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:331
 #, elixir-autogen, elixir-format
 msgid "MITRE ATT&CK tactic"
 msgstr "Tactique MITRE ATT&CK"
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:413
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:410
 #, elixir-autogen, elixir-format
 msgid "MITRE Tactic"
 msgstr "Tactique MITRE"
@@ -2395,6 +2409,8 @@ msgstr "Niveau maximal de menace délibérée"
 
 #: lib/valentine_web/live/workspace_live/threat_agent/components/form_component.ex:59
 #: lib/valentine_web/live/workspace_live/threat_agent/index.html.heex:84
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:210
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:175
 #, elixir-autogen, elixir-format
 msgid "Motivation"
 msgstr "Motivation"
@@ -2421,7 +2437,7 @@ msgstr "Enregistrer l'acteur de menace"
 msgid "Threat Agent Class"
 msgstr "Classe d'acteur de menace"
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:428
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:425
 #, elixir-autogen, elixir-format
 msgid "Threat Agent References"
 msgstr "Références d'acteurs de menace"
@@ -2448,11 +2464,80 @@ msgid "Threat Agent updated successfully"
 msgstr "Acteur de menace mis à jour avec succès"
 
 #: lib/valentine_web/components/layouts/app.html.heex:253
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:32
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:73
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:27
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:168
 #, elixir-autogen, elixir-format
 msgid "Threat Agents"
 msgstr "Acteurs de menace"
 
-#: lib/valentine_web/live/workspace_live/threat/show.html.heex:422
+#: lib/valentine_web/live/workspace_live/threat/show.html.heex:419
+#: lib/valentine_web/live/workspace_live/threat_model/components/markdown_report_component.ex:210
+#: lib/valentine_web/live/workspace_live/threat_model/components/report_component.ex:176
 #, elixir-autogen, elixir-format
 msgid "Threat Level"
 msgstr "Niveau de menace"
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:318
+#, elixir-autogen, elixir-format
+msgid "%{nodes} nodes, %{edges} edges, %{boundaries} trust boundaries"
+msgstr "%{nodes} nœuds, %{edges} flux, %{boundaries} zones de confiance"
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:264
+#, elixir-autogen, elixir-format
+msgid "Best results come from stateDiagram-v2, but Navigator also accepts supported stateDiagram, flowchart, and graph variants."
+msgstr "Les meilleurs résultats sont obtenus avec stateDiagram-v2, mais Navigator accepte aussi les variantes prises en charge de stateDiagram, flowchart et graph."
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:166
+#, elixir-autogen, elixir-format
+msgid "Import"
+msgstr "Importer"
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:171
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:172
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:251
+#, elixir-autogen, elixir-format
+msgid "Import Mermaid diagram"
+msgstr "Importer un diagramme Mermaid"
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:344
+#, elixir-autogen, elixir-format
+msgid "Import diagram"
+msgstr "Importer le diagramme"
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:316
+#, elixir-autogen, elixir-format
+msgid "Import summary"
+msgstr "Résumé de l'import"
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.ex:198
+#, elixir-autogen, elixir-format
+msgid "Mermaid diagram imported successfully"
+msgstr "Le diagramme Mermaid a été importé avec succès"
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:282
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:288
+#, elixir-autogen, elixir-format
+msgid "Mermaid source"
+msgstr "Source Mermaid"
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.ex:169
+#, elixir-autogen, elixir-format
+msgid "Preview a Mermaid diagram before importing."
+msgstr "Prévisualisez un diagramme Mermaid avant de l'importer."
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:308
+#, elixir-autogen, elixir-format
+msgid "Preview import"
+msgstr "Prévisualiser l'import"
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:297
+#, elixir-autogen, elixir-format
+msgid "Preview warnings before replacing the current workspace diagram."
+msgstr "Prévisualisez les avertissements avant de remplacer le diagramme actuel de l'espace de travail."
+
+#: lib/valentine_web/live/workspace_live/data_flow/index.html.heex:329
+#, elixir-autogen, elixir-format
+msgid "Warnings"
+msgstr "Avertissements"
