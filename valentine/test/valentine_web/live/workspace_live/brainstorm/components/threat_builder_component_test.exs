@@ -48,24 +48,8 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
       }
     end
 
-    test "renders with empty state when no cards selected", %{workspace: workspace} do
-      assigns = %{
-        __changed__: %{},
-        workspace_id: workspace.id,
-        cluster_key: nil,
-        id: "threat-builder"
-      }
-
-      html = render_component(ThreatBuilderComponent, assigns)
-
-      assert html =~ "Statement Builder"
-      assert html =~ "Select components to preview"
-      assert html =~ "Choose cards from the required categories"
-    end
-
-    test "shows validation errors for missing required fields", %{
-      workspace: workspace,
-      threat_item: threat_item
+    test "shows missing-category guidance when required cards are not yet eligible", %{
+      workspace: workspace
     } do
       assigns = %{
         __changed__: %{},
@@ -76,18 +60,25 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
 
       html = render_component(ThreatBuilderComponent, assigns)
 
-      # Should render the component
       assert html =~ "Statement Builder"
-      assert html =~ "Select components to preview"
+      assert html =~ "Only Candidate and Used cards appear here"
+      assert html =~ "More brainstorm cards are needed"
+      assert html =~ "No eligible threat cards available"
+      assert html =~ "No eligible asset cards available"
     end
 
-    test "creates threat when all required fields are selected", %{
+    test "renders eligible card choices once required items are candidates", %{
       workspace: workspace,
       threat_item: threat_item,
       attack_item: attack_item,
       impact_item: impact_item,
       asset_item: asset_item
     } do
+      promote_to_candidate(threat_item)
+      promote_to_candidate(attack_item)
+      promote_to_candidate(impact_item)
+      promote_to_candidate(asset_item)
+
       assigns = %{
         __changed__: %{},
         workspace_id: workspace.id,
@@ -97,31 +88,28 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
 
       html = render_component(ThreatBuilderComponent, assigns)
 
-      # Should show component interface
       assert html =~ "Statement Builder"
-      # Should have threat selection
-      assert html =~ "threat"
-      # Should have attack vector selection
-      assert html =~ "attack_vector"
-      # Should have impact selection  
-      assert html =~ "impact"
-      # Should have asset selection
-      assert html =~ "asset"
+      assert html =~ "Select threat..."
+      assert html =~ "Select attack vector..."
+      assert html =~ "Threat Impact"
+      assert html =~ "malicious user"
+      assert html =~ "customer database"
+      refute html =~ "Required</span>"
     end
 
-    test "supports split threats for multiple assets", %{
+    test "labels used cards in the selector", %{
       workspace: workspace,
       threat_item: threat_item,
       attack_item: attack_item,
-      impact_item: impact_item
+      impact_item: impact_item,
+      asset_item: asset_item
     } do
-      # Create multiple asset items
-      {:ok, asset1} =
-        Composer.create_brainstorm_item(%{
-          workspace_id: workspace.id,
-          type: :asset,
-          raw_text: "user database, admin panel"
-        })
+      promote_to_candidate(threat_item)
+      promote_to_candidate(attack_item)
+      promote_to_candidate(impact_item)
+      {:ok, asset_item} = promote_to_candidate(asset_item)
+
+      {:ok, _asset_item} = Composer.update_brainstorm_item(asset_item, %{status: :used})
 
       assigns = %{
         __changed__: %{},
@@ -132,22 +120,49 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
 
       html = render_component(ThreatBuilderComponent, assigns)
 
-      # Should render with asset options
       assert html =~ "Statement Builder"
+      assert html =~ "customer database (already used)"
+    end
+
+    test "renders asset selection as multi-select checkboxes", %{
+      workspace: workspace,
+      threat_item: threat_item,
+      attack_item: attack_item,
+      impact_item: impact_item,
+      asset_item: asset_item
+    } do
+      promote_to_candidate(threat_item)
+      promote_to_candidate(attack_item)
+      promote_to_candidate(impact_item)
+      promote_to_candidate(asset_item)
+
+      {:ok, second_asset} =
+        Composer.create_brainstorm_item(%{
+          workspace_id: workspace.id,
+          type: :asset,
+          raw_text: "billing service"
+        })
+
+      promote_to_candidate(second_asset)
+
+      assigns = %{
+        __changed__: %{},
+        workspace_id: workspace.id,
+        cluster_key: nil,
+        id: "threat-builder"
+      }
+
+      html = render_component(ThreatBuilderComponent, assigns)
+
+      assert html =~ "Select one or more impacted assets."
+      assert html =~ "name=\"asset[]\""
+      assert html =~ "customer database"
+      assert html =~ "billing service"
     end
   end
 
-  describe "validation logic" do
-    test "validates required fields correctly" do
-      # Test placeholder - actual validation is tested through component interface
-      assert true
-    end
-  end
-
-  describe "card type mapping" do
-    test "maps brainstorm item types to threat grammar correctly" do
-      # Test placeholder - actual mapping is tested through component interface
-      assert true
-    end
+  defp promote_to_candidate(item) do
+    {:ok, item} = Composer.update_brainstorm_item(item, %{status: :clustered})
+    {:ok, _item} = Composer.update_brainstorm_item(item, %{status: :candidate})
   end
 end

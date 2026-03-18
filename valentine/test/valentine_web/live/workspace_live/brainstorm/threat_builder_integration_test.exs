@@ -1,6 +1,5 @@
 defmodule ValentineWeb.WorkspaceLive.Brainstorm.ThreatBuilderIntegrationTest do
   use ValentineWeb.ConnCase, async: true
-  import Phoenix.LiveViewTest
   import Valentine.ComposerFixtures
 
   alias Valentine.Composer
@@ -110,7 +109,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.ThreatBuilderIntegrationTest do
       assert threat.impacted_assets == ["customer database"]
       assert threat.stride == [:information_disclosure]
 
-      # Mark cards as used (simulating component behavior) 
+      # Mark cards as used (simulating component behavior)
       # First transition items through the proper lifecycle: draft -> clustered -> candidate -> used
       selected_card_ids = Map.values(selected_cards)
 

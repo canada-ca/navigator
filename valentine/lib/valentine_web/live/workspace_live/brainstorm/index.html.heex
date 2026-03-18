@@ -92,10 +92,34 @@
       </.form>
       
 <!-- Threat Builder Button -->
-      <.button :if={@total_items > 0} phx-click="open_threat_builder" class="btn-primary">
-        <.octicon name="shield-16" />
-        {gettext("Build Threat")}
-      </.button>
+      <div :if={@total_items > 0} class="brainstorm-builder-cta">
+        <.button
+          phx-click="open_threat_builder"
+          class="btn-primary"
+          is_disabled={!@builder_ready}
+          title={
+            if @builder_ready,
+              do: gettext("Build a threat from eligible brainstorm cards"),
+              else:
+                gettext(
+                  "Add or promote %{types} cards to Candidate or Used before building a threat",
+                  types: builder_missing_types_label(@builder_missing_types)
+                )
+          }
+        >
+          <.octicon name="shield-16" />
+          {gettext("Build Threat")}
+        </.button>
+
+        <%= if not @builder_ready do %>
+          <p class="brainstorm-builder-hint text-small color-fg-muted mb-0">
+            {gettext(
+              "Add or promote %{types} cards to Candidate or Used to unlock the builder.",
+              types: builder_missing_types_label(@builder_missing_types)
+            )}
+          </p>
+        <% end %>
+      </div>
     </div>
   </div>
   
