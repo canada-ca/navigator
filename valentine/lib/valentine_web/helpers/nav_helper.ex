@@ -21,7 +21,11 @@ defmodule ValentineWeb.Helpers.NavHelper do
       |> String.split(".")
       |> Enum.slice(3..-1//1)
       |> case do
-        [name | _] -> name
+        ["ThreatModel", nested_name | _] when nested_name in ["ReviewIndex", "ReviewShow"] ->
+          nested_name
+
+        [name | _] ->
+          name
       end
 
     Presence.track(self(), "valentine:presence", socket.assigns.current_user, %{

@@ -14,6 +14,7 @@ defmodule Valentine.Application do
         Valentine.Jido,
         {Task.Supervisor, name: Valentine.TaskSupervisor},
         maybe_repo_analysis_recovery_child(),
+        maybe_threat_model_quality_review_recovery_child(),
         {DNSCluster, query: Application.get_env(:valentine, :dns_cluster_query) || :ignore},
         {Phoenix.PubSub, name: Valentine.PubSub},
         ValentineWeb.Presence,
@@ -39,6 +40,16 @@ defmodule Valentine.Application do
 
     if Keyword.get(repo_analysis_config, :start_recovery, true) do
       Valentine.RepoAnalysis.Recovery
+    else
+      nil
+    end
+  end
+
+  defp maybe_threat_model_quality_review_recovery_child do
+    review_config = Application.get_env(:valentine, :threat_model_quality_review, [])
+
+    if Keyword.get(review_config, :start_recovery, true) do
+      Valentine.ThreatModelQualityReview.Recovery
     else
       nil
     end

@@ -1,0 +1,142 @@
+<.subhead>
+  {gettext("Threat model quality review")} {gettext("for")}: {@workspace.name}
+  <:actions>
+    <.link navigate={~p"/workspaces/#{@workspace.id}/threat_model"}>
+      <.button>{gettext("Back to threat model")}</.button>
+    </.link>
+    <.link navigate={~p"/workspaces/#{@workspace.id}"}>
+      <.button is_outline>{gettext("Open workspace overview")}</.button>
+    </.link>
+  </:actions>
+</.subhead>
+
+<.box class="mb-3">
+  <:header_title>{gettext("Review runs")}</:header_title>
+  <:body>
+    <div class="review-runs-page__intro mb-3">
+      <div class="repo-analysis-card__message review-runs-page__intro-copy">
+        {gettext(
+          "Run a quality review to inspect the completeness and consistency of this workspace threat model."
+        )}
+      </div>
+
+      <div class="repo-analysis-card__actions review-runs-page__intro-actions">
+        <.button phx-click="start_threat_model_quality_review">
+          {gettext("Run quality review")}
+        </.button>
+      </div>
+    </div>
+
+    <%= if Enum.empty?(@review_history) do %>
+      <.blankslate class="color-bg-default">
+        <:octicon name="checklist-24" />
+        <h3>{gettext("No review runs yet")}</h3>
+        <p>{gettext("Start a quality review to assess the current workspace threat model.")}</p>
+      </.blankslate>
+    <% else %>
+      <div class="repo-analysis-history-heading review-history-heading--compact">
+        {gettext("Recent review history")}
+      </div>
+      <div class="review-runs-table-wrap">
+        <table class="table review-runs-table">
+          <thead>
+            <tr>
+              <th>{gettext("Status")}</th>
+              <th>{gettext("Findings summary")}</th>
+              <th>{gettext("Requested")}</th>
+              <th>{gettext("Actions")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr :for={run <- @review_history}>
+              <td class="review-runs-table__status">
+                <span class={[
+                  "Label review-runs-table__status-pill",
+                  quality_review_status_class(run.status)
+                ]}>
+                  {quality_review_status_label(run.status)}
+                </span>
+                <div class="review-runs-table__progress">{run.progress_percent || 0}%</div>
+              </td>
+              <td class="review-runs-table__summary">
+                <%= if run.status == :completed do %>
+                  <.link
+                    navigate={~p"/workspaces/#{@workspace.id}/threat_model/reviews/#{run.id}"}
+                    class="review-runs-table__headline-link"
+                  >
+                    <div class="review-runs-table__headline">
+                      {quality_review_summary_text(run) || gettext("No stored findings summary")}
+                    </div>
+                  </.link>
+                <% else %>
+                  <div class="review-runs-table__headline">
+                    {quality_review_summary_text(run) || gettext("No stored findings summary")}
+                  </div>
+                <% end %>
+                <div
+                  :if={quality_review_summary_text(run)}
+                  class="review-runs-table__severity-strip"
+                >
+                  <span
+                    :for={badge <- quality_review_summary_counts(run)}
+                    class={[
+                      "review-runs-table__severity-badge",
+                      "review-runs-table__severity-badge--#{badge.tone}"
+                    ]}
+                  >
+                    {badge.label}: {badge.count}
+                  </span>
+                </div>
+                <div class="review-runs-table__message">
+                  {run.progress_message || gettext("Waiting for updates")}
+                </div>
+
+                <details class="review-runs-table__details">
+                  <summary>{gettext("More details")}</summary>
+                  <div class="review-runs-table__details-grid">
+                    <div>
+                      <strong>{gettext("Requested")}: </strong>
+                      {format_timestamp_with_relative(run.requested_at || run.inserted_at)}
+                    </div>
+                    <div :if={run.started_at}>
+                      <strong>{gettext("Started")}: </strong>
+                      {format_timestamp_with_relative(run.started_at)}
+                    </div>
+                    <div :if={run.completed_at}>
+                      <strong>{gettext("Completed")}: </strong>
+                      {format_timestamp_with_relative(run.completed_at)}
+                    </div>
+                    <div :if={run.failure_reason}>
+                      <strong>{gettext("Failure")}: </strong>
+                      {run.failure_reason}
+                    </div>
+                  </div>
+                </details>
+              </td>
+              <td class="review-runs-table__requested">
+                {format_timestamp_with_relative(run.requested_at || run.inserted_at)}
+              </td>
+              <td class="review-runs-table__actions">
+                <.button
+                  :if={ThreatModelQualityReview.running_status?(run.status)}
+                  phx-click="cancel_threat_model_quality_review"
+                  phx-value-id={run.id}
+                >
+                  {gettext("Terminate")}
+                </.button>
+                <button
+                  class="btn btn-sm btn-danger"
+                  phx-click="delete_threat_model_quality_review"
+                  phx-value-id={run.id}
+                  data-confirm={gettext("Are you sure you want to delete this review?")}
+                >
+                  {gettext("Delete")}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+  </:body>
+</.box>

@@ -287,6 +287,19 @@
             workspace_id={@workspace_id}
           />
         </:item>
+        <:item
+          is_selected={@active_module == "ReviewIndex" || @active_module == "ReviewShow"}
+          navigate={~p"/workspaces/#{@workspace_id}/threat_model/reviews"}
+          class="d-flex flex-items-center flex-justify-between"
+        >
+          <span><.octicon name="checklist-16" /> {gettext("Quality Reviews")}</span>
+          <ValentineWeb.WorkspaceLive.Components.PresenceIndicatorComponent.render
+            current_user={@current_user}
+            presence={@presence}
+            active_module={["ReviewIndex", "ReviewShow"]}
+            workspace_id={@workspace_id}
+          />
+        </:item>
       </.side_nav>
       <.side_nav :if={@workspace_id} aria_label="reference-packs" class="mt-4" is_border>
         <:item
