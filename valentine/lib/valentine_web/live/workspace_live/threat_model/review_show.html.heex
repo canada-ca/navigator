@@ -1,0 +1,192 @@
+<.subhead>
+  {gettext("Threat model quality review")} {gettext("for")}: {@workspace.name}
+  <:actions>
+    <.link navigate={~p"/workspaces/#{@workspace.id}/threat_model/reviews"}>
+      <.button>{gettext("Back to reviews")}</.button>
+    </.link>
+    <.link navigate={~p"/workspaces/#{@workspace.id}/threat_model"}>
+      <.button is_outline>{gettext("Open threat model")}</.button>
+    </.link>
+  </:actions>
+</.subhead>
+
+<div class="review-detail-layout">
+  <aside class="review-detail-layout__sidebar">
+    <div class="review-summary-stack review-detail-card--sidebar">
+      <section class="review-summary-panel review-summary-panel--hero">
+        <div class="review-summary-panel__topline">{gettext("Review run")}</div>
+        <div class="review-summary-panel__header">
+          <h3 class="review-summary-panel__title">
+            {ngettext("%{count} finding", "%{count} findings", @summary_counts.finding_count,
+              count: @summary_counts.finding_count
+            )}
+          </h3>
+          <div class="review-summary-panel__status">
+            <.state_label is_small>
+              {DisplayHelper.enum_label(@review_run.status)}
+            </.state_label>
+          </div>
+        </div>
+      </section>
+
+      <section class="review-summary-panel review-summary-panel--stats">
+        <div class="review-summary-stats">
+          <a href="#severity-high" class="review-summary-stat review-summary-stat--high">
+            <div class="review-summary-stat__value">{@summary_counts.high}</div>
+            <div class="review-summary-stat__label">{gettext("High")}</div>
+          </a>
+          <a href="#severity-medium" class="review-summary-stat review-summary-stat--medium">
+            <div class="review-summary-stat__value">{@summary_counts.medium}</div>
+            <div class="review-summary-stat__label">{gettext("Medium")}</div>
+          </a>
+          <a href="#severity-low" class="review-summary-stat review-summary-stat--low">
+            <div class="review-summary-stat__value">{@summary_counts.low}</div>
+            <div class="review-summary-stat__label">{gettext("Low")}</div>
+          </a>
+          <a href="#severity-info" class="review-summary-stat review-summary-stat--info">
+            <div class="review-summary-stat__value">{@summary_counts.info}</div>
+            <div class="review-summary-stat__label">{gettext("Informational")}</div>
+          </a>
+        </div>
+      </section>
+
+      <details class="review-summary-panel review-summary-panel--details review-run-details">
+        <summary class="review-run-details__summary">
+          <span>{gettext("Review details")}</span>
+          <.octicon name="triangle-down-16" class="review-run-details__chevron" />
+        </summary>
+        <div class="review-run-details__body">
+          <div class="repo-analysis-meta-grid repo-analysis-meta-grid--compact">
+            <div class="repo-analysis-meta-item">
+              <div class="repo-analysis-meta-label">{gettext("Requested")}</div>
+              <div class="repo-analysis-meta-value">
+                {format_timestamp_with_relative(
+                  @review_run.requested_at || @review_run.inserted_at
+                )}
+              </div>
+            </div>
+            <div :if={@review_run.started_at} class="repo-analysis-meta-item">
+              <div class="repo-analysis-meta-label">{gettext("Started")}</div>
+              <div class="repo-analysis-meta-value">
+                {format_timestamp_with_relative(@review_run.started_at)}
+              </div>
+            </div>
+            <div :if={@review_run.completed_at} class="repo-analysis-meta-item">
+              <div class="repo-analysis-meta-label">{gettext("Completed")}</div>
+              <div class="repo-analysis-meta-value">
+                {format_timestamp_with_relative(@review_run.completed_at)}
+              </div>
+            </div>
+            <div class="repo-analysis-meta-item">
+              <div class="repo-analysis-meta-label">{gettext("Status")}</div>
+              <div class="repo-analysis-meta-value">
+                {DisplayHelper.enum_label(@review_run.status)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <div :if={@review_run.failure_reason} class="repo-analysis-alert">
+        {@review_run.failure_reason}
+      </div>
+    </div>
+  </aside>
+
+  <section class="review-detail-layout__main">
+    <.box class="review-detail-card review-detail-card--main">
+      <:header_title>{gettext("Findings report")}</:header_title>
+      <:body>
+        <div class="review-findings-intro">
+          <div class="review-findings-intro__eyebrow">{gettext("Review report")}</div>
+          <h3 class="review-findings-intro__title">
+            {gettext("Findings by severity and theme")}
+          </h3>
+          <p class="review-findings-intro__message">
+            {gettext(
+              "Use this pass to focus on the most important gaps first, then clean up medium- and low-severity issues to improve the overall coherence of the model."
+            )}
+          </p>
+        </div>
+
+        <%= if Enum.empty?(@findings) do %>
+          <.blankslate class="color-bg-default mt-3">
+            <:octicon name="check-circle-24" />
+            <h3>{gettext("No actionable findings")}</h3>
+            <p>{gettext("This review completed without any stored findings.")}</p>
+          </.blankslate>
+        <% else %>
+          <div class="review-findings-groups mt-3">
+            <section
+              :for={{severity, findings} <- @grouped_findings}
+              id={"severity-#{severity}"}
+              class={[
+                "review-findings-group",
+                "review-findings-group--#{severity}"
+              ]}
+            >
+              <div class="review-findings-group__header">
+                <div>
+                  <div class="review-findings-group__eyebrow">{gettext("Severity")}</div>
+                  <h3 class="review-findings-group__title">{severity_label(severity)}</h3>
+                  <p class="review-findings-group__summary">
+                    {severity_section_message(severity)}
+                  </p>
+                </div>
+                <span class="review-findings-group__count">
+                  {ngettext("%{count} finding", "%{count} findings", length(findings),
+                    count: length(findings)
+                  )}
+                </span>
+              </div>
+
+              <div class="review-findings-stack">
+                <details
+                  :for={{finding, index} <- Enum.with_index(findings)}
+                  class={[
+                    "review-finding-card",
+                    "review-finding-card--#{finding.severity}"
+                  ]}
+                  open={index == 0}
+                >
+                  <summary class="review-finding-card__summary">
+                    <div class="review-finding-card__summary-main">
+                      <div class="review-finding-card__header">
+                        <span class="review-finding-card__kicker">
+                          {category_label(finding.category)}
+                        </span>
+                      </div>
+
+                      <h4 class="review-finding-card__title">{finding.title}</h4>
+                    </div>
+
+                    <div class="review-finding-card__summary-side">
+                      <span class="review-finding-card__toggle-copy">
+                        {gettext("Show rationale and next step")}
+                      </span>
+                      <.octicon
+                        name="triangle-down-16"
+                        class="review-finding-card__chevron"
+                      />
+                    </div>
+                  </summary>
+
+                  <div class="review-finding-card__body">
+                    <p class="review-finding-card__rationale">{finding.rationale}</p>
+
+                    <div class="review-finding-card__action-block">
+                      <div class="review-finding-card__action-label">
+                        {gettext("Suggested next action")}
+                      </div>
+                      <p class="review-finding-card__action">{finding.suggested_action}</p>
+                    </div>
+                  </div>
+                </details>
+              </div>
+            </section>
+          </div>
+        <% end %>
+      </:body>
+    </.box>
+  </section>
+</div>

@@ -189,6 +189,14 @@ defmodule ValentineWeb.Router do
 
       live "/workspaces/:workspace_id/threat_model", WorkspaceLive.ThreatModel.Index, :index
 
+      live "/workspaces/:workspace_id/threat_model/reviews",
+           WorkspaceLive.ThreatModel.ReviewIndex,
+           :index
+
+      live "/workspaces/:workspace_id/threat_model/reviews/:id",
+           WorkspaceLive.ThreatModel.ReviewShow,
+           :show
+
       live "/workspaces/:workspace_id/reference_packs", WorkspaceLive.ReferencePacks.Index, :index
 
       live "/workspaces/:workspace_id/reference_packs/import",

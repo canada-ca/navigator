@@ -274,6 +274,52 @@ defmodule Valentine.ComposerFixtures do
   end
 
   @doc """
+  Generate a threat model quality review run.
+  """
+  def threat_model_quality_review_run_fixture(attrs \\ %{}) do
+    workspace = workspace_fixture()
+
+    {:ok, run} =
+      attrs
+      |> Enum.into(%{
+        workspace_id: workspace.id,
+        owner: workspace.owner,
+        status: :queued,
+        progress_message: "Queued for threat model quality review",
+        progress_percent: 0,
+        metadata: %{},
+        result_summary: %{},
+        requested_at: DateTime.utc_now()
+      })
+      |> Valentine.Composer.create_threat_model_quality_review_run()
+
+    run
+  end
+
+  @doc """
+  Generate a threat model quality review finding.
+  """
+  def threat_model_quality_review_finding_fixture(attrs \\ %{}) do
+    run = threat_model_quality_review_run_fixture()
+
+    {:ok, finding} =
+      attrs
+      |> Enum.into(%{
+        run_id: run.id,
+        title: "Duplicate threat coverage",
+        category: :duplicate_threat,
+        severity: :medium,
+        rationale: "Two threats describe the same actor, action, and impact.",
+        suggested_action: "Merge or rewrite the overlapping threats.",
+        metadata: %{},
+        display_order: 0
+      })
+      |> Valentine.Composer.create_threat_model_quality_review_finding()
+
+    finding
+  end
+
+  @doc """
   Generate evidence.
   """
   def evidence_fixture(attrs \\ %{}) do

@@ -142,6 +142,18 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
                "<details class=\"repo-analysis-collapsible repo-analysis-collapsible--embedded\" open"
     end
 
+    test "renders the quality reviews submenu without embedding review controls", %{conn: conn} do
+      workspace = workspace_fixture(%{owner: "some owner"})
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
+
+      {:ok, _show_live, html} = live(conn, ~p"/workspaces/#{workspace.id}")
+
+      assert html =~ "Quality Reviews"
+      assert html =~ ~p"/workspaces/#{workspace.id}/threat_model/reviews"
+      refute html =~ "Threat model quality review"
+      refute html =~ "Run quality review"
+    end
+
     test "shows recent repository import history for the workspace", %{conn: conn} do
       workspace = workspace_fixture(%{owner: "some owner"})
       latest_requested_at = DateTime.add(DateTime.utc_now(), -3_600, :second)

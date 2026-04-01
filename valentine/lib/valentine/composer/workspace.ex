@@ -42,6 +42,11 @@ defmodule Valentine.Composer.Workspace do
     has_many :api_keys, Valentine.Composer.ApiKey, on_delete: :delete_all
     has_many :brainstorm_items, Valentine.Composer.BrainstormItem, on_delete: :delete_all
     has_many :repo_analysis_agents, Valentine.Composer.RepoAnalysisAgent, on_delete: :delete_all
+
+    has_many :threat_model_quality_review_runs,
+             Valentine.Composer.ThreatModelQualityReviewRun,
+             on_delete: :delete_all
+
     has_many :threat_agents, Valentine.Composer.ThreatAgent, on_delete: :delete_all
 
     field :owner, :string
