@@ -275,10 +275,10 @@ defmodule ValentineWeb.WorkspaceLive.Components.ChatComponent do
   defp format_msg(content, _) do
     case Jason.decode(content) do
       {:ok, %{"content" => content}} ->
-        content |> MDEx.to_html!() |> Phoenix.HTML.raw()
+        content |> MDEx.to_html!(render: [unsafe_: false]) |> Phoenix.HTML.raw()
 
       _ ->
-        content |> MDEx.to_html!() |> Phoenix.HTML.raw()
+        content |> MDEx.to_html!(render: [unsafe_: false]) |> Phoenix.HTML.raw()
     end
   end
 

@@ -130,7 +130,7 @@ defmodule Valentine.Composer do
 
     ## Parameters
       * workspace - The workspace to update
-      * indentity - The identity of the user to update permissions for
+      * identity - The identity of the user to update permissions for
       * permission - The new permission level for the user
 
     ## Examples
@@ -138,16 +138,16 @@ defmodule Valentine.Composer do
         iex> update_workspace_permissions(workspace, "some.owner@localhost", "owner")
         %Workspace{permissions: %{"some.owner@localhost" => "owner"}}
   """
-  def update_workspace_permissions(%Workspace{} = workspace, indentity, permission) do
+  def update_workspace_permissions(%Workspace{} = workspace, identity, permission) do
     case permission do
       "none" ->
         workspace
-        |> Workspace.changeset(%{permissions: Map.delete(workspace.permissions, indentity)})
+        |> Workspace.changeset(%{permissions: Map.delete(workspace.permissions, identity)})
         |> Repo.update()
 
       p ->
         workspace
-        |> Workspace.changeset(%{permissions: Map.put(workspace.permissions, indentity, p)})
+        |> Workspace.changeset(%{permissions: Map.put(workspace.permissions, identity, p)})
         |> Repo.update()
     end
   end
@@ -417,38 +417,7 @@ defmodule Valentine.Composer do
 
   """
   def list_threats_with_enum_filters(m, filters) do
-    Enum.reduce(filters, m, fn {f, selected}, queryable ->
-      case Threat.__schema__(:type, f) do
-        {:array, _} ->
-          if is_nil(selected) || selected == [] do
-            queryable
-          else
-            [first | rest] = selected
-            query = where(queryable, [m], ^first in field(m, ^f))
-
-            Enum.reduce(rest, query, fn s, q ->
-              or_where(q, [m], ^s in field(m, ^f))
-            end)
-          end
-
-        {:parameterized, _} ->
-          if is_nil(selected) || selected == [] do
-            queryable
-          else
-            where(queryable, [m], field(m, ^f) in ^selected)
-          end
-
-        :string ->
-          if is_nil(selected) || selected == [] do
-            queryable
-          else
-            where(queryable, [m], field(m, ^f) in ^selected)
-          end
-
-        _ ->
-          queryable
-      end
-    end)
+    apply_enum_filters(m, filters, Threat)
   end
 
   def list_threats_by_ids(ids) do
@@ -656,28 +625,7 @@ defmodule Valentine.Composer do
 
   """
   def list_assumptions_with_enum_filters(m, filters) do
-    Enum.reduce(filters, m, fn {f, selected}, queryable ->
-      case Assumption.__schema__(:type, f) do
-        {:array, _} ->
-          if is_nil(selected) || selected == [] do
-            queryable
-          else
-            [first | rest] = selected
-            query = where(queryable, [m], ^first in field(m, ^f))
-
-            Enum.reduce(rest, query, fn s, q ->
-              or_where(q, [m], ^s in field(m, ^f))
-            end)
-          end
-
-        {:parameterized, _} ->
-          if is_nil(selected) || selected == [] do
-            queryable
-          else
-            where(queryable, [m], field(m, ^f) in ^selected)
-          end
-      end
-    end)
+    apply_enum_filters(m, filters, Assumption)
   end
 
   @doc """
@@ -824,14 +772,18 @@ defmodule Valentine.Composer do
 
   """
   def list_mitigations_with_enum_filters(m, filters) do
-    Enum.reduce(filters, m, fn {f, selected}, queryable ->
-      case Mitigation.__schema__(:type, f) do
+    apply_enum_filters(m, filters, Mitigation)
+  end
+
+  defp apply_enum_filters(queryable, filters, schema_module) do
+    Enum.reduce(filters, queryable, fn {f, selected}, acc ->
+      case schema_module.__schema__(:type, f) do
         {:array, _} ->
           if is_nil(selected) || selected == [] do
-            queryable
+            acc
           else
             [first | rest] = selected
-            query = where(queryable, [m], ^first in field(m, ^f))
+            query = where(acc, [m], ^first in field(m, ^f))
 
             Enum.reduce(rest, query, fn s, q ->
               or_where(q, [m], ^s in field(m, ^f))
@@ -840,10 +792,20 @@ defmodule Valentine.Composer do
 
         {:parameterized, _} ->
           if is_nil(selected) || selected == [] do
-            queryable
+            acc
           else
-            where(queryable, [m], field(m, ^f) in ^selected)
+            where(acc, [m], field(m, ^f) in ^selected)
           end
+
+        :string ->
+          if is_nil(selected) || selected == [] do
+            acc
+          else
+            where(acc, [m], field(m, ^f) in ^selected)
+          end
+
+        _ ->
+          acc
       end
     end)
   end
@@ -1012,8 +974,7 @@ defmodule Valentine.Composer do
       )
     )
     |> case do
-      {1, nil} -> {:ok, threat |> Repo.preload(:assumptions, force: true)}
-      {:error, _} -> {:error, threat}
+      {_n, nil} -> {:ok, threat |> Repo.preload(:assumptions, force: true)}
     end
   end
 
@@ -1071,8 +1032,7 @@ defmodule Valentine.Composer do
       )
     )
     |> case do
-      {1, nil} -> {:ok, threat |> Repo.preload(:mitigations, force: true)}
-      {:error, _} -> {:error, threat}
+      {_n, nil} -> {:ok, threat |> Repo.preload(:mitigations, force: true)}
     end
   end
 
@@ -1092,8 +1052,7 @@ defmodule Valentine.Composer do
       )
     )
     |> case do
-      {1, nil} -> {:ok, assumption |> Repo.preload(:threats, force: true)}
-      {:error, _} -> {:error, assumption}
+      {_n, nil} -> {:ok, assumption |> Repo.preload(:threats, force: true)}
     end
   end
 
@@ -1113,8 +1072,7 @@ defmodule Valentine.Composer do
       )
     )
     |> case do
-      {1, nil} -> {:ok, mitigation |> Repo.preload(:assumptions, force: true)}
-      {:error, _} -> {:error, mitigation}
+      {_n, nil} -> {:ok, mitigation |> Repo.preload(:assumptions, force: true)}
     end
   end
 
@@ -1134,8 +1092,7 @@ defmodule Valentine.Composer do
       )
     )
     |> case do
-      {1, nil} -> {:ok, mitigation |> Repo.preload(:threats, force: true)}
-      {:error, _} -> {:error, mitigation}
+      {_n, nil} -> {:ok, mitigation |> Repo.preload(:threats, force: true)}
     end
   end
 
@@ -1155,8 +1112,7 @@ defmodule Valentine.Composer do
       )
     )
     |> case do
-      {1, nil} -> {:ok, assumption |> Repo.preload(:mitigations, force: true)}
-      {:error, _} -> {:error, assumption}
+      {_n, nil} -> {:ok, assumption |> Repo.preload(:mitigations, force: true)}
     end
   end
 

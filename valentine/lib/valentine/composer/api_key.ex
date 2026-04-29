@@ -37,7 +37,7 @@ defmodule Valentine.Composer.ApiKey do
       :last_used,
       :workspace_id
     ])
-    |> validate_required([:owner, :label, :status])
+    |> validate_required([:owner, :label, :status, :workspace_id])
     |> unique_constraint(:id)
     |> foreign_key_constraint(:workspace_id)
   end

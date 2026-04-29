@@ -1474,11 +1474,14 @@ defmodule Valentine.ComposerTest do
     end
 
     test "create_api_key/1 with valid data creates a api_key" do
+      workspace = workspace_fixture()
+
       valid_attrs = %{
         owner: "some owner",
         label: "some label",
         key: "some key",
-        status: :active
+        status: :active,
+        workspace_id: workspace.id
       }
 
       assert {:ok, %ApiKey{} = api_key} =
@@ -1488,11 +1491,14 @@ defmodule Valentine.ComposerTest do
     end
 
     test "create_api_key/1 with valid data automatically generates a key" do
+      workspace = workspace_fixture()
+
       valid_attrs = %{
         owner: "some owner",
         label: "some label",
         key: "some key",
-        status: :active
+        status: :active,
+        workspace_id: workspace.id
       }
 
       assert {:ok, %ApiKey{} = api_key} =

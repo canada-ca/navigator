@@ -39,12 +39,12 @@ defmodule Valentine.ThreatModelQualityReview.Agent do
     end
 
     defp start_worker(context) do
-      {:ok, pid} =
-        Task.Supervisor.start_child(Valentine.TaskSupervisor, fn ->
-          Valentine.ThreatModelQualityReview.Runner.run(get_in(context, [:state, :run_id]))
-        end)
-
-      {:ok, %{status: :running, worker_pid: pid}}
+      case Task.Supervisor.start_child(Valentine.TaskSupervisor, fn ->
+             Valentine.ThreatModelQualityReview.Runner.run(get_in(context, [:state, :run_id]))
+           end) do
+        {:ok, pid} -> {:ok, %{status: :running, worker_pid: pid}}
+        {:error, reason} -> {:error, reason}
+      end
     end
   end
 
@@ -60,7 +60,7 @@ defmodule Valentine.ThreatModelQualityReview.Agent do
       worker_pid = get_in(context, [:state, :worker_pid])
 
       if is_pid(worker_pid) and Process.alive?(worker_pid) do
-        Process.exit(worker_pid, :kill)
+        Task.Supervisor.terminate_child(Valentine.TaskSupervisor, worker_pid)
       end
 
       _ = Valentine.ThreatModelQualityReview.Runner.cancel(get_in(context, [:state, :run_id]))
