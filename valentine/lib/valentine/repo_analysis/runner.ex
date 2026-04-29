@@ -85,10 +85,9 @@ defmodule Valentine.RepoAnalysis.Runner do
       repo_full_name: repo_ref.full_name,
       repo_default_branch: snapshot.default_branch,
       metadata:
-        Map.merge(
-          Composer.get_repo_analysis_agent!(repo_analysis_agent_id).metadata,
-          snapshot.metadata
-        ),
+        repo_analysis_agent.metadata
+        |> Map.merge(clone_metadata)
+        |> Map.merge(snapshot.metadata),
       progress_percent: 40,
       progress_message: "Generating architecture and threat model"
     })

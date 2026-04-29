@@ -42,11 +42,17 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
   defp apply_action(socket, :edit, %{"id" => id} = _params) do
     evidence = Composer.get_evidence!(id)
 
-    socket
-    |> assign(:page_title, gettext("Edit Evidence"))
-    |> assign(:evidence, evidence)
-    |> assign(:changes, Map.from_struct(evidence))
-    |> assign(:content_raw, encode_content(evidence.content))
+    if evidence.workspace_id != socket.assigns.workspace_id do
+      socket
+      |> put_flash(:error, gettext("Not found"))
+      |> push_navigate(to: ~p"/workspaces/#{socket.assigns.workspace_id}/evidence")
+    else
+      socket
+      |> assign(:page_title, gettext("Edit Evidence"))
+      |> assign(:evidence, evidence)
+      |> assign(:changes, Map.from_struct(evidence))
+      |> assign(:content_raw, encode_content(evidence.content))
+    end
   end
 
   @impl true

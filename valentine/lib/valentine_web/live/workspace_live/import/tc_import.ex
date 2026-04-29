@@ -46,7 +46,8 @@ defmodule ValentineWeb.WorkspaceLive.Import.TcImport do
     {:ok, _} =
       Composer.create_application_information(%{
         workspace_id: workspace_id,
-        content: MDEx.to_html!(description, extension: [shortcodes: true])
+        content:
+          MDEx.to_html!(description, extension: [shortcodes: true], render: [unsafe_: false])
       })
 
     :ok
@@ -56,12 +57,13 @@ defmodule ValentineWeb.WorkspaceLive.Import.TcImport do
     description = get_in(data, ["architecture", "description"]) || ""
     image = get_in(data, ["architecture", "image"]) || ""
 
-    content = MDEx.to_html!(description, extension: [shortcodes: true])
+    content = MDEx.to_html!(description, extension: [shortcodes: true], render: [unsafe_: false])
 
     # Prepend image to content if it exists
     content =
       if image != "" do
-        "<p><img src=\"#{image}\" alt=\"Architecture Diagram\" /></p>" <> content
+        safe_image = Phoenix.HTML.html_escape(image) |> Phoenix.HTML.safe_to_string()
+        "<p><img src=\"#{safe_image}\" alt=\"Architecture Diagram\" /></p>" <> content
       else
         content
       end

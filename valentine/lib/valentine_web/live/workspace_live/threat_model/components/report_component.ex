@@ -326,7 +326,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Components.ReportComponent do
   defp to_markdown(text) do
     text
     |> String.trim()
-    |> MDEx.to_html!(extension: [shortcodes: true])
+    |> MDEx.to_html!(extension: [shortcodes: true], render: [unsafe_: false])
     |> Phoenix.HTML.raw()
   end
 end

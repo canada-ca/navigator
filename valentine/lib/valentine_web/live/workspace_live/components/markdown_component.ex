@@ -15,7 +15,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.MarkdownComponent do
 
   defp to_markdown(text) do
     String.trim(text)
-    |> MDEx.to_html!(extension: [shortcodes: true])
+    |> MDEx.to_html!(extension: [shortcodes: true], render: [unsafe_: false])
     |> Phoenix.HTML.raw()
   end
 end
