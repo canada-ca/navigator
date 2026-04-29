@@ -46,7 +46,8 @@ defmodule ValentineWeb.WorkspaceLive.Import.TcImport do
     {:ok, _} =
       Composer.create_application_information(%{
         workspace_id: workspace_id,
-        content: MDEx.to_html!(description, extension: [shortcodes: true], render: [unsafe_: false])
+        content:
+          MDEx.to_html!(description, extension: [shortcodes: true], render: [unsafe_: false])
       })
 
     :ok
