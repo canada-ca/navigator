@@ -1,0 +1,4 @@
+interface:
+  display_name: "Navigator Threat Modeler"
+  short_description: "Codebase-driven Navigator threat modeling"
+  default_prompt: "Use $navigator-threat-modeler to review this codebase and create a detailed Navigator threat model through MCP."
