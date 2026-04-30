@@ -24,6 +24,10 @@ defmodule ValentineWeb.Router do
     plug ValentineWeb.Helpers.ApiAuthHelper
   end
 
+  pipeline :mcp_api do
+    plug ValentineWeb.Helpers.ApiAuthHelper
+  end
+
   pipeline :raw do
     plug :accepts, ["html", "json"]
   end
@@ -39,6 +43,11 @@ defmodule ValentineWeb.Router do
 
     get "/workspace", WorkspaceController, :index
     post "/evidence", EvidenceController, :create
+  end
+
+  scope "/api", ValentineWeb.Api do
+    pipe_through :mcp_api
+
     get "/mcp", MCPController, :stream_not_supported
     post "/mcp", MCPController, :handle
   end

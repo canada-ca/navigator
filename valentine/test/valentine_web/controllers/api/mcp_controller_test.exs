@@ -36,8 +36,9 @@ defmodule ValentineWeb.Api.MCPControllerTest do
     tools = get_in(json_response(conn, 200), ["result", "tools"])
     tool_names = Enum.map(tools, & &1["name"])
 
-    assert length(tools) == 26
+    assert length(tools) == 25
     assert "list_workspaces" in tool_names
+    refute "create_workspace" in tool_names
     assert "create_threat" in tool_names
     assert "export_dfd_mermaid" in tool_names
   end

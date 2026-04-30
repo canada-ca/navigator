@@ -21,15 +21,6 @@ defmodule Valentine.MCP.Registry do
      {Workspace, :list_workspaces}},
     {"get_workspace", "Get the API key's current workspace.", schema(%{}),
      {Workspace, :get_workspace}},
-    {"create_workspace", "Create a workspace owned by the API key owner.",
-     schema(%{
-       name: @string,
-       cloud_profile: @string,
-       cloud_profile_type: @string,
-       url: @string,
-       max_threat_level: @string,
-       permissions: %{type: "object"}
-     }), {Workspace, :create_workspace}},
     {"update_workspace", "Update the API key's current workspace.",
      schema(%{
        name: @string,

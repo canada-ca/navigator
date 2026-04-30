@@ -25,19 +25,6 @@ defmodule Valentine.MCP.Tools.Workspace do
     |> ok_json()
   end
 
-  def create_workspace(args, api_key) do
-    attrs =
-      args
-      |> normalize_attrs()
-      |> Map.put("owner", api_key.owner)
-      |> Map.put_new("permissions", %{})
-
-    case Composer.create_workspace(attrs) do
-      {:ok, workspace} -> ok_json(workspace)
-      {:error, changeset} -> tool_error(Jason.encode!(format_changeset_errors(changeset)))
-    end
-  end
-
   def update_workspace(args, api_key) do
     workspace = Composer.get_workspace!(api_key.workspace_id)
 
