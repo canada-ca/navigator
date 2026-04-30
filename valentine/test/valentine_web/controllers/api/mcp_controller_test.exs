@@ -17,7 +17,7 @@ defmodule ValentineWeb.Api.MCPControllerTest do
   end
 
   test "initialize returns server capabilities", %{conn: conn} do
-    conn = post(conn, ~p"/api/mcp", rpc("initialize", %{}))
+    conn = post(conn, ~p"/mcp", rpc("initialize", %{}))
 
     assert %{
              "jsonrpc" => "2.0",
@@ -31,7 +31,7 @@ defmodule ValentineWeb.Api.MCPControllerTest do
   end
 
   test "tools/list returns the phase 1 tools", %{conn: conn} do
-    conn = post(conn, ~p"/api/mcp", rpc("tools/list", %{}))
+    conn = post(conn, ~p"/mcp", rpc("tools/list", %{}))
 
     tools = get_in(json_response(conn, 200), ["result", "tools"])
     tool_names = Enum.map(tools, & &1["name"])
@@ -77,7 +77,7 @@ defmodule ValentineWeb.Api.MCPControllerTest do
     conn =
       post(
         conn,
-        ~p"/api/mcp",
+        ~p"/mcp",
         rpc("tools/call", %{"name" => "list_threats", "arguments" => %{}})
       )
 
@@ -92,7 +92,7 @@ defmodule ValentineWeb.Api.MCPControllerTest do
     conn =
       post(
         conn,
-        ~p"/api/mcp",
+        ~p"/mcp",
         rpc("tools/call", %{"name" => "export_workspace", "arguments" => %{}})
       )
 
@@ -107,7 +107,7 @@ defmodule ValentineWeb.Api.MCPControllerTest do
     conn =
       post(
         conn,
-        ~p"/api/mcp",
+        ~p"/mcp",
         rpc("tools/call", %{
           "name" => "update_application_information",
           "arguments" => %{"content" => "Application context"}
@@ -120,7 +120,7 @@ defmodule ValentineWeb.Api.MCPControllerTest do
       recycle(conn)
       |> put_req_header("authorization", List.first(get_req_header(conn, "authorization")))
       |> post(
-        ~p"/api/mcp",
+        ~p"/mcp",
         rpc("tools/call", %{
           "name" => "update_data_flow_diagram",
           "arguments" => %{
@@ -160,7 +160,7 @@ defmodule ValentineWeb.Api.MCPControllerTest do
       recycle(conn)
       |> put_req_header("authorization", List.first(get_req_header(conn, "authorization")))
       |> post(
-        ~p"/api/mcp",
+        ~p"/mcp",
         rpc("tools/call", %{"name" => "export_dfd_mermaid", "arguments" => %{}})
       )
 
@@ -179,7 +179,7 @@ defmodule ValentineWeb.Api.MCPControllerTest do
     conn =
       post(
         conn,
-        ~p"/api/mcp",
+        ~p"/mcp",
         rpc("tools/call", %{
           "name" => "link_entities",
           "arguments" => %{
@@ -203,7 +203,7 @@ defmodule ValentineWeb.Api.MCPControllerTest do
     conn =
       post(
         conn,
-        ~p"/api/mcp",
+        ~p"/mcp",
         rpc("tools/call", %{
           "name" => "update_threat",
           "arguments" => %{"id" => other_threat.id, "threat_source" => "after"}
@@ -218,7 +218,7 @@ defmodule ValentineWeb.Api.MCPControllerTest do
     conn =
       post(
         conn,
-        ~p"/api/mcp",
+        ~p"/mcp",
         rpc("tools/call", %{"name" => "missing_tool", "arguments" => %{}})
       )
 
@@ -227,8 +227,7 @@ defmodule ValentineWeb.Api.MCPControllerTest do
   end
 
   test "notifications return 202 with no body", %{conn: conn} do
-    conn =
-      post(conn, ~p"/api/mcp", %{"jsonrpc" => "2.0", "method" => "notifications/initialized"})
+    conn = post(conn, ~p"/mcp", %{"jsonrpc" => "2.0", "method" => "notifications/initialized"})
 
     assert response(conn, 202) == ""
   end
@@ -238,19 +237,19 @@ defmodule ValentineWeb.Api.MCPControllerTest do
       build_conn()
       |> put_req_header("authorization", "Bearer #{api_key.key}")
       |> put_req_header("content-type", "application/json")
-      |> post(~p"/api/mcp", Jason.encode!([rpc("initialize", %{}), rpc("tools/list", %{}, 2)]))
+      |> post(~p"/mcp", Jason.encode!([rpc("initialize", %{}), rpc("tools/list", %{}, 2)]))
 
     assert [%{"id" => 1}, %{"id" => 2}] = json_response(conn, 200)
   end
 
-  test "GET /api/mcp returns 405 when authenticated", %{conn: conn} do
-    conn = get(conn, ~p"/api/mcp")
+  test "GET /mcp returns 405 when authenticated", %{conn: conn} do
+    conn = get(conn, ~p"/mcp")
 
     assert response(conn, 405) == ""
   end
 
   test "unauthenticated requests return 401" do
-    conn = post(build_conn(), ~p"/api/mcp", rpc("initialize", %{}))
+    conn = post(build_conn(), ~p"/mcp", rpc("initialize", %{}))
 
     assert json_response(conn, 401)
   end

@@ -45,7 +45,7 @@ defmodule ValentineWeb.Router do
     post "/evidence", EvidenceController, :create
   end
 
-  scope "/api", ValentineWeb.Api do
+  scope "/", ValentineWeb.Api do
     pipe_through :mcp_api
 
     get "/mcp", MCPController, :stream_not_supported
