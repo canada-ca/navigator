@@ -62,8 +62,12 @@ defmodule Valentine.MCP.Tools.Documents do
     attrs = Map.take(args, ["nodes", "edges", "raw_image"])
 
     case Composer.update_data_flow_diagram(dfd, attrs) do
-      {:ok, dfd} -> ok_json(dfd_map(dfd))
-      {:error, changeset} -> tool_error(Jason.encode!(format_changeset_errors(changeset)))
+      {:ok, dfd} ->
+        DataFlowDiagram.put(dfd)
+        ok_json(dfd_map(dfd))
+
+      {:error, changeset} ->
+        tool_error(Jason.encode!(format_changeset_errors(changeset)))
     end
   end
 

@@ -41,6 +41,31 @@ defmodule ValentineWeb.Api.MCPControllerTest do
     refute "create_workspace" in tool_names
     assert "create_threat" in tool_names
     assert "export_dfd_mermaid" in tool_names
+
+    create_threat = Enum.find(tools, &(&1["name"] == "create_threat"))
+    assert get_in(create_threat, ["annotations", "readOnlyHint"]) == false
+    assert get_in(create_threat, ["annotations", "destructiveHint"]) == false
+
+    assert get_in(create_threat, [
+             "inputSchema",
+             "properties",
+             "threat_source",
+             "description"
+           ]) =~ "Do not include a leading article"
+
+    update_dfd = Enum.find(tools, &(&1["name"] == "update_data_flow_diagram"))
+
+    assert get_in(update_dfd, [
+             "inputSchema",
+             "properties",
+             "nodes",
+             "additionalProperties",
+             "properties",
+             "data",
+             "properties",
+             "type",
+             "enum"
+           ]) == ["actor", "process", "datastore", "trust_boundary"]
   end
 
   test "tools/call returns threats for the API key workspace", %{
@@ -96,11 +121,55 @@ defmodule ValentineWeb.Api.MCPControllerTest do
       |> put_req_header("authorization", List.first(get_req_header(conn, "authorization")))
       |> post(
         ~p"/api/mcp",
+        rpc("tools/call", %{
+          "name" => "update_data_flow_diagram",
+          "arguments" => %{
+            "nodes" => %{
+              "browser" => %{
+                "data" => %{
+                  "id" => "browser",
+                  "label" => "Browser",
+                  "type" => "actor"
+                }
+              },
+              "app" => %{
+                "data" => %{
+                  "id" => "app",
+                  "label" => "Phoenix App",
+                  "type" => "process"
+                }
+              }
+            },
+            "edges" => %{
+              "browser_to_app" => %{
+                "data" => %{
+                  "id" => "browser_to_app",
+                  "source" => "browser",
+                  "target" => "app",
+                  "label" => "HTTPS"
+                }
+              }
+            }
+          }
+        })
+      )
+
+    assert get_in(json_response(conn, 200), ["result", "isError"]) == false
+
+    conn =
+      recycle(conn)
+      |> put_req_header("authorization", List.first(get_req_header(conn, "authorization")))
+      |> post(
+        ~p"/api/mcp",
         rpc("tools/call", %{"name" => "export_dfd_mermaid", "arguments" => %{}})
       )
 
-    assert [%{"type" => "text", "text" => "stateDiagram-v2"}] =
+    assert [%{"type" => "text", "text" => mermaid}] =
              get_in(json_response(conn, 200), ["result", "content"])
+
+    assert mermaid =~ "stateDiagram-v2"
+    assert mermaid =~ "browser : Browser"
+    assert mermaid =~ "browser --> app : HTTPS"
   end
 
   test "links entities in the API key workspace", %{conn: conn, workspace: workspace} do
