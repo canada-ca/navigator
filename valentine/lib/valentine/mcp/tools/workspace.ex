@@ -4,6 +4,8 @@ defmodule Valentine.MCP.Tools.Workspace do
   alias Valentine.Composer
   alias ValentineWeb.Workspace.Json, as: WorkspaceJson
 
+  @update_fields ["name", "cloud_profile", "cloud_profile_type", "url", "max_threat_level"]
+
   @export_preloads [
     :application_information,
     :architecture,
@@ -14,9 +16,8 @@ defmodule Valentine.MCP.Tools.Workspace do
   ]
 
   def list_workspaces(_args, api_key) do
-    api_key.owner
-    |> Composer.list_workspaces_by_identity()
-    |> ok_json()
+    workspace = Composer.get_workspace!(api_key.workspace_id)
+    ok_json([workspace])
   end
 
   def get_workspace(_args, api_key) do
@@ -27,8 +28,9 @@ defmodule Valentine.MCP.Tools.Workspace do
 
   def update_workspace(args, api_key) do
     workspace = Composer.get_workspace!(api_key.workspace_id)
+    attrs = args |> normalize_attrs() |> Map.take(@update_fields)
 
-    case Composer.update_workspace(workspace, normalize_attrs(args)) do
+    case Composer.update_workspace(workspace, attrs) do
       {:ok, workspace} -> ok_json(workspace)
       {:error, changeset} -> tool_error(Jason.encode!(format_changeset_errors(changeset)))
     end

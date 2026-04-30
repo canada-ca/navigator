@@ -66,6 +66,52 @@ defmodule ValentineWeb.Api.MCPControllerTest do
              "type",
              "enum"
            ]) == ["actor", "process", "datastore", "trust_boundary"]
+
+    update_workspace = Enum.find(tools, &(&1["name"] == "update_workspace"))
+    refute Map.has_key?(get_in(update_workspace, ["inputSchema", "properties"]), "permissions")
+  end
+
+  test "list_workspaces only returns the API key workspace", %{
+    conn: conn,
+    workspace: workspace
+  } do
+    workspace_fixture(%{owner: "mcp@example.com", name: "Other MCP Workspace"})
+
+    conn =
+      post(
+        conn,
+        ~p"/mcp",
+        rpc("tools/call", %{"name" => "list_workspaces", "arguments" => %{}})
+      )
+
+    assert [%{"type" => "text", "text" => text}] =
+             get_in(json_response(conn, 200), ["result", "content"])
+
+    assert [%{"id" => workspace_id}] = Jason.decode!(text)
+    assert workspace_id == workspace.id
+  end
+
+  test "update_workspace ignores account fields", %{conn: conn, workspace: workspace} do
+    conn =
+      post(
+        conn,
+        ~p"/mcp",
+        rpc("tools/call", %{
+          "name" => "update_workspace",
+          "arguments" => %{
+            "name" => "Renamed by MCP",
+            "owner" => "attacker@example.com",
+            "permissions" => %{"attacker@example.com" => "owner"}
+          }
+        })
+      )
+
+    assert get_in(json_response(conn, 200), ["result", "isError"]) == false
+
+    updated_workspace = Composer.get_workspace!(workspace.id)
+    assert updated_workspace.name == "Renamed by MCP"
+    assert updated_workspace.owner == "mcp@example.com"
+    assert updated_workspace.permissions == %{}
   end
 
   test "tools/call returns threats for the API key workspace", %{
@@ -172,6 +218,34 @@ defmodule ValentineWeb.Api.MCPControllerTest do
     assert mermaid =~ "browser --> app : HTTPS"
   end
 
+  test "rejects malformed DFD payloads", %{conn: conn} do
+    conn =
+      post(
+        conn,
+        ~p"/mcp",
+        rpc("tools/call", %{
+          "name" => "update_data_flow_diagram",
+          "arguments" => %{
+            "nodes" => %{
+              "browser" => %{
+                "data" => %{
+                  "id" => "browser",
+                  "label" => "Browser",
+                  "type" => "external_system"
+                }
+              }
+            },
+            "edges" => %{}
+          }
+        })
+      )
+
+    body = json_response(conn, 200)
+    assert get_in(body, ["result", "isError"]) == true
+    assert [%{"text" => text}] = get_in(body, ["result", "content"])
+    assert text =~ "unsupported data.type"
+  end
+
   test "links entities in the API key workspace", %{conn: conn, workspace: workspace} do
     threat = threat_fixture(%{workspace_id: workspace.id})
     assumption = assumption_fixture(%{workspace_id: workspace.id})
@@ -224,6 +298,23 @@ defmodule ValentineWeb.Api.MCPControllerTest do
 
     assert %{"error" => %{"code" => -32602, "message" => "Unknown tool: missing_tool"}} =
              json_response(conn, 200)
+  end
+
+  test "missing required tool arguments return a tool error", %{conn: conn} do
+    conn =
+      post(
+        conn,
+        ~p"/mcp",
+        rpc("tools/call", %{
+          "name" => "update_threat",
+          "arguments" => %{"threat_source" => "after"}
+        })
+      )
+
+    body = json_response(conn, 200)
+    assert get_in(body, ["result", "isError"]) == true
+    assert [%{"text" => text}] = get_in(body, ["result", "content"])
+    assert text == "Missing required arguments: id"
   end
 
   test "notifications return 202 with no body", %{conn: conn} do

@@ -33,17 +33,23 @@ defmodule Valentine.MCP.Registry do
   end
 
   def call_tool(name, args, api_key) do
-    case Map.fetch(tool_handlers(), name) do
-      {:ok, {module, function}} ->
-        case apply(module, function, [args, api_key]) do
-          {:ok, content} ->
-            {:ok, %{content: content, isError: false}}
+    case Enum.find(tool_specs(), &(&1.name == name)) do
+      %{handler: {module, function}, input_schema: input_schema} ->
+        case validate_required_arguments(input_schema, args) do
+          :ok ->
+            case apply(module, function, [args, api_key]) do
+              {:ok, content} ->
+                {:ok, %{content: content, isError: false}}
+
+              {:tool_error, message} ->
+                {:ok, %{content: [%{type: "text", text: message}], isError: true}}
+            end
 
           {:tool_error, message} ->
             {:ok, %{content: [%{type: "text", text: message}], isError: true}}
         end
 
-      :error ->
+      nil ->
         {:error, -32602, "Unknown tool: #{name}"}
     end
   rescue
@@ -52,17 +58,25 @@ defmodule Valentine.MCP.Registry do
 
     error in Ecto.InvalidChangesetError ->
       {:ok, %{content: [%{type: "text", text: Exception.message(error)}], isError: true}}
+
+    _error in FunctionClauseError ->
+      {:ok, %{content: [%{type: "text", text: "Invalid arguments for #{name}"}], isError: true}}
   end
 
-  defp tool_handlers do
-    Map.new(tool_specs(), fn %{name: name, handler: handler} -> {name, handler} end)
+  defp validate_required_arguments(%{required: required}, args) do
+    missing = Enum.reject(required, &Map.has_key?(args, &1))
+
+    case missing do
+      [] -> :ok
+      _ -> {:tool_error, "Missing required arguments: #{Enum.join(missing, ", ")}"}
+    end
   end
 
   defp tool_specs do
     [
       tool(
         "list_workspaces",
-        "List workspaces accessible to the API key owner.",
+        "List the workspace scoped to the authenticated API key.",
         schema(%{}),
         {Workspace, :list_workspaces},
         :read
@@ -82,8 +96,7 @@ defmodule Valentine.MCP.Registry do
           cloud_profile: string("Optional cloud profile name or identifier."),
           cloud_profile_type: string("Optional cloud profile type."),
           url: string("Optional application URL."),
-          max_threat_level: string("Optional deliberate threat level, such as td3 or td4."),
-          permissions: %{type: "object", description: "Workspace permissions map."}
+          max_threat_level: string("Optional deliberate threat level, such as td3 or td4.")
         }),
         {Workspace, :update_workspace},
         :update
