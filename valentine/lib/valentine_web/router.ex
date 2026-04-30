@@ -39,6 +39,8 @@ defmodule ValentineWeb.Router do
 
     get "/workspace", WorkspaceController, :index
     post "/evidence", EvidenceController, :create
+    get "/mcp", MCPController, :stream_not_supported
+    post "/mcp", MCPController, :handle
   end
 
   scope "/auth", ValentineWeb do
