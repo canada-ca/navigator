@@ -62,13 +62,14 @@ defmodule Valentine.MCP.Tools.Documents do
   def update_data_flow_diagram(args, api_key) do
     dfd = DataFlowDiagram.get(api_key.workspace_id)
     attrs = Map.take(args, ["nodes", "edges", "raw_image"])
+    {attrs, normalization_hints} = normalize_dfd_attrs(attrs)
 
     case validate_dfd_attrs(attrs, dfd) do
       :ok ->
         case Composer.update_data_flow_diagram(dfd, attrs) do
           {:ok, dfd} ->
             DataFlowDiagram.put(dfd)
-            ok_json(dfd_map(dfd))
+            ok_json(Map.put(dfd_map(dfd), :validation_hints, dfd_hints(dfd, normalization_hints)))
 
           {:error, changeset} ->
             tool_error(Jason.encode!(format_changeset_errors(changeset)))
@@ -114,6 +115,30 @@ defmodule Valentine.MCP.Tools.Documents do
     }
   end
 
+  defp normalize_dfd_attrs(%{"nodes" => nodes} = attrs) when is_map(nodes) do
+    {nodes, positioned_node_ids} =
+      nodes
+      |> Map.keys()
+      |> Enum.sort()
+      |> Enum.with_index()
+      |> Enum.reduce({nodes, []}, fn {id, index}, {acc, positioned_node_ids} ->
+        node = Map.get(acc, id)
+
+        if is_map(node) && !valid_position?(Map.get(node, "position")) do
+          {
+            Map.put(acc, id, Map.put(node, "position", auto_position(index))),
+            [id | positioned_node_ids]
+          }
+        else
+          {acc, positioned_node_ids}
+        end
+      end)
+
+    {Map.put(attrs, "nodes", nodes), %{auto_positioned_nodes: Enum.reverse(positioned_node_ids)}}
+  end
+
+  defp normalize_dfd_attrs(attrs), do: {attrs, %{auto_positioned_nodes: []}}
+
   defp validate_dfd_attrs(attrs, dfd) do
     effective_nodes = Map.get(attrs, "nodes", dfd.nodes)
     effective_edges = Map.get(attrs, "edges", dfd.edges)
@@ -136,7 +161,7 @@ defmodule Valentine.MCP.Tools.Documents do
 
   defp validate_nodes(_nodes), do: {:error, "DFD nodes must be an object"}
 
-  defp validate_node(id, %{"data" => %{} = data}) when is_binary(id) do
+  defp validate_node(id, %{"data" => %{} = data} = node) when is_binary(id) do
     cond do
       Map.get(data, "id") != id ->
         {:error, "DFD node #{id} data.id must match the node key"}
@@ -146,6 +171,9 @@ defmodule Valentine.MCP.Tools.Documents do
 
       Map.get(data, "type") not in @node_types ->
         {:error, "DFD node #{id} has an unsupported data.type"}
+
+      !valid_position?(Map.get(node, "position")) ->
+        {:error, "DFD node #{id} must include position.x and position.y numbers"}
 
       true ->
         :ok
@@ -203,4 +231,129 @@ defmodule Valentine.MCP.Tools.Documents do
        do: {:error, "DFD raw_image must be a string"}
 
   defp validate_raw_image(_attrs), do: :ok
+
+  defp valid_position?(%{"x" => x, "y" => y}) when is_number(x) and is_number(y), do: true
+  defp valid_position?(_position), do: false
+
+  defp auto_position(index) do
+    %{
+      "x" => rem(index, 4) * 260,
+      "y" => div(index, 4) * 180
+    }
+  end
+
+  defp dfd_hints(dfd, normalization_hints) do
+    []
+    |> maybe_add_auto_position_hint(
+      normalization_hints.auto_positioned_nodes,
+      map_size(dfd.nodes)
+    )
+    |> maybe_add_orphan_trust_boundary_hint(dfd.nodes)
+    |> maybe_add_long_label_hint(dfd.nodes)
+    |> maybe_add_overlapping_position_hint(dfd.nodes)
+    |> Enum.reverse()
+  end
+
+  defp maybe_add_auto_position_hint(hints, [], _node_count), do: hints
+
+  defp maybe_add_auto_position_hint(hints, node_ids, node_count) do
+    [
+      %{
+        code: "auto_positioned_nodes",
+        severity: "warning",
+        message:
+          "Some DFD nodes did not include usable position.x and position.y values, so Navigator assigned grid positions to avoid collapsed rendering.",
+        node_ids: node_ids,
+        count: length(node_ids),
+        total_nodes: node_count
+      }
+      | hints
+    ]
+  end
+
+  defp maybe_add_orphan_trust_boundary_hint(hints, nodes) do
+    orphan_ids =
+      nodes
+      |> Enum.filter(fn {_id, node} -> get_in(node, ["data", "type"]) == "trust_boundary" end)
+      |> Enum.reject(fn {id, _node} -> trust_boundary_has_children?(nodes, id) end)
+      |> Enum.map(fn {id, _node} -> id end)
+
+    case orphan_ids do
+      [] ->
+        hints
+
+      _ ->
+        [
+          %{
+            code: "orphan_trust_boundaries",
+            severity: "warning",
+            message:
+              "Trust boundaries render as useful containers only when child nodes set data.parent to the boundary node ID.",
+            node_ids: orphan_ids
+          }
+          | hints
+        ]
+    end
+  end
+
+  defp trust_boundary_has_children?(nodes, boundary_id) do
+    Enum.any?(nodes, fn {_id, node} -> get_in(node, ["data", "parent"]) == boundary_id end)
+  end
+
+  defp maybe_add_long_label_hint(hints, nodes) do
+    long_label_ids =
+      nodes
+      |> Enum.filter(fn {_id, node} ->
+        label = get_in(node, ["data", "label"])
+        is_binary(label) && String.length(label) > 60
+      end)
+      |> Enum.map(fn {id, _node} -> id end)
+
+    case long_label_ids do
+      [] ->
+        hints
+
+      _ ->
+        [
+          %{
+            code: "long_labels",
+            severity: "warning",
+            message:
+              "Long DFD labels can overlap nearby nodes; prefer concise labels and details in data.description.",
+            node_ids: long_label_ids
+          }
+          | hints
+        ]
+    end
+  end
+
+  defp maybe_add_overlapping_position_hint(hints, nodes) do
+    overlapping_ids =
+      nodes
+      |> Enum.group_by(fn {_id, node} ->
+        position = Map.get(node, "position")
+        {Map.get(position, "x"), Map.get(position, "y")}
+      end)
+      |> Enum.filter(fn {_position, grouped_nodes} -> length(grouped_nodes) > 1 end)
+      |> Enum.flat_map(fn {_position, grouped_nodes} ->
+        Enum.map(grouped_nodes, fn {id, _node} -> id end)
+      end)
+      |> Enum.sort()
+
+    case overlapping_ids do
+      [] ->
+        hints
+
+      _ ->
+        [
+          %{
+            code: "overlapping_positions",
+            severity: "warning",
+            message: "Multiple DFD nodes share the same position and may visually overlap.",
+            node_ids: overlapping_ids
+          }
+          | hints
+        ]
+    end
+  end
 end

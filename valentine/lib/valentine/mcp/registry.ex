@@ -253,6 +253,8 @@ defmodule Valentine.MCP.Registry do
         """
         Update the data flow diagram for the current workspace. Use only Navigator-supported node types:
         actor, process, datastore, and trust_boundary. Model external services as actor nodes unless they are internal processes or datastores.
+        Include position.x and position.y for each node to control the rendered layout; omitted positions are auto-assigned and reported in validation_hints.
+        To place a node inside a trust_boundary, set the child node's data.parent to the trust_boundary node ID.
         """,
         schema(%{
           nodes: dfd_nodes_schema(),
@@ -428,7 +430,10 @@ defmodule Valentine.MCP.Registry do
                 "Navigator-supported node type. Use actor for users, clients, and external systems; process for application services; datastore for persistent stores; trust_boundary only for grouping."
             },
             description: string("Optional node description."),
-            parent: string("Optional parent trust_boundary node ID."),
+            parent:
+              string(
+                "Optional parent trust_boundary node ID. Set this on child nodes to render them inside a trust_boundary container."
+              ),
             linked_threats: string_array("Threat IDs linked to this node."),
             data_tags: string_array("Data classification tags."),
             security_tags: string_array("Security feature tags."),
@@ -440,6 +445,8 @@ defmodule Valentine.MCP.Registry do
         },
         position: %{
           type: "object",
+          description:
+            "Rendered node coordinates. Strongly recommended; omitted or malformed positions are auto-assigned and returned in validation_hints.",
           properties: %{x: %{type: "number"}, y: %{type: "number"}},
           additionalProperties: true
         },

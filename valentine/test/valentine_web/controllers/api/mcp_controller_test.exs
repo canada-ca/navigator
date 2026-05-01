@@ -160,7 +160,8 @@ defmodule ValentineWeb.Api.MCPControllerTest do
         })
       )
 
-    assert get_in(json_response(conn, 200), ["result", "isError"]) == false
+    body = json_response(conn, 200)
+    assert get_in(body, ["result", "isError"]) == false
 
     conn =
       recycle(conn)
@@ -200,7 +201,21 @@ defmodule ValentineWeb.Api.MCPControllerTest do
         })
       )
 
-    assert get_in(json_response(conn, 200), ["result", "isError"]) == false
+    body = json_response(conn, 200)
+    assert get_in(body, ["result", "isError"]) == false
+
+    assert [%{"type" => "text", "text" => text}] = get_in(body, ["result", "content"])
+    dfd = Jason.decode!(text)
+
+    assert get_in(dfd, ["nodes", "app", "position"]) == %{"x" => 0, "y" => 0}
+    assert get_in(dfd, ["nodes", "browser", "position"]) == %{"x" => 260, "y" => 0}
+
+    assert %{
+             "code" => "auto_positioned_nodes",
+             "node_ids" => auto_positioned_node_ids
+           } = Enum.find(dfd["validation_hints"], &(&1["code"] == "auto_positioned_nodes"))
+
+    assert Enum.sort(auto_positioned_node_ids) == ["app", "browser"]
 
     conn =
       recycle(conn)
@@ -216,6 +231,47 @@ defmodule ValentineWeb.Api.MCPControllerTest do
     assert mermaid =~ "stateDiagram-v2"
     assert mermaid =~ "browser : Browser"
     assert mermaid =~ "browser --> app : HTTPS"
+  end
+
+  test "returns DFD usability hints for orphan trust boundaries", %{conn: conn} do
+    conn =
+      post(
+        conn,
+        ~p"/mcp",
+        rpc("tools/call", %{
+          "name" => "update_data_flow_diagram",
+          "arguments" => %{
+            "nodes" => %{
+              "public_boundary" => %{
+                "data" => %{
+                  "id" => "public_boundary",
+                  "label" => "Public Edge Boundary",
+                  "type" => "trust_boundary"
+                }
+              },
+              "browser" => %{
+                "data" => %{
+                  "id" => "browser",
+                  "label" => "Browser",
+                  "type" => "actor"
+                }
+              }
+            },
+            "edges" => %{}
+          }
+        })
+      )
+
+    body = json_response(conn, 200)
+    assert get_in(body, ["result", "isError"]) == false
+
+    assert [%{"type" => "text", "text" => text}] = get_in(body, ["result", "content"])
+    dfd = Jason.decode!(text)
+
+    assert %{
+             "code" => "orphan_trust_boundaries",
+             "node_ids" => ["public_boundary"]
+           } = Enum.find(dfd["validation_hints"], &(&1["code"] == "orphan_trust_boundaries"))
   end
 
   test "rejects malformed DFD payloads", %{conn: conn} do
