@@ -1,5 +1,6 @@
 defmodule ValentineWeb.WorkspaceLive.Import.JsonImport do
   alias Valentine.Composer
+  alias Valentine.Composer.DataFlowDiagram
   alias Valentine.Repo
 
   def build_workspace(data, owner) do
@@ -68,8 +69,13 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImport do
   end
 
   defp create_data_flow_diagram(workspace_id, data, crosswalks) do
-    edges = get_in(data, ["data_flow_diagram", "edges"]) || %{}
-    nodes = get_in(data, ["data_flow_diagram", "nodes"]) || %{}
+    edges =
+      (get_in(data, ["data_flow_diagram", "edges"]) || %{})
+      |> DataFlowDiagram.normalize_edges()
+
+    nodes =
+      (get_in(data, ["data_flow_diagram", "nodes"]) || %{})
+      |> DataFlowDiagram.normalize_nodes()
 
     # For each node, replace any linked_threats with the corresponding threat ID from the crosswalk
     nodes =

@@ -116,6 +116,8 @@ defmodule Valentine.MCP.Tools.Documents do
   end
 
   defp normalize_dfd_attrs(%{"nodes" => nodes} = attrs) when is_map(nodes) do
+    nodes = DataFlowDiagram.normalize_nodes(nodes)
+
     {nodes, positioned_node_ids} =
       nodes
       |> Map.keys()
@@ -134,10 +136,23 @@ defmodule Valentine.MCP.Tools.Documents do
         end
       end)
 
-    {Map.put(attrs, "nodes", nodes), %{auto_positioned_nodes: Enum.reverse(positioned_node_ids)}}
+    attrs =
+      attrs
+      |> Map.put("nodes", nodes)
+      |> normalize_dfd_edges()
+
+    {attrs, %{auto_positioned_nodes: Enum.reverse(positioned_node_ids)}}
   end
 
-  defp normalize_dfd_attrs(attrs), do: {attrs, %{auto_positioned_nodes: []}}
+  defp normalize_dfd_attrs(attrs) do
+    {normalize_dfd_edges(attrs), %{auto_positioned_nodes: []}}
+  end
+
+  defp normalize_dfd_edges(%{"edges" => edges} = attrs) when is_map(edges) do
+    Map.put(attrs, "edges", DataFlowDiagram.normalize_edges(edges))
+  end
+
+  defp normalize_dfd_edges(attrs), do: attrs
 
   defp validate_dfd_attrs(attrs, dfd) do
     effective_nodes = Map.get(attrs, "nodes", dfd.nodes)
