@@ -6,6 +6,25 @@ defmodule Valentine.Composer.DataFlowDiagram do
   alias Valentine.Composer
 
   @history_limit 50
+  @node_data_defaults %{
+    "data_tags" => [],
+    "description" => nil,
+    "linked_threats" => [],
+    "out_of_scope" => "false",
+    "parent" => nil,
+    "security_tags" => [],
+    "technology_tags" => []
+  }
+  @edge_data_defaults %{
+    "data_tags" => [],
+    "description" => nil,
+    "label" => "Data flow",
+    "linked_threats" => [],
+    "out_of_scope" => "false",
+    "security_tags" => [],
+    "technology_tags" => [],
+    "type" => "edge"
+  }
 
   @primary_key {:id, Ecto.UUID, autogenerate: true}
   @foreign_key_type :binary_id
@@ -166,6 +185,32 @@ defmodule Valentine.Composer.DataFlowDiagram do
       new(workspace_id) |> put()
     end
   end
+
+  def normalize_nodes(nodes) when is_map(nodes) do
+    Map.new(nodes, fn {id, node} -> {id, normalize_node(node)} end)
+  end
+
+  def normalize_nodes(nodes), do: nodes
+
+  def normalize_edges(edges) when is_map(edges) do
+    Map.new(edges, fn {id, edge} -> {id, normalize_edge(edge)} end)
+  end
+
+  def normalize_edges(edges), do: edges
+
+  def normalize_node(%{"data" => data} = node) when is_map(data) do
+    node
+    |> Map.put("data", put_defaults(data, @node_data_defaults))
+    |> put_default("grabbable", "true")
+  end
+
+  def normalize_node(node), do: node
+
+  def normalize_edge(%{"data" => data} = edge) when is_map(data) do
+    Map.put(edge, "data", put_defaults(data, @edge_data_defaults))
+  end
+
+  def normalize_edge(edge), do: edge
 
   def grab(workspace_id, %{"node" => node}) do
     dfd = get(workspace_id)
@@ -590,6 +635,19 @@ defmodule Valentine.Composer.DataFlowDiagram do
   defp find_children(nodes, parent_id) do
     nodes
     |> Enum.filter(fn {_, node} -> node["data"]["parent"] == parent_id end)
+  end
+
+  defp put_defaults(map, defaults) do
+    Enum.reduce(defaults, map, fn {key, default}, acc ->
+      put_default(acc, key, default)
+    end)
+  end
+
+  defp put_default(map, key, default) do
+    case Map.get(map, key) do
+      nil -> Map.put(map, key, default)
+      _value -> map
+    end
   end
 
   defp find_descendents(nodes, parent_id) do

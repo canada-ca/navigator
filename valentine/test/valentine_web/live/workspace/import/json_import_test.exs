@@ -162,6 +162,55 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImportTest do
       assert {:ok, workspace} = JsonImport.build_workspace(minimal_data, "some owner")
       assert workspace.name == "Untitled Workspace"
     end
+
+    test "imports MCP generated DFDs with missing optional metadata" do
+      data = %{
+        "name" => "Sparse DFD Workspace",
+        "application_information" => %{},
+        "architecture" => %{},
+        "data_flow_diagram" => %{
+          "nodes" => %{
+            "browser" => %{
+              "data" => %{
+                "id" => "browser",
+                "label" => "Browser",
+                "type" => "actor"
+              },
+              "position" => %{"x" => 0, "y" => 0}
+            },
+            "app" => %{
+              "data" => %{
+                "id" => "app",
+                "label" => "Phoenix App",
+                "type" => "process"
+              },
+              "position" => %{"x" => 260, "y" => 0}
+            }
+          },
+          "edges" => %{
+            "browser_to_app" => %{
+              "data" => %{
+                "id" => "browser_to_app",
+                "source" => "browser",
+                "target" => "app",
+                "label" => "HTTPS"
+              }
+            }
+          }
+        },
+        "assumptions" => [],
+        "mitigations" => [],
+        "threats" => []
+      }
+
+      assert {:ok, workspace} = JsonImport.build_workspace(data, "some owner")
+
+      dfd = Repo.get_by(Composer.DataFlowDiagram, workspace_id: workspace.id)
+      assert get_in(dfd.nodes, ["app", "data", "linked_threats"]) == []
+      assert get_in(dfd.nodes, ["browser", "data", "linked_threats"]) == []
+      assert get_in(dfd.edges, ["browser_to_app", "data", "linked_threats"]) == []
+      assert get_in(dfd.edges, ["browser_to_app", "data", "type"]) == "edge"
+    end
   end
 
   describe "process_json_file/1" do

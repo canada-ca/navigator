@@ -209,6 +209,10 @@ defmodule ValentineWeb.Api.MCPControllerTest do
 
     assert get_in(dfd, ["nodes", "app", "position"]) == %{"x" => 0, "y" => 0}
     assert get_in(dfd, ["nodes", "browser", "position"]) == %{"x" => 260, "y" => 0}
+    assert get_in(dfd, ["nodes", "app", "data", "linked_threats"]) == []
+    assert get_in(dfd, ["nodes", "browser", "data", "linked_threats"]) == []
+    assert get_in(dfd, ["edges", "browser_to_app", "data", "linked_threats"]) == []
+    assert get_in(dfd, ["edges", "browser_to_app", "data", "type"]) == "edge"
 
     assert %{
              "code" => "auto_positioned_nodes",
