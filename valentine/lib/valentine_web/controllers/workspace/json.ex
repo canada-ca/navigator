@@ -3,6 +3,9 @@ defmodule ValentineWeb.Workspace.Json do
     %{
       workspace: %{
         name: workspace.name,
+        cloud_profile: workspace.cloud_profile,
+        cloud_profile_type: workspace.cloud_profile_type,
+        cloud_vendors: workspace.cloud_vendors,
         application_information: %{
           content: get_in(workspace.application_information.content)
         },

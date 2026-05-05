@@ -9,6 +9,9 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImportTest do
   {
     "workspace": {
       "name": "Test Application",
+      "cloud_profile": "CCCS Low Profile for Cloud",
+      "cloud_profile_type": "CSP Full Stack",
+      "cloud_vendors": ["aws", "azure"],
       "application_information": {
         "content": "This is a test description"
       },
@@ -94,6 +97,9 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImportTest do
 
       # Verify workspace
       assert workspace.name == "Test Application"
+      assert workspace.cloud_profile == "CCCS Low Profile for Cloud"
+      assert workspace.cloud_profile_type == "CSP Full Stack"
+      assert workspace.cloud_vendors == ["aws", "azure"]
 
       # Verify application info
       app_info = Repo.get_by(Composer.ApplicationInformation, workspace_id: workspace.id)

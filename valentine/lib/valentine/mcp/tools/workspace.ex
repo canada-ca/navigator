@@ -4,7 +4,14 @@ defmodule Valentine.MCP.Tools.Workspace do
   alias Valentine.Composer
   alias ValentineWeb.Workspace.Json, as: WorkspaceJson
 
-  @update_fields ["name", "cloud_profile", "cloud_profile_type", "url", "max_threat_level"]
+  @update_fields [
+    "name",
+    "cloud_profile",
+    "cloud_profile_type",
+    "cloud_vendors",
+    "url",
+    "max_threat_level"
+  ]
 
   @export_preloads [
     :application_information,

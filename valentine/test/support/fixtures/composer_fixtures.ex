@@ -22,6 +22,7 @@ defmodule Valentine.ComposerFixtures do
         name: "some name",
         cloud_profile: "some cloud_profile",
         cloud_profile_type: "some cloud_profile_type",
+        cloud_vendors: ["aws"],
         url: "some url",
         max_threat_level: :td4,
         owner: "some owner",

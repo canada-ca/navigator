@@ -5,13 +5,15 @@ defmodule ValentineWeb.WorkspaceLive.GitHubImportComponent do
   import Phoenix.HTML.Form, only: [input_value: 2]
 
   alias Ecto.Changeset
+  alias Valentine.Composer.Workspace
   alias Valentine.RepoAnalysis
 
   @form_types %{
     github_url: :string,
     name: :string,
     cloud_profile: :string,
-    cloud_profile_type: :string
+    cloud_profile_type: :string,
+    cloud_vendors: {:array, :string}
   }
 
   @impl true
@@ -84,6 +86,28 @@ defmodule ValentineWeb.WorkspaceLive.GitHubImportComponent do
               selected={input_value(f, :cloud_profile_type)}
               is_form_control
             />
+
+            <div class="FormControl mt-2">
+              <label class="FormControl-label">{gettext("Cloud Vendors")}</label>
+              <input type="hidden" name="import[cloud_vendors][]" value="" />
+              <%= for {label, value} <- Workspace.cloud_vendor_options() do %>
+                <div class="FormControl-checkbox-wrap">
+                  <input
+                    id={"import_cloud_vendor_#{value}"}
+                    type="checkbox"
+                    name="import[cloud_vendors][]"
+                    value={value}
+                    checked={value in selected_cloud_vendors(f)}
+                    class="FormControl-checkbox"
+                  />
+                  <span class="FormControl-checkbox-labelWrap">
+                    <label class="FormControl-label" for={"import_cloud_vendor_#{value}"}>
+                      {label}
+                    </label>
+                  </span>
+                </div>
+              <% end %>
+            </div>
 
             <div :if={@error} class="FormControl-inlineValidation FormControl-inlineValidation--error">
               {@error}
@@ -182,8 +206,13 @@ defmodule ValentineWeb.WorkspaceLive.GitHubImportComponent do
       "github_url" => "",
       "name" => "",
       "cloud_profile" => "",
-      "cloud_profile_type" => ""
+      "cloud_profile_type" => "",
+      "cloud_vendors" => []
     }
+  end
+
+  defp selected_cloud_vendors(form) do
+    input_value(form, :cloud_vendors) || []
   end
 
   defp format_changeset_error(changeset) do

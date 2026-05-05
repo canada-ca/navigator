@@ -63,6 +63,15 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
       assert html =~ workspace.cloud_profile_type
     end
 
+    test "display workspace cloud vendors", %{conn: conn, workspace: workspace} do
+      conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
+
+      {:ok, _index_live, html} = live(conn, ~p"/workspaces/#{workspace.id}")
+
+      assert html =~ "Vendors"
+      assert html =~ "AWS"
+    end
+
     test "display mitigation status", %{conn: conn, mitigation: mitigation} do
       conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: "some owner"})
 

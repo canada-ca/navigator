@@ -39,6 +39,7 @@ defmodule Valentine.ComposerTest do
         name: "some name",
         cloud_profile: "some cloud_profile",
         cloud_profile_type: "some cloud_profile_type",
+        cloud_vendors: ["aws", "azure"],
         url: "some url",
         max_threat_level: :td4,
         owner: "some owner",
@@ -49,6 +50,7 @@ defmodule Valentine.ComposerTest do
       assert workspace.name == "some name"
       assert workspace.cloud_profile == "some cloud_profile"
       assert workspace.cloud_profile_type == "some cloud_profile_type"
+      assert workspace.cloud_vendors == ["aws", "azure"]
       assert workspace.url == "some url"
       assert workspace.max_threat_level == :td4
       assert workspace.owner == "some owner"
@@ -66,6 +68,7 @@ defmodule Valentine.ComposerTest do
         name: "some updated name",
         cloud_profile: "some updated cloud_profile",
         cloud_profile_type: "some updated cloud_profile_type",
+        cloud_vendors: ["google_cloud"],
         url: "some updated url",
         max_threat_level: :td6,
         owner: "some updated owner",
@@ -76,6 +79,7 @@ defmodule Valentine.ComposerTest do
       assert workspace.name == "some updated name"
       assert workspace.cloud_profile == "some updated cloud_profile"
       assert workspace.cloud_profile_type == "some updated cloud_profile_type"
+      assert workspace.cloud_vendors == ["google_cloud"]
       assert workspace.url == "some updated url"
       assert workspace.max_threat_level == :td6
       assert workspace.owner == "some updated owner"
@@ -89,6 +93,15 @@ defmodule Valentine.ComposerTest do
                Composer.update_workspace(workspace, %{max_threat_level: :td10})
 
       assert "is invalid" in errors_on(changeset).max_threat_level
+    end
+
+    test "update_workspace/2 rejects unsupported cloud vendors" do
+      workspace = workspace_fixture()
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Composer.update_workspace(workspace, %{cloud_vendors: ["digital_ocean"]})
+
+      assert "has an invalid entry" in errors_on(changeset).cloud_vendors
     end
 
     test "update_workspace/2 with invalid data returns error changeset" do
