@@ -287,6 +287,11 @@
           <div class="f3">{@workspace.name}</div>
           <div class="f5 mt-1">{gettext("Profile")}: {@workspace.cloud_profile}</div>
           <div class="f5 mt-1">{gettext("Type")}: {@workspace.cloud_profile_type}</div>
+          <div class="f5 mt-1">
+            {gettext("Vendors")}: {Valentine.Composer.Workspace.cloud_vendor_scope_label(
+              @workspace.cloud_vendors
+            )}
+          </div>
           <table class="summary">
             <tr>
               <td>{gettext("Total threats")}</td>

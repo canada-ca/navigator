@@ -95,6 +95,12 @@ defmodule Valentine.MCP.Registry do
           name: string("Workspace display name."),
           cloud_profile: string("Optional cloud profile name or identifier."),
           cloud_profile_type: string("Optional cloud profile type."),
+          cloud_vendors: %{
+            type: "array",
+            items: %{type: "string"},
+            description:
+              "Optional cloud vendors associated with the workspace. Supported values: aws, azure, google_cloud."
+          },
           url: string("Optional application URL."),
           max_threat_level: string("Optional deliberate threat level, such as td3 or td4.")
         }),

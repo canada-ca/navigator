@@ -4,6 +4,7 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
 
   alias Valentine.Composer
   alias Valentine.Composer.DeliberateThreatLevel
+  alias Valentine.Composer.Workspace
 
   @impl true
   def render(assigns) do
@@ -74,6 +75,28 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
               selected={@changeset.changes[:cloud_profile_type] || @workspace.cloud_profile_type}
               is_form_control
             />
+
+            <div class="FormControl mt-2">
+              <label class="FormControl-label">{gettext("Cloud Vendors")}</label>
+              <input type="hidden" name="workspace[cloud_vendors][]" value="" />
+              <%= for {label, value} <- Workspace.cloud_vendor_options() do %>
+                <div class="FormControl-checkbox-wrap">
+                  <input
+                    id={"workspace_cloud_vendor_#{value}"}
+                    type="checkbox"
+                    name="workspace[cloud_vendors][]"
+                    value={value}
+                    checked={value in selected_cloud_vendors(@changeset, @workspace)}
+                    class="FormControl-checkbox"
+                  />
+                  <span class="FormControl-checkbox-labelWrap">
+                    <label class="FormControl-label" for={"workspace_cloud_vendor_#{value}"}>
+                      {label}
+                    </label>
+                  </span>
+                </div>
+              <% end %>
+            </div>
 
             <.text_input
               form={f}
@@ -170,5 +193,9 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
 
   defp max_threat_level_options do
     Enum.map(DeliberateThreatLevel.options(), fn {label, value} -> [key: label, value: value] end)
+  end
+
+  defp selected_cloud_vendors(changeset, workspace) do
+    changeset.changes[:cloud_vendors] || workspace.cloud_vendors || []
   end
 end

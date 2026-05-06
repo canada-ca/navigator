@@ -405,6 +405,7 @@ defmodule Valentine.RepoAnalysis do
       "cloud_profile" => Map.get(attrs, "cloud_profile") || Map.get(attrs, :cloud_profile),
       "cloud_profile_type" =>
         Map.get(attrs, "cloud_profile_type") || Map.get(attrs, :cloud_profile_type),
+      "cloud_vendors" => Map.get(attrs, "cloud_vendors") || Map.get(attrs, :cloud_vendors) || [],
       "url" => github_url,
       "owner" => owner
     }

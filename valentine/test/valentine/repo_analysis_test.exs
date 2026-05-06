@@ -34,7 +34,8 @@ defmodule Valentine.RepoAnalysisTest do
         "github_url" => "https://github.com/example/valentine-service",
         "name" => "Imported workspace",
         "cloud_profile" => "CCCS Low Profile for Cloud",
-        "cloud_profile_type" => "CSP Full Stack"
+        "cloud_profile_type" => "CSP Full Stack",
+        "cloud_vendors" => ["aws", "google_cloud"]
       }
 
       assert {:ok, %{workspace: workspace, repo_analysis_agent: repo_analysis_agent}} =
@@ -45,6 +46,7 @@ defmodule Valentine.RepoAnalysisTest do
       assert workspace.owner == "owner-1"
       assert workspace.cloud_profile == "CCCS Low Profile for Cloud"
       assert workspace.cloud_profile_type == "CSP Full Stack"
+      assert workspace.cloud_vendors == ["aws", "google_cloud"]
 
       assert repo_analysis_agent.workspace_id == workspace.id
       assert repo_analysis_agent.owner == "owner-1"

@@ -39,7 +39,14 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImport do
 
   defp create_base_workspace(data, owner) do
     name = get_in(data, ["name"]) || "Untitled Workspace"
-    Composer.create_workspace(%{name: name, owner: owner})
+
+    Composer.create_workspace(%{
+      name: name,
+      owner: owner,
+      cloud_profile: get_in(data, ["cloud_profile"]),
+      cloud_profile_type: get_in(data, ["cloud_profile_type"]),
+      cloud_vendors: get_in(data, ["cloud_vendors"]) || []
+    })
   end
 
   defp create_application_info(workspace_id, data) do
