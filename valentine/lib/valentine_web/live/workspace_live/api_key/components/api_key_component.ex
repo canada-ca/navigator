@@ -34,9 +34,6 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.Components.ApiKeyComponent do
               is_full_width
               is_form_control
             />
-            <input type="hidden" value={@api_key.workspace_id} name="api_key[workspace_id]" />
-            <input type="hidden" value={:active} name="api_key[status]" />
-            <input type="hidden" value={@current_user} name="api_key[owner]" />
           </:body>
           <:footer>
             <.button is_primary is_submit phx-disable-with={gettext("Saving...")}>
@@ -62,7 +59,12 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.Components.ApiKeyComponent do
 
   @impl true
   def handle_event("validate", %{"api_key" => api_key_params}, socket) do
-    changeset = Composer.change_api_key(socket.assigns.api_key, api_key_params)
+    changeset =
+      Composer.change_api_key(
+        socket.assigns.api_key,
+        trusted_api_key_params(socket, api_key_params)
+      )
+
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
@@ -72,7 +74,11 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.Components.ApiKeyComponent do
   end
 
   defp save_api_key(socket, :generate, api_key_params) do
-    case Composer.create_api_key(api_key_params) do
+    case Composer.create_api_key_for_workspace(
+           socket.assigns.workspace,
+           socket.assigns.current_user,
+           api_key_params
+         ) do
       {:ok, api_key} ->
         notify_parent({:saved, api_key})
 
@@ -91,7 +97,24 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.Components.ApiKeyComponent do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, changeset: changeset)}
+
+      {:error, :unauthorized} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("Only workspace owners can generate API keys")
+         )}
     end
+  end
+
+  defp trusted_api_key_params(socket, api_key_params) do
+    %{
+      label: Map.get(api_key_params, "label", Map.get(api_key_params, :label)),
+      owner: socket.assigns.current_user,
+      status: :active,
+      workspace_id: socket.assigns.workspace.id
+    }
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})

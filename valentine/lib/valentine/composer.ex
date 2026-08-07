@@ -1997,6 +1997,29 @@ defmodule Valentine.Composer do
   end
 
   @doc """
+  Creates an API key scoped to a workspace owned by the given identity.
+
+  Only the label is accepted from `attrs`. The workspace, owner, and initial
+  status are derived from trusted server-side values.
+  """
+  def create_api_key_for_workspace(
+        %Workspace{owner: owner} = workspace,
+        owner,
+        attrs
+      )
+      when is_binary(owner) and is_map(attrs) do
+    create_api_key(%{
+      label: Map.get(attrs, "label", Map.get(attrs, :label)),
+      owner: owner,
+      status: :active,
+      workspace_id: workspace.id
+    })
+  end
+
+  def create_api_key_for_workspace(%Workspace{}, _identity, _attrs),
+    do: {:error, :unauthorized}
+
+  @doc """
   Updates a api_key.
 
   ## Examples
