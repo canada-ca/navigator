@@ -155,10 +155,11 @@ defmodule Valentine.RepoAnalysis.GitHub do
   end
 
   defp tracked_files(clone_dir) do
-    {output, 0} = System.cmd("git", ["-C", clone_dir, "ls-files"], stderr_to_stdout: true)
+    {output, 0} =
+      System.cmd("git", ["-C", clone_dir, "ls-files", "-z"], stderr_to_stdout: true)
 
     output
-    |> String.split("\n", trim: true)
+    |> String.split("\0", trim: true)
     |> Enum.filter(&eligible_file?/1)
   end
 
@@ -197,17 +198,37 @@ defmodule Valentine.RepoAnalysis.GitHub do
   end
 
   defp read_document(clone_dir, relative_path, max_file_bytes) do
-    full_path = Path.join(clone_dir, relative_path)
+    with {:ok, full_path} <- safe_regular_file(clone_dir, relative_path, max_file_bytes),
+         {:ok, content} <- File.read(full_path) do
+      %{path: relative_path, content: content}
+    else
+      _ -> nil
+    end
+  end
 
-    case File.stat(full_path) do
-      {:ok, %{size: size}} when size <= max_file_bytes ->
-        case File.read(full_path) do
-          {:ok, content} -> %{path: relative_path, content: content}
-          _ -> nil
-        end
+  defp safe_regular_file(clone_dir, relative_path, max_file_bytes) do
+    path_parts = Path.split(relative_path)
 
-      _ ->
-        nil
+    with :relative <- Path.type(relative_path),
+         false <- Enum.any?(path_parts, &(&1 in [".", ".."])),
+         [_ | _] <- path_parts,
+         {:ok, full_path} <- walk_regular_path(Path.expand(clone_dir), path_parts),
+         {:ok, %{type: :regular, size: size}} when size <= max_file_bytes <-
+           File.lstat(full_path) do
+      {:ok, full_path}
+    else
+      _ -> :error
+    end
+  end
+
+  defp walk_regular_path(parent, [filename]), do: {:ok, Path.join(parent, filename)}
+
+  defp walk_regular_path(parent, [directory | rest]) do
+    path = Path.join(parent, directory)
+
+    case File.lstat(path) do
+      {:ok, %{type: :directory}} -> walk_regular_path(path, rest)
+      _ -> :error
     end
   end
 
