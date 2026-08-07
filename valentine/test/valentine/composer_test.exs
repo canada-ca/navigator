@@ -1524,6 +1524,44 @@ defmodule Valentine.ComposerTest do
       assert {:error, %Ecto.Changeset{}} = Composer.create_api_key(@invalid_attrs)
     end
 
+    test "create_api_key_for_workspace/3 derives protected fields from trusted values" do
+      workspace = workspace_fixture(%{owner: "workspace.owner@localhost"})
+      other_workspace = workspace_fixture(%{owner: "other.owner@localhost"})
+
+      untrusted_attrs = %{
+        "label" => "CI integration",
+        "owner" => other_workspace.owner,
+        "status" => "revoked",
+        "workspace_id" => other_workspace.id
+      }
+
+      assert {:ok, %ApiKey{} = api_key} =
+               Composer.create_api_key_for_workspace(
+                 workspace,
+                 workspace.owner,
+                 untrusted_attrs
+               )
+
+      assert api_key.label == "CI integration"
+      assert api_key.owner == workspace.owner
+      assert api_key.status == :active
+      assert api_key.workspace_id == workspace.id
+      assert Composer.list_api_keys_by_workspace(other_workspace.id) == []
+    end
+
+    test "create_api_key_for_workspace/3 rejects non-owners" do
+      workspace = workspace_fixture(%{owner: "workspace.owner@localhost"})
+
+      assert {:error, :unauthorized} =
+               Composer.create_api_key_for_workspace(
+                 workspace,
+                 "collaborator@localhost",
+                 %{"label" => "Unauthorized key"}
+               )
+
+      assert Composer.list_api_keys_by_workspace(workspace.id) == []
+    end
+
     test "update_api_key/2 with valid data updates the api_key" do
       api_key = api_key_fixture()
 

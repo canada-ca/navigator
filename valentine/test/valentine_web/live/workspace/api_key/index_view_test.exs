@@ -4,7 +4,9 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.IndexViewTest do
   import Phoenix.LiveViewTest
   import Valentine.ComposerFixtures
 
-  @create_attrs %{label: "some label", workspace_id: nil}
+  alias Valentine.Composer
+
+  @create_attrs %{label: "some label"}
 
   defp create_api_key(_) do
     api_key = api_key_fixture()
@@ -62,7 +64,7 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.IndexViewTest do
 
       assert index_live
              |> form("#api-keys-form",
-               api_key: %{@create_attrs | workspace_id: workspace_id}
+               api_key: @create_attrs
              )
              |> render_submit()
 
@@ -71,6 +73,42 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.IndexViewTest do
       html = render(index_live)
       assert html =~ "API Key created successfully"
       assert html =~ "some label"
+    end
+
+    test "ignores forged workspace, owner, and status fields", %{
+      conn: conn,
+      workspace_id: workspace_id
+    } do
+      workspace = Composer.get_workspace!(workspace_id)
+      other_workspace = workspace_fixture(%{owner: "other.owner@localhost"})
+      conn = Phoenix.ConnTest.init_test_session(conn, %{user_id: workspace.owner})
+
+      {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace.id}/api_keys")
+
+      index_live
+      |> element("#generate-api-key")
+      |> render_click()
+
+      index_live
+      |> element("#api-keys-form")
+      |> render_submit(%{
+        "api_key" => %{
+          "label" => "forged submission",
+          "owner" => other_workspace.owner,
+          "status" => "revoked",
+          "workspace_id" => other_workspace.id
+        }
+      })
+
+      api_key =
+        workspace.id
+        |> Composer.list_api_keys_by_workspace()
+        |> Enum.find(&(&1.label == "forged submission"))
+
+      assert api_key.owner == workspace.owner
+      assert api_key.status == :active
+      assert api_key.workspace_id == workspace.id
+      assert Composer.list_api_keys_by_workspace(other_workspace.id) == []
     end
 
     test "deletes api_key in listing", %{
