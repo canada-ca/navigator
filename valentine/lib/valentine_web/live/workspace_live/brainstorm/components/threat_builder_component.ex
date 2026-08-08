@@ -502,7 +502,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
 
     case Composer.create_threat(threat_attrs) do
       {:ok, threat} ->
-        update_card_usage(selected_card_ids, threat.numeric_id)
+        update_card_usage(socket.assigns.workspace_id, selected_card_ids, threat.numeric_id)
         {:ok, [threat]}
 
       {:error, changeset} ->
@@ -510,9 +510,9 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
     end
   end
 
-  defp update_card_usage(card_ids, threat_numeric_id) do
+  defp update_card_usage(workspace_id, card_ids, threat_numeric_id) do
     Enum.each(card_ids, fn card_id ->
-      case Composer.get_brainstorm_item(card_id) do
+      case Composer.get_brainstorm_item(workspace_id, card_id) do
         nil ->
           :skip
 

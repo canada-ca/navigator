@@ -164,7 +164,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.IndexTest do
 
     test "handles not found mitigation", %{socket: socket, mitigation: mitigation} do
       with_mock Composer,
-        get_mitigation!: fn _id -> nil end do
+        get_mitigation_for_workspace: fn _workspace_id, _id -> nil end do
         {:noreply, updated_socket} =
           ValentineWeb.WorkspaceLive.Mitigation.Index.handle_event(
             "delete",
@@ -178,7 +178,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.IndexTest do
 
     test "handles delete error", %{socket: socket, mitigation: mitigation} do
       with_mock Composer,
-        get_mitigation!: fn _mitigation_id -> mitigation end,
+        get_mitigation_for_workspace: fn _workspace_id, _id -> mitigation end,
         delete_mitigation: fn _mitigation -> {:error, "some error"} end do
         {:noreply, updated_socket} =
           ValentineWeb.WorkspaceLive.Mitigation.Index.handle_event(

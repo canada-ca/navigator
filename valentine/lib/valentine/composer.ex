@@ -273,6 +273,14 @@ defmodule Valentine.Composer do
     |> Repo.preload(preload)
   end
 
+  def get_threat_model_quality_review_run_for_workspace!(
+        workspace_id,
+        id,
+        preload \\ [:workspace, :findings]
+      ) do
+    get_workspace_entity!(ThreatModelQualityReviewRun, workspace_id, id, preload)
+  end
+
   @doc """
   Gets a single threat model quality review run for an owner.
   """
@@ -471,6 +479,14 @@ defmodule Valentine.Composer do
 
   def get_threat!(id, preload) when is_nil(preload), do: Repo.get!(Threat, id)
 
+  def get_threat_for_workspace!(workspace_id, id, preload \\ nil) do
+    get_workspace_entity!(Threat, workspace_id, id, preload)
+  end
+
+  def get_threat_for_workspace(workspace_id, id, preload \\ nil) do
+    get_workspace_entity(Threat, workspace_id, id, preload)
+  end
+
   @doc """
   Creates a threat.
 
@@ -565,6 +581,14 @@ defmodule Valentine.Composer do
   end
 
   def get_threat_agent!(id, preload) when is_nil(preload), do: Repo.get!(ThreatAgent, id)
+
+  def get_threat_agent_for_workspace!(workspace_id, id, preload \\ nil) do
+    get_workspace_entity!(ThreatAgent, workspace_id, id, preload)
+  end
+
+  def get_threat_agent_for_workspace(workspace_id, id, preload \\ nil) do
+    get_workspace_entity(ThreatAgent, workspace_id, id, preload)
+  end
 
   @doc """
   Creates a threat agent.
@@ -672,6 +696,14 @@ defmodule Valentine.Composer do
   end
 
   def get_assumption!(id, preload) when is_nil(preload), do: Repo.get!(Assumption, id)
+
+  def get_assumption_for_workspace!(workspace_id, id, preload \\ nil) do
+    get_workspace_entity!(Assumption, workspace_id, id, preload)
+  end
+
+  def get_assumption_for_workspace(workspace_id, id, preload \\ nil) do
+    get_workspace_entity(Assumption, workspace_id, id, preload)
+  end
 
   @doc """
   Creates a assumption.
@@ -854,6 +886,14 @@ defmodule Valentine.Composer do
   end
 
   def get_mitigation!(id, preload) when is_nil(preload), do: Repo.get!(Mitigation, id)
+
+  def get_mitigation_for_workspace!(workspace_id, id, preload \\ nil) do
+    get_workspace_entity!(Mitigation, workspace_id, id, preload)
+  end
+
+  def get_mitigation_for_workspace(workspace_id, id, preload \\ nil) do
+    get_workspace_entity(Mitigation, workspace_id, id, preload)
+  end
 
   @doc """
   Creates a mitigation.
@@ -1968,6 +2008,10 @@ defmodule Valentine.Composer do
   """
   def get_api_key(id), do: Repo.get(ApiKey, id)
 
+  def get_api_key_for_workspace(workspace_id, id) do
+    get_workspace_entity(ApiKey, workspace_id, id, nil)
+  end
+
   @doc """
   Creates a api_key.
 
@@ -2104,6 +2148,14 @@ defmodule Valentine.Composer do
   end
 
   def get_evidence!(id, preload) when is_nil(preload), do: Repo.get!(Evidence, id)
+
+  def get_evidence_for_workspace!(workspace_id, id, preload \\ nil) do
+    get_workspace_entity!(Evidence, workspace_id, id, preload)
+  end
+
+  def get_evidence_for_workspace(workspace_id, id, preload \\ nil) do
+    get_workspace_entity(Evidence, workspace_id, id, preload)
+  end
 
   @doc """
   Creates evidence.
@@ -2491,6 +2543,13 @@ defmodule Valentine.Composer do
   """
   def get_brainstorm_item!(id), do: Repo.get!(BrainstormItem, id)
 
+  def get_brainstorm_item!(workspace_id, id) do
+    workspace_id
+    |> brainstorm_items_base_query()
+    |> where([bi], bi.id == ^id)
+    |> Repo.one!()
+  end
+
   @doc """
   Gets a single brainstorm item by id.
 
@@ -2728,6 +2787,30 @@ defmodule Valentine.Composer do
     |> Repo.all()
     |> Enum.into(%{})
   end
+
+  defp get_workspace_entity!(schema, workspace_id, id, preload) do
+    schema
+    |> workspace_entity_query(workspace_id, id)
+    |> Repo.one!()
+    |> preload_workspace_entity(preload)
+  end
+
+  defp get_workspace_entity(schema, workspace_id, id, preload) do
+    schema
+    |> workspace_entity_query(workspace_id, id)
+    |> Repo.one()
+    |> preload_workspace_entity(preload)
+  end
+
+  defp workspace_entity_query(schema, workspace_id, id) do
+    from(entity in schema,
+      where: entity.workspace_id == ^workspace_id and entity.id == ^id
+    )
+  end
+
+  defp preload_workspace_entity(nil, _preload), do: nil
+  defp preload_workspace_entity(entity, nil), do: entity
+  defp preload_workspace_entity(entity, preload), do: Repo.preload(entity, preload)
 
   # Private functions for brainstorm items
 

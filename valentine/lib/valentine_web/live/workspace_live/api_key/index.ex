@@ -35,7 +35,7 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    case Composer.get_api_key(id) do
+    case Composer.get_api_key_for_workspace(socket.assigns.workspace_id, id) do
       nil ->
         {:noreply, socket |> put_flash(:error, gettext("API key not found"))}
 

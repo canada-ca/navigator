@@ -26,11 +26,12 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.ReviewShow do
   end
 
   defp assign_review(socket, workspace_id, id) do
-    review_run = Composer.get_threat_model_quality_review_run!(id, [:findings, :workspace])
-
-    if review_run.workspace_id != workspace_id do
-      raise Ecto.NoResultsError, queryable: Valentine.Composer.ThreatModelQualityReviewRun
-    end
+    review_run =
+      Composer.get_threat_model_quality_review_run_for_workspace!(
+        workspace_id,
+        id,
+        [:findings, :workspace]
+      )
 
     findings = Composer.list_threat_model_quality_review_findings_by_run(id)
 

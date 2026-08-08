@@ -26,18 +26,13 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
   end
 
   defp apply_action(socket, :assumptions, %{"id" => id}) do
-    threat = Composer.get_threat!(id, [:assumptions])
+    threat =
+      Composer.get_threat_for_workspace!(socket.assigns.workspace_id, id, [:assumptions])
 
-    if threat.workspace_id != socket.assigns.workspace_id do
-      socket
-      |> put_flash(:error, gettext("Not found"))
-      |> push_navigate(to: ~p"/workspaces/#{socket.assigns.workspace_id}/threats")
-    else
-      socket
-      |> assign(:page_title, gettext("Link assumptions to threat"))
-      |> assign(:assumptions, socket.assigns.workspace.assumptions)
-      |> assign(:threat, threat)
-    end
+    socket
+    |> assign(:page_title, gettext("Link assumptions to threat"))
+    |> assign(:assumptions, socket.assigns.workspace.assumptions)
+    |> assign(:threat, threat)
   end
 
   defp apply_action(socket, :index, %{"workspace_id" => workspace_id} = _params) do
@@ -47,23 +42,18 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
   end
 
   defp apply_action(socket, :mitigations, %{"id" => id}) do
-    threat = Composer.get_threat!(id, [:mitigations])
+    threat =
+      Composer.get_threat_for_workspace!(socket.assigns.workspace_id, id, [:mitigations])
 
-    if threat.workspace_id != socket.assigns.workspace_id do
-      socket
-      |> put_flash(:error, gettext("Not found"))
-      |> push_navigate(to: ~p"/workspaces/#{socket.assigns.workspace_id}/threats")
-    else
-      socket
-      |> assign(:page_title, gettext("Link mitigations to threat"))
-      |> assign(:mitigations, socket.assigns.workspace.mitigations)
-      |> assign(:threat, threat)
-    end
+    socket
+    |> assign(:page_title, gettext("Link mitigations to threat"))
+    |> assign(:mitigations, socket.assigns.workspace.mitigations)
+    |> assign(:threat, threat)
   end
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    case Composer.get_threat!(id) do
+    case Composer.get_threat_for_workspace(socket.assigns.workspace_id, id) do
       nil ->
         {:noreply, socket |> put_flash(:error, gettext("Threat not found"))}
 

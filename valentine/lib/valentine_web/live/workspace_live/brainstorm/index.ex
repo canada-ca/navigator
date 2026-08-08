@@ -105,7 +105,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   # Update existing brainstorm item
   @impl true
   def handle_event("update_item", %{"item_id" => id, "text" => text, "type" => type}, socket) do
-    item = Composer.get_brainstorm_item!(id)
+    item = Composer.get_brainstorm_item!(socket.assigns.workspace_id, id)
 
     update_attrs = %{raw_text: text}
 
@@ -134,7 +134,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   end
 
   def handle_event("update_item", %{"item_id" => id, "text" => text}, socket) do
-    item = Composer.get_brainstorm_item!(id)
+    item = Composer.get_brainstorm_item!(socket.assigns.workspace_id, id)
 
     case Composer.update_brainstorm_item(item, %{raw_text: text}) do
       {:ok, updated_item} ->
@@ -156,7 +156,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   # Delete brainstorm item with undo capability
   @impl true
   def handle_event("delete_item", %{"id" => id}, socket) do
-    item = Composer.get_brainstorm_item!(id)
+    item = Composer.get_brainstorm_item!(socket.assigns.workspace_id, id)
 
     case Composer.delete_brainstorm_item(item) do
       {:ok, deleted_item} ->
@@ -221,7 +221,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   # Update item status
   @impl true
   def handle_event("update_status", %{"id" => id, "status" => status}, socket) do
-    item = Composer.get_brainstorm_item!(id)
+    item = Composer.get_brainstorm_item!(socket.assigns.workspace_id, id)
 
     case Composer.update_brainstorm_item(item, %{status: String.to_existing_atom(status)}) do
       {:ok, updated_item} ->
@@ -242,7 +242,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   # Drag & drop move between categories (types)
   @impl true
   def handle_event("move_item", %{"id" => id, "type" => new_type}, socket) do
-    item = Composer.get_brainstorm_item!(id)
+    item = Composer.get_brainstorm_item!(socket.assigns.workspace_id, id)
 
     cond do
       new_type == Atom.to_string(item.type) ->
@@ -296,7 +296,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
   # Assign item to cluster
   @impl true
   def handle_event("start_cluster_assign", %{"id" => id}, socket) do
-    item = Composer.get_brainstorm_item!(id)
+    item = Composer.get_brainstorm_item!(socket.assigns.workspace_id, id)
     clusters = Composer.list_clusters_by_type(socket.assigns.workspace_id, item.type)
 
     {:noreply,
@@ -319,7 +319,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Index do
 
   @impl true
   def handle_event("assign_cluster", params = %{"id" => id}, socket) do
-    item = Composer.get_brainstorm_item!(id)
+    item = Composer.get_brainstorm_item!(socket.assigns.workspace_id, id)
 
     cluster_key =
       cond do

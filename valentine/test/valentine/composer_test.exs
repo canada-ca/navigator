@@ -1795,4 +1795,66 @@ defmodule Valentine.ComposerTest do
       assert %Ecto.Association.NotLoaded{} = loaded_evidence.assumptions
     end
   end
+
+  describe "workspace-scoped entity lookups" do
+    import Valentine.ComposerFixtures
+
+    test "do not return records belonging to another workspace" do
+      workspace = workspace_fixture()
+      other_workspace = workspace_fixture(%{owner: "other.owner@localhost"})
+
+      threat = threat_fixture(%{workspace_id: other_workspace.id})
+      assumption = assumption_fixture(%{workspace_id: other_workspace.id})
+      mitigation = mitigation_fixture(%{workspace_id: other_workspace.id})
+      evidence = evidence_fixture(%{workspace_id: other_workspace.id})
+      threat_agent = threat_agent_fixture(%{workspace_id: other_workspace.id})
+      api_key = api_key_fixture(%{workspace_id: other_workspace.id})
+      brainstorm_item = brainstorm_item_fixture(%{workspace_id: other_workspace.id})
+
+      review_run =
+        threat_model_quality_review_run_fixture(%{
+          workspace_id: other_workspace.id,
+          owner: other_workspace.owner
+        })
+
+      assert Composer.get_threat_for_workspace(workspace.id, threat.id) == nil
+      assert Composer.get_assumption_for_workspace(workspace.id, assumption.id) == nil
+      assert Composer.get_mitigation_for_workspace(workspace.id, mitigation.id) == nil
+      assert Composer.get_evidence_for_workspace(workspace.id, evidence.id) == nil
+      assert Composer.get_threat_agent_for_workspace(workspace.id, threat_agent.id) == nil
+      assert Composer.get_api_key_for_workspace(workspace.id, api_key.id) == nil
+      assert Composer.get_brainstorm_item(workspace.id, brainstorm_item.id) == nil
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Composer.get_threat_for_workspace!(workspace.id, threat.id)
+      end
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Composer.get_assumption_for_workspace!(workspace.id, assumption.id)
+      end
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Composer.get_mitigation_for_workspace!(workspace.id, mitigation.id)
+      end
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Composer.get_evidence_for_workspace!(workspace.id, evidence.id)
+      end
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Composer.get_threat_agent_for_workspace!(workspace.id, threat_agent.id)
+      end
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Composer.get_brainstorm_item!(workspace.id, brainstorm_item.id)
+      end
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Composer.get_threat_model_quality_review_run_for_workspace!(
+          workspace.id,
+          review_run.id
+        )
+      end
+    end
+  end
 end
