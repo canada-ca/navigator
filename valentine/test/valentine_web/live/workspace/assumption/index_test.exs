@@ -124,7 +124,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.IndexTest do
 
   test "handles not found assumption", %{socket: socket, assumption: assumption} do
     with_mock Composer,
-      get_assumption!: fn _id -> nil end do
+      get_assumption_for_workspace: fn _workspace_id, _id -> nil end do
       {:noreply, updated_socket} =
         ValentineWeb.WorkspaceLive.Assumption.Index.handle_event(
           "delete",
@@ -138,7 +138,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.IndexTest do
 
   test "handles delete error", %{socket: socket, assumption: assumption} do
     with_mock Composer,
-      get_assumption!: fn _assumption_id -> assumption end,
+      get_assumption_for_workspace: fn _workspace_id, _id -> assumption end,
       delete_assumption: fn _assumption -> {:error, "some error"} end do
       {:noreply, updated_socket} =
         ValentineWeb.WorkspaceLive.Assumption.Index.handle_event(

@@ -30,13 +30,23 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
     |> assign(:page_title, gettext("Edit Assumption"))
-    |> assign(:assumption, Composer.get_assumption!(id))
+    |> assign(
+      :assumption,
+      Composer.get_assumption_for_workspace!(socket.assigns.workspace_id, id)
+    )
   end
 
   defp apply_action(socket, :categorize, %{"id" => id}) do
     socket
     |> assign(:page_title, gettext("Categorize Assumption"))
-    |> assign(:assumption, Composer.get_assumption!(id, [:mitigations, :threats]))
+    |> assign(
+      :assumption,
+      Composer.get_assumption_for_workspace!(
+        socket.assigns.workspace_id,
+        id,
+        [:mitigations, :threats]
+      )
+    )
   end
 
   defp apply_action(socket, :new, _params) do
@@ -57,14 +67,20 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
     socket
     |> assign(:page_title, gettext("Link mitigations to assumption"))
     |> assign(:mitigations, socket.assigns.workspace.mitigations)
-    |> assign(:assumption, Composer.get_assumption!(id, [:mitigations]))
+    |> assign(
+      :assumption,
+      Composer.get_assumption_for_workspace!(socket.assigns.workspace_id, id, [:mitigations])
+    )
   end
 
   defp apply_action(socket, :threats, %{"id" => id}) do
     socket
     |> assign(:page_title, gettext("Link threats to assumption"))
     |> assign(:threats, socket.assigns.workspace.threats)
-    |> assign(:assumption, Composer.get_assumption!(id, [:threats]))
+    |> assign(
+      :assumption,
+      Composer.get_assumption_for_workspace!(socket.assigns.workspace_id, id, [:threats])
+    )
   end
 
   @impl true
@@ -103,7 +119,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    case Composer.get_assumption!(id) do
+    case Composer.get_assumption_for_workspace(socket.assigns.workspace_id, id) do
       nil ->
         {:noreply, socket |> put_flash(:error, gettext("Assumption not found"))}
 

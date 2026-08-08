@@ -123,7 +123,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponentTest do
           __changed__: %{},
           action: :new,
           mitigation: %Valentine.Composer.Mitigation{
-            workspace_id: "00000000-0000-0000-0000-000000000000"
+            workspace_id: assigns.mitigation.workspace_id
           },
           current_user: assigns.current_user,
           flash: %{},
@@ -136,8 +136,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponentTest do
           "save",
           %{
             "mitigation" => %{
-              content: "some content",
-              workspace_id: assigns.mitigation.workspace_id
+              content: "some content"
             }
           },
           socket

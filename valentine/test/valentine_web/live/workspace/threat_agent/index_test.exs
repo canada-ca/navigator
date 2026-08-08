@@ -82,7 +82,8 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.IndexTest do
     end
 
     test "handles not found threat agent", %{socket: socket} do
-      with_mock Composer, get_threat_agent!: fn _id -> nil end do
+      with_mock Composer,
+        get_threat_agent_for_workspace: fn _workspace_id, _id -> nil end do
         {:noreply, updated_socket} =
           ValentineWeb.WorkspaceLive.ThreatAgent.Index.handle_event(
             "delete",

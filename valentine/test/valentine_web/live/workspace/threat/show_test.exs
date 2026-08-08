@@ -276,7 +276,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
 
   describe "handle_event removes an assumption" do
     test "removes an assumption", %{socket: socket, threat: threat} do
-      assumption = assumption_fixture()
+      assumption = assumption_fixture(%{workspace_id: threat.workspace_id})
 
       Composer.add_assumption_to_threat(threat, assumption)
 
@@ -295,7 +295,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
 
   describe "handle_event removes a mitigation" do
     test "removes a mitigation", %{socket: socket, threat: threat} do
-      mitigation = mitigation_fixture()
+      mitigation = mitigation_fixture(%{workspace_id: threat.workspace_id})
 
       Composer.add_mitigation_to_threat(threat, mitigation)
 
@@ -331,7 +331,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
     test "adds a newly created assumption to a threat", %{socket: socket, threat: threat} do
       socket = put_in(socket.assigns.threat, threat)
 
-      assumption = assumption_fixture()
+      assumption = assumption_fixture(%{workspace_id: threat.workspace_id})
 
       {:noreply, updated_socket} =
         ValentineWeb.WorkspaceLive.Threat.Show.handle_info(
@@ -347,7 +347,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
     test "adds a newly created mitigation to a threat", %{socket: socket, threat: threat} do
       socket = put_in(socket.assigns.threat, threat)
 
-      mitigation = mitigation_fixture()
+      mitigation = mitigation_fixture(%{workspace_id: threat.workspace_id})
 
       {:noreply, updated_socket} =
         ValentineWeb.WorkspaceLive.Threat.Show.handle_info(
@@ -363,7 +363,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
     test "adds an assumption to a threat", %{socket: socket, threat: threat} do
       socket = put_in(socket.assigns.threat, threat)
 
-      assumption = assumption_fixture()
+      assumption = assumption_fixture(%{workspace_id: threat.workspace_id})
 
       {:noreply, updated_socket} =
         ValentineWeb.WorkspaceLive.Threat.Show.handle_info(
@@ -379,7 +379,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
     test "adds an mitigation to a threat", %{socket: socket, threat: threat} do
       socket = put_in(socket.assigns.threat, threat)
 
-      mitigation = mitigation_fixture()
+      mitigation = mitigation_fixture(%{workspace_id: threat.workspace_id})
 
       {:noreply, updated_socket} =
         ValentineWeb.WorkspaceLive.Threat.Show.handle_info(

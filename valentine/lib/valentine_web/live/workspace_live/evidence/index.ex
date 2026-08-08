@@ -34,7 +34,12 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
   end
 
   defp apply_action(socket, :assumptions, %{"id" => evidence_id}) do
-    evidence_item = Composer.get_evidence!(evidence_id, [:assumptions])
+    evidence_item =
+      Composer.get_evidence_for_workspace!(
+        socket.assigns.workspace_id,
+        evidence_id,
+        [:assumptions]
+      )
 
     socket
     |> assign(:page_title, gettext("Link Evidence"))
@@ -46,7 +51,8 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
   end
 
   defp apply_action(socket, :threats, %{"id" => evidence_id}) do
-    evidence_item = Composer.get_evidence!(evidence_id, [:threats])
+    evidence_item =
+      Composer.get_evidence_for_workspace!(socket.assigns.workspace_id, evidence_id, [:threats])
 
     socket
     |> assign(:page_title, gettext("Link Evidence"))
@@ -58,7 +64,12 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
   end
 
   defp apply_action(socket, :mitigations, %{"id" => evidence_id}) do
-    evidence_item = Composer.get_evidence!(evidence_id, [:mitigations])
+    evidence_item =
+      Composer.get_evidence_for_workspace!(
+        socket.assigns.workspace_id,
+        evidence_id,
+        [:mitigations]
+      )
 
     socket
     |> assign(:page_title, gettext("Link Evidence"))
@@ -71,7 +82,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    case Composer.get_evidence!(id) do
+    case Composer.get_evidence_for_workspace(socket.assigns.workspace_id, id) do
       nil ->
         {:noreply, socket |> put_flash(:error, gettext("Evidence not found"))}
 

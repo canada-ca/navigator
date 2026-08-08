@@ -44,7 +44,6 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponent do
               }
               is_form_control
             />
-            <input type="hidden" value={@assumption.workspace_id} name="assumption[workspace_id]" />
           </:body>
           <:footer>
             <.button is_primary is_submit phx-disable-with={gettext("Saving...")}>
@@ -70,12 +69,17 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponent do
 
   @impl true
   def handle_event("validate", %{"assumption" => assumption_params}, socket) do
-    changeset = Composer.change_assumption(socket.assigns.assumption, assumption_params)
+    changeset =
+      Composer.change_assumption(
+        socket.assigns.assumption,
+        trusted_params(socket, assumption_params)
+      )
+
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
   def handle_event("save", %{"assumption" => assumption_params}, socket) do
-    save_assumption(socket, socket.assigns.action, assumption_params)
+    save_assumption(socket, socket.assigns.action, trusted_params(socket, assumption_params))
   end
 
   defp save_assumption(socket, :edit, assumption_params) do
@@ -124,6 +128,20 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponent do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, changeset: changeset)}
+    end
+  end
+
+  defp trusted_params(socket, params) do
+    put_trusted_workspace_id(params, socket.assigns.assumption.workspace_id)
+  end
+
+  defp put_trusted_workspace_id(params, workspace_id) do
+    if Enum.all?(Map.keys(params), &is_atom/1) do
+      params |> Map.delete(:workspace_id) |> Map.put(:workspace_id, workspace_id)
+    else
+      params
+      |> Map.new(fn {key, value} -> {to_string(key), value} end)
+      |> Map.put("workspace_id", workspace_id)
     end
   end
 

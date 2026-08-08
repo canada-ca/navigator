@@ -69,8 +69,6 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Components.FormComponent do
               form_control={%{label: gettext("Deliberate Threat Level")}}
               is_form_control
             />
-
-            <input type="hidden" value={@threat_agent.workspace_id} name="threat_agent[workspace_id]" />
           </:body>
           <:footer>
             <.button is_primary is_submit phx-disable-with={gettext("Saving...")}>
@@ -96,12 +94,17 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Components.FormComponent do
 
   @impl true
   def handle_event("validate", %{"threat_agent" => threat_agent_params}, socket) do
-    changeset = Composer.change_threat_agent(socket.assigns.threat_agent, threat_agent_params)
+    changeset =
+      Composer.change_threat_agent(
+        socket.assigns.threat_agent,
+        trusted_params(socket, threat_agent_params)
+      )
+
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
   def handle_event("save", %{"threat_agent" => threat_agent_params}, socket) do
-    save_threat_agent(socket, socket.assigns.action, threat_agent_params)
+    save_threat_agent(socket, socket.assigns.action, trusted_params(socket, threat_agent_params))
   end
 
   defp save_threat_agent(socket, :edit, threat_agent_params) do
@@ -136,6 +139,20 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Components.FormComponent do
 
   defp td_level_options do
     Enum.map(DeliberateThreatLevel.options(), fn {label, value} -> [key: label, value: value] end)
+  end
+
+  defp trusted_params(socket, params) do
+    put_trusted_workspace_id(params, socket.assigns.threat_agent.workspace_id)
+  end
+
+  defp put_trusted_workspace_id(params, workspace_id) do
+    if Enum.all?(Map.keys(params), &is_atom/1) do
+      params |> Map.delete(:workspace_id) |> Map.put(:workspace_id, workspace_id)
+    else
+      params
+      |> Map.new(fn {key, value} -> {to_string(key), value} end)
+      |> Map.put("workspace_id", workspace_id)
+    end
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})

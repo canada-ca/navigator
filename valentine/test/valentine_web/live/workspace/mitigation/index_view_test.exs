@@ -4,7 +4,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.IndexViewTest do
   import Phoenix.LiveViewTest
   import Valentine.ComposerFixtures
 
-  @create_attrs %{content: "some content", workspace_id: nil}
+  @create_attrs %{content: "some content"}
   @update_attrs %{content: "some updated content"}
 
   defp create_mitigation(_) do
@@ -40,7 +40,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.IndexViewTest do
 
       assert index_live
              |> form("#mitigations-form",
-               mitigation: %{@create_attrs | workspace_id: workspace_id}
+               mitigation: @create_attrs
              )
              |> render_submit()
 

@@ -26,7 +26,10 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
     |> assign(:page_title, gettext("Edit Threat Agent"))
-    |> assign(:threat_agent, Composer.get_threat_agent!(id))
+    |> assign(
+      :threat_agent,
+      Composer.get_threat_agent_for_workspace!(socket.assigns.workspace_id, id)
+    )
   end
 
   defp apply_action(socket, :new, _params) do
@@ -52,9 +55,15 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
   def handle_info({:selected_label_dropdown, id, "td_level", value}, socket) do
     threat_agent_id = String.replace_prefix(id, "threat-agent-td-level-", "")
 
-    case Composer.update_threat_agent(Composer.get_threat_agent!(threat_agent_id), %{
-           "td_level" => value
-         }) do
+    case Composer.update_threat_agent(
+           Composer.get_threat_agent_for_workspace!(
+             socket.assigns.workspace_id,
+             threat_agent_id
+           ),
+           %{
+             "td_level" => value
+           }
+         ) do
       {:ok, _threat_agent} ->
         {:noreply,
          assign(socket, :threat_agents, Composer.list_threat_agents(socket.assigns.workspace_id))}
@@ -72,7 +81,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     try do
-      threat_agent = Composer.get_threat_agent!(id)
+      threat_agent = Composer.get_threat_agent_for_workspace(socket.assigns.workspace_id, id)
 
       case threat_agent do
         nil ->

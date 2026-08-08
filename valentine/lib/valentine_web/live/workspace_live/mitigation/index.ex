@@ -30,26 +30,38 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Index do
     socket
     |> assign(:page_title, gettext("Link assumptions to mitigation"))
     |> assign(:assumptions, socket.assigns.workspace.assumptions)
-    |> assign(:mitigation, Composer.get_mitigation!(id, [:assumptions]))
+    |> assign(
+      :mitigation,
+      Composer.get_mitigation_for_workspace!(socket.assigns.workspace_id, id, [:assumptions])
+    )
   end
 
   defp apply_action(socket, :categorize, %{"id" => id}) do
     socket
     |> assign(:page_title, gettext("Categorize Mitigation"))
-    |> assign(:mitigation, Composer.get_mitigation!(id, [:threats]))
+    |> assign(
+      :mitigation,
+      Composer.get_mitigation_for_workspace!(socket.assigns.workspace_id, id, [:threats])
+    )
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
     |> assign(:page_title, gettext("Edit Mitigation"))
-    |> assign(:mitigation, Composer.get_mitigation!(id))
+    |> assign(
+      :mitigation,
+      Composer.get_mitigation_for_workspace!(socket.assigns.workspace_id, id)
+    )
   end
 
   defp apply_action(socket, :threats, %{"id" => id}) do
     socket
     |> assign(:page_title, gettext("Link threats to mitigation"))
     |> assign(:threats, socket.assigns.workspace.threats)
-    |> assign(:mitigation, Composer.get_mitigation!(id, [:threats]))
+    |> assign(
+      :mitigation,
+      Composer.get_mitigation_for_workspace!(socket.assigns.workspace_id, id, [:threats])
+    )
   end
 
   defp apply_action(socket, :new, _params) do
@@ -68,7 +80,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    case Composer.get_mitigation!(id) do
+    case Composer.get_mitigation_for_workspace(socket.assigns.workspace_id, id) do
       nil ->
         {:noreply, socket |> put_flash(:error, gettext("Mitigation not found"))}
 

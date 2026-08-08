@@ -44,7 +44,6 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponent do
               }
               is_form_control
             />
-            <input type="hidden" value={@mitigation.workspace_id} name="mitigation[workspace_id]" />
           </:body>
           <:footer>
             <.button is_primary is_submit phx-disable-with={gettext("Saving...")}>
@@ -70,12 +69,17 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponent do
 
   @impl true
   def handle_event("validate", %{"mitigation" => mitigation_params}, socket) do
-    changeset = Composer.change_mitigation(socket.assigns.mitigation, mitigation_params)
+    changeset =
+      Composer.change_mitigation(
+        socket.assigns.mitigation,
+        trusted_params(socket, mitigation_params)
+      )
+
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
   def handle_event("save", %{"mitigation" => mitigation_params}, socket) do
-    save_mitigation(socket, socket.assigns.action, mitigation_params)
+    save_mitigation(socket, socket.assigns.action, trusted_params(socket, mitigation_params))
   end
 
   defp save_mitigation(socket, :edit, mitigation_params) do
@@ -121,6 +125,20 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponent do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, changeset: changeset)}
+    end
+  end
+
+  defp trusted_params(socket, params) do
+    put_trusted_workspace_id(params, socket.assigns.mitigation.workspace_id)
+  end
+
+  defp put_trusted_workspace_id(params, workspace_id) do
+    if Enum.all?(Map.keys(params), &is_atom/1) do
+      params |> Map.delete(:workspace_id) |> Map.put(:workspace_id, workspace_id)
+    else
+      params
+      |> Map.new(fn {key, value} -> {to_string(key), value} end)
+      |> Map.put("workspace_id", workspace_id)
     end
   end
 
