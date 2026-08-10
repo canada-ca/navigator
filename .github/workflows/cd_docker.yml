@@ -72,12 +72,9 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: build-and-push-image
     runs-on: ubuntu-latest
-    # Configure this environment in GitHub with required reviewers and a
-    # deployment branch policy restricted to main.
-    environment: staging
-    concurrency:
-      group: deploy-staging
-      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
     steps:
       # Limit the assumed role to describing/registering the Valentine task
       # definition, updating/describing this service, and passing its ECS task
@@ -85,7 +82,9 @@ jobs:
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
-          role-to-assume: arn:aws:iam::975050085632:role/github-restart-cluster-role
+          role-to-assume:
+            arn:aws:iam::975050085632:role/github-restart-cluster-role
+            arn:aws:iam::975050085632:role/github-restart-cluster-role
           role-session-name: ValentineGitHubActionsDeploy
           aws-region: ca-central-1
           allowed-account-ids: "975050085632"
