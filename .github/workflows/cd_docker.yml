@@ -1,5 +1,4 @@
 name: Build and upload the container to CDS Container Registry
-
 on:
   workflow_dispatch:
   push:
@@ -7,151 +6,60 @@ on:
       - main
 
 env:
+  GITHUB_SHA: ${{ github.sha }}
   REGISTRY: public.ecr.aws/cds-snc
   IMAGE_NAME: valentine
-  ECS_CLUSTER: valentine-cluster
-  ECS_SERVICE: valentine-service
-  ECS_TASK_DEFINITION: valentine-task
-  ECS_CONTAINER_NAME: valentine
 
 permissions:
-  contents: read
   id-token: write
+  contents: read
 
 jobs:
   build-and-push-image:
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    outputs:
-      image: ${{ steps.push-image.outputs.image }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          persist-credentials: false
 
-      - name: Configure AWS credentials using OIDC
+      - name: Configure aws credentials using OIDC
         uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
           role-to-assume: arn:aws:iam::283582579564:role/valentine-ecr-push-role-gh
-          role-session-name: ValentineGitHubActionsBuild
-          aws-region: us-east-1
-          allowed-account-ids: "283582579564"
-          role-duration-seconds: 900
+          role-session-name: ValentineGitHubActions
+          aws-region: "us-east-1"
 
       - name: Login to Amazon ECR
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
         with:
           registry-type: public
 
-      - name: Build and push immutable image
-        id: push-image
-        env:
-          IMAGE_TAG: ${{ github.sha }}
+      - name: Build docker image
         run: |
           make docker
+          docker tag valentine $REGISTRY/$IMAGE_NAME:latest
+          docker tag valentine $REGISTRY/$IMAGE_NAME:$GITHUB_SHA
 
-          image_uri="$REGISTRY/$IMAGE_NAME:$IMAGE_TAG"
-          docker tag valentine "$image_uri"
-
-          push_output="$(docker push "$image_uri")"
-          echo "$push_output"
-          digest="$(sed -n 's/^.*digest: \(sha256:[0-9a-f]\{64\}\).*$/\1/p' <<< "$push_output" | tail -1)"
-
-          if [[ ! "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
-            echo "Unable to determine the pushed image digest" >&2
-            exit 1
-          fi
-
-          echo "image=$REGISTRY/$IMAGE_NAME@$digest" >> "$GITHUB_OUTPUT"
+      - name: Push docker image to AWS ECR
+        run: |
+          docker push $REGISTRY/$IMAGE_NAME:$GITHUB_SHA
+          docker push $REGISTRY/$IMAGE_NAME:latest
 
   deploy-staging:
-    if: github.ref == 'refs/heads/main'
     needs: build-and-push-image
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     steps:
-      # Limit the assumed role to describing/registering the Valentine task
-      # definition, updating/describing this service, and passing its ECS task
-      # and execution roles to ecs-tasks.amazonaws.com.
-      - name: Configure AWS credentials using OIDC
+      - name: Configure aws credentials using OIDC
         uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
           role-to-assume: arn:aws:iam::975050085632:role/github-restart-cluster-role
-          role-session-name: ValentineGitHubActionsDeploy
-          aws-region: ca-central-1
-          allowed-account-ids: "975050085632"
-          role-duration-seconds: 900
+          role-session-name: ValentineGitHubActions
+          aws-region: "ca-central-1"
 
-      - name: Render task definition with immutable image digest
-        env:
-          DEPLOY_IMAGE: ${{ needs.build-and-push-image.outputs.image }}
+      - name: Deploy to ECS
         run: |
-          if [[ ! "$DEPLOY_IMAGE" =~ ^public\.ecr\.aws/cds-snc/valentine@sha256:[0-9a-f]{64}$ ]]; then
-            echo "Refusing to deploy an invalid or mutable image reference: $DEPLOY_IMAGE" >&2
-            exit 1
-          fi
+          aws ecs update-service --cluster valentine-cluster --service valentine-service --force-new-deployment > /dev/null 2>&1
 
-          aws ecs describe-task-definition \
-            --task-definition "$ECS_TASK_DEFINITION" \
-            --query taskDefinition \
-            --output json > task-definition.json
-
-          jq \
-            --arg container "$ECS_CONTAINER_NAME" \
-            --arg image "$DEPLOY_IMAGE" \
-            '
-              if ([.containerDefinitions[] | select(.name == $container)] | length) != 1 then
-                error("expected exactly one matching ECS container")
-              else
-                .containerDefinitions |= map(
-                  if .name == $container then .image = $image else . end
-                )
-              end
-              | del(
-                  .compatibilities,
-                  .registeredAt,
-                  .registeredBy,
-                  .requiresAttributes,
-                  .revision,
-                  .status,
-                  .taskDefinitionArn
-                )
-            ' \
-            task-definition.json > rendered-task-definition.json
-
-      - name: Deploy task definition
+      - name: Wait for service to stabilize
         run: |
-          task_definition_arn="$(
-            aws ecs register-task-definition \
-              --cli-input-json file://rendered-task-definition.json \
-              --query taskDefinition.taskDefinitionArn \
-              --output text
-          )"
-
-          aws ecs update-service \
-            --cluster "$ECS_CLUSTER" \
-            --service "$ECS_SERVICE" \
-            --task-definition "$task_definition_arn"
-
-          aws ecs wait services-stable \
-            --cluster "$ECS_CLUSTER" \
-            --services "$ECS_SERVICE"
-
-          deployed_task_definition="$(
-            aws ecs describe-services \
-              --cluster "$ECS_CLUSTER" \
-              --services "$ECS_SERVICE" \
-              --query 'services[0].taskDefinition' \
-              --output text
-          )"
-
-          if [[ "$deployed_task_definition" != "$task_definition_arn" ]]; then
-            echo "ECS stabilized on an unexpected task definition" >&2
-            exit 1
-          fi
+          aws ecs wait services-stable --cluster valentine-cluster --services valentine-service > /dev/null 2>&1
