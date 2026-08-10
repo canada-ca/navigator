@@ -79,6 +79,24 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
+  guardian_secret_key =
+    case System.get_env("GUARDIAN_SECRET_KEY") do
+      secret when is_binary(secret) and byte_size(secret) >= 64 ->
+        secret
+
+      nil ->
+        raise """
+        environment variable GUARDIAN_SECRET_KEY is missing.
+        Generate a dedicated JWT signing key by calling: mix phx.gen.secret
+        """
+
+      secret ->
+        raise """
+        environment variable GUARDIAN_SECRET_KEY must contain at least 64 bytes; \
+        received #{byte_size(secret)}. Generate one by calling: mix phx.gen.secret
+        """
+    end
+
   host = System.get_env("PHX_HOST") || "example.com"
   port = String.to_integer(System.get_env("PORT") || "4000")
 
@@ -95,6 +113,8 @@ if config_env() == :prod do
       port: port
     ],
     secret_key_base: secret_key_base
+
+  config :valentine, Valentine.Guardian, secret_key: guardian_secret_key
 
   # ## SSL Support
   #

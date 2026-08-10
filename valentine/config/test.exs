@@ -19,6 +19,9 @@ config :valentine, ValentineWeb.Endpoint,
   secret_key_base: "TnTYuur9uww/9Ff4AGG6lMxhGeQikthVNKzskqJ6tT+rXc5KX43yQAdGFRGux4Ra",
   server: false
 
+config :valentine, Valentine.Guardian,
+  secret_key: "navigator-test-only-guardian-secret-key-000000000000000000000000"
+
 # In test we don't send emails
 config :valentine, Valentine.Mailer, adapter: Swoosh.Adapters.Test
 

@@ -26,6 +26,11 @@ config :valentine, ValentineWeb.Endpoint,
     esbuild: {Esbuild, :install_and_run, [:valentine, ~w(--sourcemap=inline --watch)]}
   ]
 
+# This checked-in key is only used for local development. Production requires a
+# separate GUARDIAN_SECRET_KEY at runtime.
+config :valentine, Valentine.Guardian,
+  secret_key: "navigator-development-only-guardian-secret-key-000000000000000000"
+
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed
