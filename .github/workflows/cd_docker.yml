@@ -14,10 +14,9 @@ env:
   ECS_TASK_DEFINITION: valentine-task
   ECS_CONTAINER_NAME: valentine
 
-# Default every job to read-only repository access. Jobs that use OIDC opt in
-# to id-token: write explicitly below.
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   build-and-push-image:
@@ -79,9 +78,6 @@ jobs:
     concurrency:
       group: deploy-staging
       cancel-in-progress: false
-    permissions:
-      contents: read
-      id-token: write
     steps:
       # Limit the assumed role to describing/registering the Valentine task
       # definition, updating/describing this service, and passing its ECS task
