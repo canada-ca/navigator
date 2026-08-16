@@ -20,20 +20,20 @@ if System.get_env("PHX_SERVER") do
   config :valentine, ValentineWeb.Endpoint, server: true
 end
 
-# Configure req_llm
-config :req_llm, openai_api_key: System.get_env("OPENAI_API_KEY")
-config :req_llm, azure_openai_api_key: System.get_env("AZURE_OPENAI_KEY")
-config :req_llm, azure_openai_endpoint: System.get_env("AZURE_OPENAI_ENDPOINT")
+# Configure ReqLLM to use the OpenAI-compatible LiteLLM gateway.
+litellm_test_defaults =
+  if config_env() == :test do
+    [base_url: "http://litellm.test/v1", api_key: "test-litellm-key"]
+  else
+    []
+  end
 
 config :req_llm,
-  azure: [
-    api_key: System.get_env("AZURE_OPENAI_KEY"),
-    base_url: System.get_env("AZURE_OPENAI_BASE_URL"),
-    deployment: System.get_env("AZURE_OPENAI_DEPLOYMENT"),
-    api_version: System.get_env("AZURE_OPENAI_API_VERSION")
-  ]
-
-config :req_llm, model: System.get_env("OPENAI_MODEL", "gpt-4o-mini")
+  litellm: [
+    base_url: System.get_env("LITELLM_BASE_URL") || litellm_test_defaults[:base_url],
+    api_key: System.get_env("LITELLM_API_KEY") || litellm_test_defaults[:api_key]
+  ],
+  model: System.get_env("LITELLM_MODEL", "gpt-4o-mini")
 
 config :ueberauth, Ueberauth.Strategy.Cognito,
   auth_domain: System.get_env("COGNITO_DOMAIN"),

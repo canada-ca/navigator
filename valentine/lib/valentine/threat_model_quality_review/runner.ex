@@ -84,7 +84,7 @@ defmodule Valentine.ThreatModelQualityReview.Runner do
     put_debug_context(:request_opts, redact_request_opts(request_opts))
 
     Logger.debug(
-      "[ThreatModelQualityReview] starting segmented review run_id=#{run_id} model_spec=#{model_spec} request_opts=#{inspect(redact_request_opts(request_opts))}"
+      "[ThreatModelQualityReview] starting segmented review run_id=#{run_id} model_spec=#{inspect(model_spec)} request_opts=#{inspect(redact_request_opts(request_opts))}"
     )
 
     review =
