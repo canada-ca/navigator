@@ -70,10 +70,10 @@
 
 <.live_component
   :if={@live_action in [:categorize]}
-  module={ValentineWeb.WorkspaceLive.Mitigation.Components.ControlCategorizer}
+  module={ValentineWeb.WorkspaceLive.Components.ControlCategorizerComponent}
   id={@mitigation.id}
-  mitigation={@mitigation}
-  workspace_id={@workspace_id}
+  entity={@mitigation}
+  entity_type={:mitigation}
   patch={~p"/workspaces/#{@workspace_id}/mitigations"}
 />
 

@@ -64,10 +64,10 @@
 
 <.live_component
   :if={@live_action in [:categorize]}
-  module={ValentineWeb.WorkspaceLive.Assumption.Components.ControlCategorizer}
+  module={ValentineWeb.WorkspaceLive.Components.ControlCategorizerComponent}
   id={@assumption.id}
-  assumption={@assumption}
-  workspace_id={@workspace_id}
+  entity={@assumption}
+  entity_type={:assumption}
   patch={~p"/workspaces/#{@workspace_id}/assumptions"}
 />
 
