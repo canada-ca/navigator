@@ -6,6 +6,9 @@ defmodule Valentine.RuntimeConfigTest do
     DATABASE_URL
     SECRET_KEY_BASE
     GUARDIAN_SECRET_KEY
+    AI_BASE_URL
+    AI_API_KEY
+    AI_MODEL
     LITELLM_BASE_URL
     LITELLM_API_KEY
     LITELLM_MODEL
@@ -64,10 +67,13 @@ defmodule Valentine.RuntimeConfigTest do
     assert guardian_config[:secret_key] == guardian_secret_key
   end
 
-  test "configures ReqLLM exclusively for the LiteLLM gateway" do
-    System.put_env("LITELLM_BASE_URL", "https://llm.example.test/v1")
-    System.put_env("LITELLM_API_KEY", "sk-litellm")
-    System.put_env("LITELLM_MODEL", "navigator-analysis")
+  test "configures ReqLLM exclusively from the generic AI gateway variables" do
+    System.put_env("AI_BASE_URL", "https://llm.example.test/v1")
+    System.put_env("AI_API_KEY", "sk-gateway")
+    System.put_env("AI_MODEL", "navigator-analysis")
+    System.put_env("LITELLM_BASE_URL", "https://legacy-litellm.example.test/v1")
+    System.put_env("LITELLM_API_KEY", "sk-legacy-litellm")
+    System.put_env("LITELLM_MODEL", "legacy-litellm-model")
     System.put_env("OPENAI_API_KEY", "sk-openai")
     System.put_env("OPENAI_MODEL", "gpt-4o")
     System.put_env("AZURE_OPENAI_KEY", "azure-key")
@@ -78,9 +84,9 @@ defmodule Valentine.RuntimeConfigTest do
       |> Config.Reader.read!(env: :test)
       |> Keyword.fetch!(:req_llm)
 
-    assert req_llm_config[:litellm] == [
+    assert req_llm_config[:ai_gateway] == [
              base_url: "https://llm.example.test/v1",
-             api_key: "sk-litellm"
+             api_key: "sk-gateway"
            ]
 
     assert req_llm_config[:model] == "navigator-analysis"
@@ -88,6 +94,18 @@ defmodule Valentine.RuntimeConfigTest do
     refute Keyword.has_key?(req_llm_config, :azure_openai_api_key)
     refute Keyword.has_key?(req_llm_config, :azure_openai_endpoint)
     refute Keyword.has_key?(req_llm_config, :azure)
+    refute Keyword.has_key?(req_llm_config, :litellm)
+  end
+
+  test "defaults the gateway model alias when AI_MODEL is not configured" do
+    System.delete_env("AI_MODEL")
+
+    req_llm_config =
+      @runtime_config
+      |> Config.Reader.read!(env: :test)
+      |> Keyword.fetch!(:req_llm)
+
+    assert req_llm_config[:model] == "openai-gpt-5.6-luna"
   end
 
   defp read_production_config do

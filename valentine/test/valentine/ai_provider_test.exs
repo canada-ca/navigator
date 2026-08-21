@@ -3,7 +3,7 @@ defmodule Valentine.AIProviderTest do
 
   alias Valentine.AIProvider
 
-  @application_settings [:litellm, :model, :openai_api_key, :azure]
+  @application_settings [:ai_gateway, :litellm, :model, :openai_api_key, :azure]
 
   setup do
     original_settings =
@@ -25,9 +25,9 @@ defmodule Valentine.AIProviderTest do
       end
     end)
 
-    Application.put_env(:req_llm, :litellm,
+    Application.put_env(:req_llm, :ai_gateway,
       base_url: "https://llm.example.test/v1/",
-      api_key: "sk-litellm"
+      api_key: "sk-gateway"
     )
 
     System.delete_env("REQ_LLM_MAX_TOKENS")
@@ -35,7 +35,7 @@ defmodule Valentine.AIProviderTest do
     :ok
   end
 
-  test "uses a custom OpenAI model input for a LiteLLM alias" do
+  test "uses a custom OpenAI model input for a gateway alias" do
     Application.put_env(:req_llm, :model, "navigator-analysis")
 
     assert AIProvider.model_spec("Test") == %{
@@ -47,14 +47,17 @@ defmodule Valentine.AIProviderTest do
   test "uses the default model when the configured alias is blank" do
     Application.put_env(:req_llm, :model, "")
 
-    assert AIProvider.model_spec("Test") == %{provider: :openai, id: "gpt-4o-mini"}
+    assert AIProvider.model_spec("Test") == %{
+             provider: :openai,
+             id: "openai-gpt-5.6-luna"
+           }
   end
 
-  test "builds request options for the LiteLLM gateway" do
+  test "builds request options for the AI gateway" do
     assert AIProvider.request_opts("Test") == [
              max_tokens: 4096,
              base_url: "https://llm.example.test/v1",
-             api_key: "sk-litellm"
+             api_key: "sk-gateway"
            ]
   end
 
@@ -70,7 +73,7 @@ defmodule Valentine.AIProviderTest do
     assert opts[:temperature] == 0.2
     assert opts[:max_tokens] == 2048
     assert opts[:base_url] == "https://llm.example.test/v1"
-    assert opts[:api_key] == "sk-litellm"
+    assert opts[:api_key] == "sk-gateway"
   end
 
   test "uses a valid maximum-token environment override" do
@@ -80,23 +83,23 @@ defmodule Valentine.AIProviderTest do
   end
 
   test "rejects a missing gateway URL even when a direct provider key is configured" do
-    Application.put_env(:req_llm, :litellm, api_key: "sk-litellm")
+    Application.put_env(:req_llm, :ai_gateway, api_key: "sk-gateway")
     Application.put_env(:req_llm, :openai_api_key, "sk-openai")
 
-    assert_raise ArgumentError, ~r/LITELLM_BASE_URL/, fn ->
+    assert_raise ArgumentError, ~r/AI_BASE_URL/, fn ->
       AIProvider.request_opts("Test")
     end
   end
 
   test "rejects a missing gateway key even when Azure is configured" do
-    Application.put_env(:req_llm, :litellm, base_url: "https://llm.example.test/v1")
+    Application.put_env(:req_llm, :ai_gateway, base_url: "https://llm.example.test/v1")
 
     Application.put_env(:req_llm, :azure,
       base_url: "https://example.openai.azure.com/openai",
       api_key: "azure-key"
     )
 
-    assert_raise ArgumentError, ~r/LITELLM_API_KEY/, fn ->
+    assert_raise ArgumentError, ~r/AI_API_KEY/, fn ->
       AIProvider.request_opts("Test")
     end
   end

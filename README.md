@@ -53,12 +53,12 @@ You can run the app locally using docker compose. It is not recommended to use t
 docker compose up
 ```
 
-will build the latest image and run the app on `http://localhost:4000`. To use the LLM functionality, provide the URL and gateway key for a LiteLLM proxy that is reachable from the app container. `LITELLM_MODEL` selects a model alias configured in that gateway and defaults to `gpt-4o-mini`.
+will build the latest image and run the app on `http://localhost:4000`. To use the LLM functionality, provide the URL and key for an OpenAI-compatible gateway that is reachable from the app container. `AI_MODEL` selects a model alias configured in that gateway and defaults to `openai-gpt-5.6-luna`.
 
 ```
-LITELLM_BASE_URL=https://llm.example.com/v1 \
-LITELLM_API_KEY=sk-litellm... \
-LITELLM_MODEL=navigator-analysis \
+AI_BASE_URL=https://llm.example.com/v1 \
+AI_API_KEY=sk-gateway... \
+AI_MODEL=navigator-analysis \
 docker compose up
 ```
 
@@ -97,17 +97,17 @@ Typical agent-driven workflow:
 4. Tell your AI to archive the change once the code and specs are in sync.
 
 
-## LiteLLM gateway
+## AI gateway
 
-Navigator sends all AI-assisted requests through a [LiteLLM proxy](https://docs.litellm.ai/docs/proxy/quick_start) using its OpenAI-compatible API. Configure the full API base URL (normally ending in `/v1`), a LiteLLM virtual or gateway key, and optionally a model alias:
+Navigator sends all AI-assisted requests through a configured OpenAI-compatible gateway, such as a [LiteLLM proxy](https://docs.litellm.ai/docs/proxy/quick_start). Configure the full API base URL (normally ending in `/v1`), a gateway key, and optionally a model alias:
 
 ```
-LITELLM_BASE_URL=https://llm.example.com/v1
-LITELLM_API_KEY=sk-litellm...
-LITELLM_MODEL=navigator-analysis # Optional; defaults to gpt-4o-mini
+AI_BASE_URL=https://llm.example.com/v1
+AI_API_KEY=sk-gateway...
+AI_MODEL=navigator-analysis # Optional; defaults to openai-gpt-5.6-luna
 ```
 
-Direct `OPENAI_API_KEY`, `OPENAI_MODEL`, and `AZURE_OPENAI_*` configuration is no longer supported. Upstream provider credentials and routing belong in LiteLLM. If the gateway URL or key is missing, Navigator rejects AI requests locally rather than falling back to a direct provider.
+Direct `OPENAI_API_KEY`, `OPENAI_MODEL`, `AZURE_OPENAI_*`, and `LITELLM_*` configuration is no longer supported. Upstream provider credentials and routing belong in the selected gateway. If the gateway URL or key is missing, Navigator rejects AI requests locally rather than falling back to a direct provider.
 
 ## Optional Auth
 
@@ -196,12 +196,12 @@ Vous pouvez exécuter l’application localement en utilisant docker compose. Il
 ```
 docker compose up
 ```
-construira la dernière image et exécutera l'application sur `http://localhost:4000`. Pour utiliser les fonctionnalités LLM, fournissez l'URL et la clé d'une passerelle LiteLLM accessible depuis le conteneur de l'application. `LITELLM_MODEL` sélectionne un alias de modèle configuré dans cette passerelle et utilise `gpt-4o-mini` par défaut.
+construira la dernière image et exécutera l'application sur `http://localhost:4000`. Pour utiliser les fonctionnalités LLM, fournissez l'URL et la clé d'une passerelle compatible avec OpenAI accessible depuis le conteneur de l'application. `AI_MODEL` sélectionne un alias de modèle configuré dans cette passerelle et utilise `openai-gpt-5.6-luna` par défaut.
 
 ```
-LITELLM_BASE_URL=https://llm.example.com/v1 \
-LITELLM_API_KEY=sk-litellm... \
-LITELLM_MODEL=navigator-analysis \
+AI_BASE_URL=https://llm.example.com/v1 \
+AI_API_KEY=sk-gateway... \
+AI_MODEL=navigator-analysis \
 docker compose up
 ```
 
@@ -239,17 +239,17 @@ Flux de travail typique avec l'agent :
 3. Demandez à votre IA d'implémenter le changement approuvé.
 4. Demandez à votre IA d'archiver le changement une fois que le code et les spécifications sont synchronisés.
 
-## Passerelle LiteLLM
+## Passerelle IA
 
-Navigator achemine toutes les requêtes assistées par IA par l'intermédiaire d'un [proxy LiteLLM](https://docs.litellm.ai/docs/proxy/quick_start) utilisant son API compatible avec OpenAI. Configurez l'URL de base complète de l'API (se terminant normalement par `/v1`), une clé virtuelle ou de passerelle LiteLLM et, facultativement, un alias de modèle :
+Navigator achemine toutes les requêtes assistées par IA par l'intermédiaire d'une passerelle compatible avec OpenAI, comme un [proxy LiteLLM](https://docs.litellm.ai/docs/proxy/quick_start). Configurez l'URL de base complète de l'API (se terminant normalement par `/v1`), une clé de passerelle et, facultativement, un alias de modèle :
 
 ```
-LITELLM_BASE_URL=https://llm.example.com/v1
-LITELLM_API_KEY=sk-litellm...
-LITELLM_MODEL=navigator-analysis # Facultatif; utilise gpt-4o-mini par défaut
+AI_BASE_URL=https://llm.example.com/v1
+AI_API_KEY=sk-gateway...
+AI_MODEL=navigator-analysis # Facultatif; utilise openai-gpt-5.6-luna par défaut
 ```
 
-La configuration directe avec `OPENAI_API_KEY`, `OPENAI_MODEL` et `AZURE_OPENAI_*` n'est plus prise en charge. Les identifiants des fournisseurs en amont et les règles de routage doivent être configurés dans LiteLLM. Si l'URL ou la clé de la passerelle est absente, Navigator rejette localement les requêtes IA au lieu de revenir à un fournisseur direct.
+La configuration directe avec `OPENAI_API_KEY`, `OPENAI_MODEL`, `AZURE_OPENAI_*` et `LITELLM_*` n'est plus prise en charge. Les identifiants des fournisseurs en amont et les règles de routage doivent être configurés dans la passerelle choisie. Si l'URL ou la clé de la passerelle est absente, Navigator rejette localement les requêtes IA au lieu de revenir à un fournisseur direct.
 
 ## Authentification facultative
 

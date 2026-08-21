@@ -1,24 +1,24 @@
 defmodule Valentine.AIProvider do
   @moduledoc false
 
-  @default_model "gpt-4o-mini"
+  @default_model "openai-gpt-5.6-luna"
   @default_max_tokens 4096
 
   def model_spec(_component_name), do: %{provider: :openai, id: model()}
 
   def request_opts(component_name, extra_opts \\ []) do
-    litellm_config = Keyword.new(Application.get_env(:req_llm, :litellm, []))
+    gateway_config = Keyword.new(Application.get_env(:req_llm, :ai_gateway, []))
 
     gateway_opts = [
       base_url:
-        litellm_config
+        gateway_config
         |> Keyword.get(:base_url)
         |> normalize_base_url()
-        |> fetch_present!(:base_url, "LITELLM_BASE_URL", component_name),
+        |> fetch_present!(:base_url, "AI_BASE_URL", component_name),
       api_key:
-        litellm_config
+        gateway_config
         |> Keyword.get(:api_key)
-        |> fetch_present!(:api_key, "LITELLM_API_KEY", component_name)
+        |> fetch_present!(:api_key, "AI_API_KEY", component_name)
     ]
 
     [max_tokens: max_tokens()]
@@ -57,7 +57,7 @@ defmodule Valentine.AIProvider do
 
   defp fetch_present!(_value, setting, environment_variable, component_name) do
     raise ArgumentError,
-          "[#{component_name}] LiteLLM gateway configuration is incomplete: " <>
+          "[#{component_name}] AI gateway configuration is incomplete: " <>
             "set #{setting} with #{environment_variable}"
   end
 end

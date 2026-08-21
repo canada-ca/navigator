@@ -20,20 +20,20 @@ if System.get_env("PHX_SERVER") do
   config :valentine, ValentineWeb.Endpoint, server: true
 end
 
-# Configure ReqLLM to use the OpenAI-compatible LiteLLM gateway.
-litellm_test_defaults =
+# Configure ReqLLM to use an OpenAI-compatible AI gateway.
+ai_gateway_test_defaults =
   if config_env() == :test do
-    [base_url: "http://litellm.test/v1", api_key: "test-litellm-key"]
+    [base_url: "http://ai-gateway.test/v1", api_key: "test-ai-gateway-key"]
   else
     []
   end
 
 config :req_llm,
-  litellm: [
-    base_url: System.get_env("LITELLM_BASE_URL") || litellm_test_defaults[:base_url],
-    api_key: System.get_env("LITELLM_API_KEY") || litellm_test_defaults[:api_key]
+  ai_gateway: [
+    base_url: System.get_env("AI_BASE_URL") || ai_gateway_test_defaults[:base_url],
+    api_key: System.get_env("AI_API_KEY") || ai_gateway_test_defaults[:api_key]
   ],
-  model: System.get_env("LITELLM_MODEL", "gpt-4o-mini")
+  model: System.get_env("AI_MODEL", "openai-gpt-5.6-luna")
 
 config :ueberauth, Ueberauth.Strategy.Cognito,
   auth_domain: System.get_env("COGNITO_DOMAIN"),

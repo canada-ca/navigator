@@ -9,9 +9,9 @@ services:
       - db
     environment:
       DATABASE_URL: "ecto://postgres:postgres@db/postgres"
-      LITELLM_BASE_URL: $LITELLM_BASE_URL
-      LITELLM_API_KEY: $LITELLM_API_KEY
-      LITELLM_MODEL: ${LITELLM_MODEL:-gpt-4o-mini}
+      AI_BASE_URL: $AI_BASE_URL
+      AI_API_KEY: $AI_API_KEY
+      AI_MODEL: ${AI_MODEL:-openai-gpt-5.6-luna}
       PHX_HOST: "localhost"
       SECRET_KEY_BASE: "LZcrpJerGFAOAk9tmX++gOlapKEvjcahler184AEFKAEpnQPRzKtTN737XXsrdFG" # Generate a secret key with `mix phx.gen.secret` if you use this in production
   db:
