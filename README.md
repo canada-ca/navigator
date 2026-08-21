@@ -53,10 +53,13 @@ You can run the app locally using docker compose. It is not recommended to use t
 docker compose up
 ```
 
-will build the latest image and run the app on `http://localhost:4000`. If you would like to use the LLM functionality, you need to provide your own OPENAI API key for `gpt-4o-mini`.
+will build the latest image and run the app on `http://localhost:4000`. To use the LLM functionality, provide the URL and key for an OpenAI-compatible gateway that is reachable from the app container. `AI_MODEL` selects a model alias configured in that gateway and defaults to `openai-gpt-5.6-luna`.
 
 ```
-OPENAI_API_KEY=sk-proj... docker compose up
+AI_BASE_URL=https://llm.example.com/v1 \
+AI_API_KEY=sk-gateway... \
+AI_MODEL=navigator-analysis \
+docker compose up
 ```
 
 If you make changes to the source code, then you need to rebuild the image: 
@@ -94,14 +97,17 @@ Typical agent-driven workflow:
 4. Tell your AI to archive the change once the code and specs are in sync.
 
 
-## OpenAI on Azure
+## AI gateway
 
-You can also use OpenAI on Azure. You need to provide the following environment variables:
+Navigator sends all AI-assisted requests through a configured OpenAI-compatible gateway, such as a [LiteLLM proxy](https://docs.litellm.ai/docs/proxy/quick_start). Configure the full API base URL (normally ending in `/v1`), a gateway key, and optionally a model alias:
 
 ```
-AZURE_OPENAI_ENDPOINT=
-AZURE_OPENAI_KEY=
+AI_BASE_URL=https://llm.example.com/v1
+AI_API_KEY=sk-gateway...
+AI_MODEL=navigator-analysis # Optional; defaults to openai-gpt-5.6-luna
 ```
+
+Direct `OPENAI_API_KEY`, `OPENAI_MODEL`, `AZURE_OPENAI_*`, and `LITELLM_*` configuration is no longer supported. Upstream provider credentials and routing belong in the selected gateway. If the gateway URL or key is missing, Navigator rejects AI requests locally rather than falling back to a direct provider.
 
 ## Optional Auth
 
@@ -190,10 +196,13 @@ Vous pouvez exécuter l’application localement en utilisant docker compose. Il
 ```
 docker compose up
 ```
-construira la dernière image et exécutera l'application sur `http://localhost:4000`. Si vous souhaitez utiliser la fonctionnalité LLM, vous devez fournir votre propre OPENAI API clé pour `gpt-4o-mini`.
+construira la dernière image et exécutera l'application sur `http://localhost:4000`. Pour utiliser les fonctionnalités LLM, fournissez l'URL et la clé d'une passerelle compatible avec OpenAI accessible depuis le conteneur de l'application. `AI_MODEL` sélectionne un alias de modèle configuré dans cette passerelle et utilise `openai-gpt-5.6-luna` par défaut.
 
 ```
-OPENAI_API_KEY=sk-proj... docker compose up
+AI_BASE_URL=https://llm.example.com/v1 \
+AI_API_KEY=sk-gateway... \
+AI_MODEL=navigator-analysis \
+docker compose up
 ```
 
 Si vous apportez des modifications au code source, vous devez alors reconstruire l'image : 
@@ -230,13 +239,17 @@ Flux de travail typique avec l'agent :
 3. Demandez à votre IA d'implémenter le changement approuvé.
 4. Demandez à votre IA d'archiver le changement une fois que le code et les spécifications sont synchronisés.
 
-## OpenAI sur Azure 
-Vous pouvez également utiliser OpenAI sur Azure. Vous devez fournir les variables d'environnement suivantes :
+## Passerelle IA
+
+Navigator achemine toutes les requêtes assistées par IA par l'intermédiaire d'une passerelle compatible avec OpenAI, comme un [proxy LiteLLM](https://docs.litellm.ai/docs/proxy/quick_start). Configurez l'URL de base complète de l'API (se terminant normalement par `/v1`), une clé de passerelle et, facultativement, un alias de modèle :
 
 ```
-AZURE_OPENAI_ENDPOINT=
-AZURE_OPENAI_KEY=
+AI_BASE_URL=https://llm.example.com/v1
+AI_API_KEY=sk-gateway...
+AI_MODEL=navigator-analysis # Facultatif; utilise openai-gpt-5.6-luna par défaut
 ```
+
+La configuration directe avec `OPENAI_API_KEY`, `OPENAI_MODEL`, `AZURE_OPENAI_*` et `LITELLM_*` n'est plus prise en charge. Les identifiants des fournisseurs en amont et les règles de routage doivent être configurés dans la passerelle choisie. Si l'URL ou la clé de la passerelle est absente, Navigator rejette localement les requêtes IA au lieu de revenir à un fournisseur direct.
 
 ## Authentification facultative
 
