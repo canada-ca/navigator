@@ -3,7 +3,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
   import Phoenix.LiveViewTest
   import Valentine.ComposerFixtures
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Brainstorm
   alias ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponent
 
   describe "threat builder component" do
@@ -12,28 +12,28 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
 
       # Create brainstorm items for testing
       {:ok, threat_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "malicious user"
         })
 
       {:ok, attack_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :attack_vector,
           raw_text: "exploits SQL injection vulnerability"
         })
 
       {:ok, impact_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :impact,
           raw_text: "unauthorized data access"
         })
 
       {:ok, asset_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :asset,
           raw_text: "customer database"
@@ -109,7 +109,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
       promote_to_candidate(impact_item)
       {:ok, asset_item} = promote_to_candidate(asset_item)
 
-      {:ok, _asset_item} = Composer.update_brainstorm_item(asset_item, %{status: :used})
+      {:ok, _asset_item} = Brainstorm.update_brainstorm_item(asset_item, %{status: :used})
 
       assigns = %{
         __changed__: %{},
@@ -137,7 +137,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
       promote_to_candidate(asset_item)
 
       {:ok, second_asset} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :asset,
           raw_text: "billing service"
@@ -162,7 +162,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
   end
 
   defp promote_to_candidate(item) do
-    {:ok, item} = Composer.update_brainstorm_item(item, %{status: :clustered})
-    {:ok, _item} = Composer.update_brainstorm_item(item, %{status: :candidate})
+    {:ok, item} = Brainstorm.update_brainstorm_item(item, %{status: :clustered})
+    {:ok, _item} = Brainstorm.update_brainstorm_item(item, %{status: :candidate})
   end
 end

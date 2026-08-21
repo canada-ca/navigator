@@ -2,8 +2,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
   use ValentineWeb, :live_component
   use PrimerLive
 
-  alias Valentine.Composer
-
+  alias Valentine.Composer.Threats
   @impl true
   def mount(socket) do
     {:ok,
@@ -173,7 +172,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
   @impl true
   def update(%{selected_label_dropdown: {_id, field, value}}, socket) do
     {:ok, threat} =
-      Composer.update_threat(
+      Threats.update_threat(
         socket.assigns.threat,
         %{}
         |> Map.put(field, value)
@@ -200,7 +199,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
     if tag not in current_tags do
       updated_tags = current_tags ++ [tag]
 
-      case Composer.update_threat(socket.assigns.threat, %{tags: updated_tags}) do
+      case Threats.update_threat(socket.assigns.threat, %{tags: updated_tags}) do
         {:ok, threat} ->
           broadcast_threat_change(threat)
 
@@ -223,7 +222,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
   def handle_event("remove_tag", %{"tag" => tag}, socket) do
     updated_tags = List.delete(socket.assigns.threat.tags, tag)
 
-    case Composer.update_threat(socket.assigns.threat, %{tags: updated_tags}) do
+    case Threats.update_threat(socket.assigns.threat, %{tags: updated_tags}) do
       {:ok, threat} ->
         broadcast_threat_change(threat)
         {:noreply, assign(socket, :threat, threat)}
@@ -236,7 +235,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
   @impl true
   def handle_event("save_comments", %{"comments" => comments}, socket) do
     # Forces a changeset change
-    case Composer.update_threat(Map.put(socket.assigns.threat, :comments, nil), %{
+    case Threats.update_threat(Map.put(socket.assigns.threat, :comments, nil), %{
            :comments => comments
          }) do
       {:ok, threat} ->

@@ -150,7 +150,11 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.IndexTest do
 
     # Reload workspace with associations
     workspace =
-      Valentine.Composer.get_workspace!(workspace.id, [:assumptions, :threats, :mitigations])
+      Valentine.Composer.Workspaces.get_workspace!(workspace.id, [
+        :assumptions,
+        :threats,
+        :mitigations
+      ])
 
     %{workspace: workspace}
   end

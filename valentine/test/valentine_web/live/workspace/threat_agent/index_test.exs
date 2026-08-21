@@ -1,10 +1,10 @@
 defmodule ValentineWeb.WorkspaceLive.ThreatAgent.IndexTest do
   use ValentineWeb.ConnCase
 
+  alias Valentine.Composer.Threats
+
   import Mock
   import Valentine.ComposerFixtures
-
-  alias Valentine.Composer
 
   setup do
     workspace = workspace_fixture()
@@ -82,7 +82,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.IndexTest do
     end
 
     test "handles not found threat agent", %{socket: socket} do
-      with_mock Composer,
+      with_mock Threats,
         get_threat_agent_for_workspace: fn _workspace_id, _id -> nil end do
         {:noreply, updated_socket} =
           ValentineWeb.WorkspaceLive.ThreatAgent.Index.handle_event(

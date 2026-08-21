@@ -2,7 +2,7 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
   use ValentineWeb, :live_component
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.DeliberateThreatLevel
   alias Valentine.Composer.Workspace
 
@@ -136,13 +136,13 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:changeset, Composer.change_workspace(workspace))}
+     |> assign(:changeset, Workspaces.change_workspace(workspace))}
   end
 
   @impl true
   def handle_event("validate", %{"workspace" => workspace_params}, socket) do
     changeset =
-      Composer.change_workspace(socket.assigns.workspace, workspace_params)
+      Workspaces.change_workspace(socket.assigns.workspace, workspace_params)
 
     {:noreply, assign(socket, :changeset, changeset)}
   end
@@ -153,7 +153,7 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
 
   defp save_workspace(socket, :edit, workspace_params) do
     if socket.assigns.workspace.owner == socket.assigns.current_user do
-      case Composer.update_workspace(socket.assigns.workspace, workspace_params) do
+      case Workspaces.update_workspace(socket.assigns.workspace, workspace_params) do
         {:ok, workspace} ->
           notify_parent({:saved, workspace})
           log(:info, socket.assigns.current_user, "updated", workspace.id, "workspace")
@@ -172,7 +172,7 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
   end
 
   defp save_workspace(socket, :new, workspace_params) do
-    case Composer.create_workspace(
+    case Workspaces.create_workspace(
            Map.merge(workspace_params, %{"owner" => socket.assigns.current_user})
          ) do
       {:ok, workspace} ->

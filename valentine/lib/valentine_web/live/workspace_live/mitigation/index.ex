@@ -2,7 +2,9 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Index do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Mitigations
+
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.Mitigation
 
   @impl true
@@ -32,7 +34,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Index do
     |> assign(:assumptions, socket.assigns.workspace.assumptions)
     |> assign(
       :mitigation,
-      Composer.get_mitigation_for_workspace!(socket.assigns.workspace_id, id, [:assumptions])
+      Mitigations.get_mitigation_for_workspace!(socket.assigns.workspace_id, id, [:assumptions])
     )
   end
 
@@ -41,7 +43,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Index do
     |> assign(:page_title, gettext("Categorize Mitigation"))
     |> assign(
       :mitigation,
-      Composer.get_mitigation_for_workspace!(socket.assigns.workspace_id, id, [:threats])
+      Mitigations.get_mitigation_for_workspace!(socket.assigns.workspace_id, id, [:threats])
     )
   end
 
@@ -50,7 +52,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Index do
     |> assign(:page_title, gettext("Edit Mitigation"))
     |> assign(
       :mitigation,
-      Composer.get_mitigation_for_workspace!(socket.assigns.workspace_id, id)
+      Mitigations.get_mitigation_for_workspace!(socket.assigns.workspace_id, id)
     )
   end
 
@@ -60,7 +62,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Index do
     |> assign(:threats, socket.assigns.workspace.threats)
     |> assign(
       :mitigation,
-      Composer.get_mitigation_for_workspace!(socket.assigns.workspace_id, id, [:threats])
+      Mitigations.get_mitigation_for_workspace!(socket.assigns.workspace_id, id, [:threats])
     )
   end
 
@@ -80,12 +82,12 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    case Composer.get_mitigation_for_workspace(socket.assigns.workspace_id, id) do
+    case Mitigations.get_mitigation_for_workspace(socket.assigns.workspace_id, id) do
       nil ->
         {:noreply, socket |> put_flash(:error, gettext("Mitigation not found"))}
 
       mitigation ->
-        case Composer.delete_mitigation(mitigation) do
+        case Mitigations.delete_mitigation(mitigation) do
           {:ok, _} ->
             workspace = get_workspace(socket.assigns.workspace_id)
 
@@ -118,7 +120,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Index do
      |> assign(:filters, %{})
      |> assign(
        :mitigations,
-       Composer.list_mitigations_by_workspace(socket.assigns.workspace_id, %{})
+       Mitigations.list_mitigations_by_workspace(socket.assigns.workspace_id, %{})
      )}
   end
 
@@ -142,7 +144,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Index do
       |> assign(:filters, filters)
       |> assign(
         :mitigations,
-        Composer.list_mitigations_by_workspace(socket.assigns.workspace_id, filters)
+        Mitigations.list_mitigations_by_workspace(socket.assigns.workspace_id, filters)
       )
     }
   end
@@ -161,6 +163,6 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Index do
   end
 
   defp get_workspace(id) do
-    Composer.get_workspace!(id, [:assumptions, :threats, mitigations: [:assumptions, :threats]])
+    Workspaces.get_workspace!(id, [:assumptions, :threats, mitigations: [:assumptions, :threats]])
   end
 end

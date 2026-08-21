@@ -3,7 +3,7 @@ defmodule ValentineWeb.RepoAnalysisAgentLive.Index do
   use PrimerLive
 
   alias Phoenix.PubSub
-  alias Valentine.Composer
+  alias Valentine.Composer.AnalysisJobs
   alias Valentine.RepoAnalysis
 
   @impl true
@@ -16,7 +16,7 @@ defmodule ValentineWeb.RepoAnalysisAgentLive.Index do
      socket
      |> assign(
        :repo_analysis_agents,
-       Composer.list_repo_analysis_agents_by_owner(socket.assigns.current_user)
+       AnalysisJobs.list_repo_analysis_agents_by_owner(socket.assigns.current_user)
      )}
   end
 
@@ -262,7 +262,7 @@ defmodule ValentineWeb.RepoAnalysisAgentLive.Index do
     assign(
       socket,
       :repo_analysis_agents,
-      Composer.list_repo_analysis_agents_by_owner(socket.assigns.current_user)
+      AnalysisJobs.list_repo_analysis_agents_by_owner(socket.assigns.current_user)
     )
   end
 

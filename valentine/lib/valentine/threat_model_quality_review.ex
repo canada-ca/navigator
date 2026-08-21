@@ -6,7 +6,8 @@ defmodule Valentine.ThreatModelQualityReview do
   alias Jido.AgentServer
   alias Jido.Signal
   alias Phoenix.PubSub
-  alias Valentine.Composer
+  alias Valentine.Composer.AnalysisJobs
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.ThreatModelQualityReviewRun
   alias Valentine.Composer.Workspace
   alias Valentine.Repo
@@ -18,12 +19,12 @@ defmodule Valentine.ThreatModelQualityReview do
   def workspace_topic(workspace_id), do: "threat_model_quality_reviews:workspace:#{workspace_id}"
 
   def start_review(workspace_id, identity) do
-    workspace = Composer.get_workspace!(workspace_id)
+    workspace = Workspaces.get_workspace!(workspace_id)
 
     with :ok <- ensure_workspace_access(workspace, identity),
          :ok <- ensure_no_running_review(workspace.id),
          {:ok, run} <-
-           Composer.create_threat_model_quality_review_run(%{
+           AnalysisJobs.create_threat_model_quality_review_run(%{
              workspace_id: workspace.id,
              owner: identity,
              requested_at: DateTime.utc_now(),
@@ -37,7 +38,7 @@ defmodule Valentine.ThreatModelQualityReview do
     runtime_agent_id = runtime_agent_id(run.id)
 
     with {:ok, run} <-
-           Composer.update_threat_model_quality_review_run(run, %{
+           AnalysisJobs.update_threat_model_quality_review_run(run, %{
              runtime_agent_id: runtime_agent_id
            }) do
       result =
@@ -87,12 +88,12 @@ defmodule Valentine.ThreatModelQualityReview do
   end
 
   def cancel_for_owner(id, owner) do
-    case Composer.get_threat_model_quality_review_run_for_owner(id, owner) do
+    case AnalysisJobs.get_threat_model_quality_review_run_for_owner(id, owner) do
       nil ->
         {:error, :not_found}
 
       run ->
-        with {:ok, run} <- Composer.request_threat_model_quality_review_run_cancel(run) do
+        with {:ok, run} <- AnalysisJobs.request_threat_model_quality_review_run_cancel(run) do
           case run.runtime_agent_id && Valentine.Jido.whereis(run.runtime_agent_id) do
             pid when is_pid(pid) ->
               :ok =
@@ -106,7 +107,7 @@ defmodule Valentine.ThreatModelQualityReview do
 
             _ ->
               {:ok, updated_run} =
-                Composer.update_threat_model_quality_review_run(run, %{
+                AnalysisJobs.update_threat_model_quality_review_run(run, %{
                   status: :cancelled,
                   completed_at: DateTime.utc_now(),
                   progress_message: "Threat model quality review cancelled"
@@ -120,7 +121,7 @@ defmodule Valentine.ThreatModelQualityReview do
   end
 
   def retry_for_owner(id, owner) do
-    case Composer.get_threat_model_quality_review_run_for_owner(id, owner) do
+    case AnalysisJobs.get_threat_model_quality_review_run_for_owner(id, owner) do
       nil ->
         {:error, :not_found}
 
@@ -137,14 +138,14 @@ defmodule Valentine.ThreatModelQualityReview do
   end
 
   def delete_for_owner(id, owner) do
-    case Composer.get_threat_model_quality_review_run_for_owner(id, owner) do
+    case AnalysisJobs.get_threat_model_quality_review_run_for_owner(id, owner) do
       nil ->
         {:error, :not_found}
 
       run ->
         stop_runtime(run.runtime_agent_id)
 
-        case Composer.delete_threat_model_quality_review_run(run) do
+        case AnalysisJobs.delete_threat_model_quality_review_run(run) do
           {:ok, deleted_run} ->
             broadcast(deleted_run)
             {:ok, deleted_run}
@@ -175,10 +176,10 @@ defmodule Valentine.ThreatModelQualityReview do
   end
 
   def update_status(run_id, attrs) do
-    run = Composer.get_threat_model_quality_review_run!(run_id)
+    run = AnalysisJobs.get_threat_model_quality_review_run!(run_id)
 
     result =
-      Composer.update_threat_model_quality_review_run(
+      AnalysisJobs.update_threat_model_quality_review_run(
         run,
         Map.put(attrs, :last_heartbeat_at, DateTime.utc_now())
       )
@@ -220,7 +221,7 @@ defmodule Valentine.ThreatModelQualityReview do
 
   defp ensure_no_running_review(workspace_id) do
     if Enum.any?(
-         Composer.list_threat_model_quality_review_runs_by_workspace(workspace_id),
+         AnalysisJobs.list_threat_model_quality_review_runs_by_workspace(workspace_id),
          &running_status?(&1.status)
        ) do
       {:error, :already_running}
@@ -235,7 +236,7 @@ defmodule Valentine.ThreatModelQualityReview do
     else
       {:error, reason} ->
         _ =
-          Composer.update_threat_model_quality_review_run(run, %{
+          AnalysisJobs.update_threat_model_quality_review_run(run, %{
             status: :failed,
             failure_reason: format_error(reason),
             completed_at: DateTime.utc_now(),
@@ -265,7 +266,7 @@ defmodule Valentine.ThreatModelQualityReview do
     stop_runtime(run.runtime_agent_id)
 
     {:ok, updated_run} =
-      Composer.update_threat_model_quality_review_run(run, %{
+      AnalysisJobs.update_threat_model_quality_review_run(run, %{
         status: :timed_out,
         progress_message: "Threat model quality review timed out",
         failure_reason: "No heartbeat received before the recovery timeout elapsed",

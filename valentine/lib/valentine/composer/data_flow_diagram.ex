@@ -3,8 +3,7 @@ defmodule Valentine.Composer.DataFlowDiagram do
   import Ecto.Changeset
 
   alias Valentine.Cache
-  alias Valentine.Composer
-
+  alias Valentine.Composer.Documents
   @history_limit 50
   @node_data_defaults %{
     "data_tags" => [],
@@ -46,7 +45,7 @@ defmodule Valentine.Composer.DataFlowDiagram do
   end
 
   def new(workspace_id) do
-    case Composer.get_data_flow_diagram_by_workspace_id(workspace_id) do
+    case Documents.get_data_flow_diagram_by_workspace_id(workspace_id) do
       nil ->
         {:ok, dfd} =
           %{
@@ -54,7 +53,7 @@ defmodule Valentine.Composer.DataFlowDiagram do
             nodes: %{},
             edges: %{}
           }
-          |> Composer.create_data_flow_diagram()
+          |> Documents.create_data_flow_diagram()
 
         dfd
 
@@ -464,8 +463,8 @@ defmodule Valentine.Composer.DataFlowDiagram do
     dfd =
       get(workspace_id)
 
-    Composer.get_data_flow_diagram!(dfd.id)
-    |> Composer.update_data_flow_diagram(Map.from_struct(dfd))
+    Documents.get_data_flow_diagram!(dfd.id)
+    |> Documents.update_data_flow_diagram(Map.from_struct(dfd))
   end
 
   def replace_diagram(workspace_id, %{nodes: nodes, edges: edges}) do

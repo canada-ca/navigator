@@ -2,21 +2,22 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Index do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.ReferencePacks
 
+  alias Valentine.Composer.Workspaces
   @impl true
   def mount(%{"workspace_id" => workspace_id} = _params, _session, socket) do
     workspace = get_workspace(workspace_id)
 
     {:ok,
      socket
-     |> assign(:reference_packs, Composer.list_reference_packs())
+     |> assign(:reference_packs, ReferencePacks.list_reference_packs())
      |> assign(:workspace, workspace)}
   end
 
   @impl true
   def handle_event("delete", %{"id" => collection_id, "type" => collection_type}, socket) do
-    Composer.delete_reference_pack_collection(collection_id, collection_type)
+    ReferencePacks.delete_reference_pack_collection(collection_id, collection_type)
 
     log(
       :info,
@@ -29,7 +30,7 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Index do
     {:noreply,
      socket
      |> put_flash(:info, gettext("Reference pack deleted successfully"))
-     |> assign(:reference_packs, Composer.list_reference_packs())}
+     |> assign(:reference_packs, ReferencePacks.list_reference_packs())}
   end
 
   @impl true
@@ -48,6 +49,6 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Index do
   end
 
   defp get_workspace(id) do
-    Composer.get_workspace!(id)
+    Workspaces.get_workspace!(id)
   end
 end

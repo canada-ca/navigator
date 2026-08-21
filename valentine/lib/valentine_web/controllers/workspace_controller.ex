@@ -1,7 +1,7 @@
 defmodule ValentineWeb.WorkspaceController do
   use ValentineWeb, :controller
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Workspaces
 
   def excel(conn, %{"workspace_id" => workspace_id}) do
     workspace = get_workspace(workspace_id)
@@ -142,7 +142,7 @@ defmodule ValentineWeb.WorkspaceController do
   end
 
   defp get_workspace(id) do
-    Composer.get_workspace!(id, [
+    Workspaces.get_workspace!(id, [
       :application_information,
       :architecture,
       :data_flow_diagram,

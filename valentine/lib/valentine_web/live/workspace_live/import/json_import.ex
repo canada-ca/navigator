@@ -1,5 +1,9 @@
 defmodule ValentineWeb.WorkspaceLive.Import.JsonImport do
-  alias Valentine.Composer
+  alias Valentine.Composer.Assumptions
+  alias Valentine.Composer.Documents
+  alias Valentine.Composer.Mitigations
+  alias Valentine.Composer.Threats
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.DataFlowDiagram
   alias Valentine.Repo
 
@@ -40,7 +44,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImport do
   defp create_base_workspace(data, owner) do
     name = get_in(data, ["name"]) || "Untitled Workspace"
 
-    Composer.create_workspace(%{
+    Workspaces.create_workspace(%{
       name: name,
       owner: owner,
       cloud_profile: get_in(data, ["cloud_profile"]),
@@ -53,7 +57,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImport do
     content = get_in(data, ["application_information", "content"]) || ""
 
     {:ok, _} =
-      Composer.create_application_information(%{
+      Documents.create_application_information(%{
         workspace_id: workspace_id,
         content: content
       })
@@ -66,7 +70,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImport do
     image = get_in(data, ["architecture", "image"]) || ""
 
     {:ok, _} =
-      Composer.create_architecture(%{
+      Documents.create_architecture(%{
         workspace_id: workspace_id,
         content: content,
         image: image
@@ -109,7 +113,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImport do
       end)
 
     {:ok, _} =
-      Composer.create_data_flow_diagram(%{
+      Documents.create_data_flow_diagram(%{
         workspace_id: workspace_id,
         edges: edges,
         nodes: nodes
@@ -128,7 +132,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImport do
 
   defp create_assumptions(workspace_id, assumptions) do
     create_elements(assumptions, fn assumption ->
-      Composer.create_assumption(%{
+      Assumptions.create_assumption(%{
         workspace_id: workspace_id,
         content: assumption["content"],
         comments: assumption["comments"],
@@ -139,7 +143,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImport do
 
   defp create_mitigations(workspace_id, mitigations) do
     create_elements(mitigations, fn mitigation ->
-      Composer.create_mitigation(%{
+      Mitigations.create_mitigation(%{
         workspace_id: workspace_id,
         numeric_id: mitigation["numericId"],
         content: mitigation["content"],
@@ -152,7 +156,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImport do
 
   defp create_threats(workspace_id, threats) do
     create_elements(threats, fn threat ->
-      Composer.create_threat(%{
+      Threats.create_threat(%{
         workspace_id: workspace_id,
         numeric_id: threat["numericId"],
         threat_source: threat["threat_source"],
@@ -205,7 +209,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImport do
   defp create_assumption_threat_link(assumption_id, threat_id, crosswalks) do
     with {:ok, assumption_id} <- Map.fetch(crosswalks.assumptions, assumption_id),
          {:ok, threat_id} <- Map.fetch(crosswalks.threats, threat_id) do
-      %Composer.AssumptionThreat{
+      %Valentine.Composer.AssumptionThreat{
         assumption_id: assumption_id,
         threat_id: threat_id
       }
@@ -216,7 +220,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImport do
   defp create_assumption_mitigation_link(assumption_id, mitigation_id, crosswalks) do
     with {:ok, assumption_id} <- Map.fetch(crosswalks.assumptions, assumption_id),
          {:ok, mitigation_id} <- Map.fetch(crosswalks.mitigations, mitigation_id) do
-      %Composer.AssumptionMitigation{
+      %Valentine.Composer.AssumptionMitigation{
         assumption_id: assumption_id,
         mitigation_id: mitigation_id
       }
@@ -231,7 +235,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.JsonImport do
       |> Enum.each(fn threat_id ->
         with {:ok, mitigation_id} <- Map.fetch(crosswalks.mitigations, mitigation["id"]),
              {:ok, threat_id} <- Map.fetch(crosswalks.threats, threat_id) do
-          %Composer.MitigationThreat{
+          %Valentine.Composer.MitigationThreat{
             mitigation_id: mitigation_id,
             threat_id: threat_id
           }

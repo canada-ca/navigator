@@ -2,7 +2,9 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Threats
+
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.ThreatAgent
 
   @impl true
@@ -15,7 +17,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
      socket
      |> assign(:workspace_id, workspace_id)
      |> assign(:workspace, workspace)
-     |> assign(:threat_agents, Composer.list_threat_agents(workspace_id))}
+     |> assign(:threat_agents, Threats.list_threat_agents(workspace_id))}
   end
 
   @impl true
@@ -28,7 +30,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
     |> assign(:page_title, gettext("Edit Threat Agent"))
     |> assign(
       :threat_agent,
-      Composer.get_threat_agent_for_workspace!(socket.assigns.workspace_id, id)
+      Threats.get_threat_agent_for_workspace!(socket.assigns.workspace_id, id)
     )
   end
 
@@ -47,7 +49,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
   def handle_info({_, {:saved, _threat_agent}}, socket) do
     {:noreply,
      socket
-     |> assign(:threat_agents, Composer.list_threat_agents(socket.assigns.workspace_id))
+     |> assign(:threat_agents, Threats.list_threat_agents(socket.assigns.workspace_id))
      |> broadcast_workspace_update()}
   end
 
@@ -55,8 +57,8 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
   def handle_info({:selected_label_dropdown, id, "td_level", value}, socket) do
     threat_agent_id = String.replace_prefix(id, "threat-agent-td-level-", "")
 
-    case Composer.update_threat_agent(
-           Composer.get_threat_agent_for_workspace!(
+    case Threats.update_threat_agent(
+           Threats.get_threat_agent_for_workspace!(
              socket.assigns.workspace_id,
              threat_agent_id
            ),
@@ -66,7 +68,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
          ) do
       {:ok, _threat_agent} ->
         {:noreply,
-         assign(socket, :threat_agents, Composer.list_threat_agents(socket.assigns.workspace_id))}
+         assign(socket, :threat_agents, Threats.list_threat_agents(socket.assigns.workspace_id))}
 
       {:error, _changeset} ->
         {:noreply, put_flash(socket, :error, gettext("Failed to update Threat Agent"))}
@@ -75,20 +77,20 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
 
   @impl true
   def handle_info(%{topic: "workspace_" <> workspace_id}, socket) do
-    {:noreply, assign(socket, :threat_agents, Composer.list_threat_agents(workspace_id))}
+    {:noreply, assign(socket, :threat_agents, Threats.list_threat_agents(workspace_id))}
   end
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     try do
-      threat_agent = Composer.get_threat_agent_for_workspace(socket.assigns.workspace_id, id)
+      threat_agent = Threats.get_threat_agent_for_workspace(socket.assigns.workspace_id, id)
 
       case threat_agent do
         nil ->
           {:noreply, put_flash(socket, :error, gettext("Threat Agent not found"))}
 
         _ ->
-          case Composer.delete_threat_agent(threat_agent) do
+          case Threats.delete_threat_agent(threat_agent) do
             {:ok, _deleted} ->
               log(
                 :info,
@@ -103,7 +105,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
                |> put_flash(:info, gettext("Threat Agent deleted successfully"))
                |> assign(
                  :threat_agents,
-                 Composer.list_threat_agents(socket.assigns.workspace_id)
+                 Threats.list_threat_agents(socket.assigns.workspace_id)
                )
                |> broadcast_workspace_update()}
 
@@ -124,10 +126,10 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
   def display_td_level(nil), do: gettext("Not set")
 
   def display_td_level(value),
-    do: Composer.DeliberateThreatLevel.label(value) || gettext("Not set")
+    do: Valentine.Composer.DeliberateThreatLevel.label(value) || gettext("Not set")
 
   def td_level_items do
-    Enum.map(Composer.DeliberateThreatLevel.values(), &{&1, nil})
+    Enum.map(Valentine.Composer.DeliberateThreatLevel.values(), &{&1, nil})
   end
 
   defp broadcast_workspace_update(socket) do
@@ -141,6 +143,6 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
   end
 
   defp get_workspace(id) do
-    Composer.get_workspace!(id, [:threat_agents])
+    Workspaces.get_workspace!(id, [:threat_agents])
   end
 end

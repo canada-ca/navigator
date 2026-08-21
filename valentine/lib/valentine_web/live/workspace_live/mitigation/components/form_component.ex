@@ -2,8 +2,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponent do
   use ValentineWeb, :live_component
   use PrimerLive
 
-  alias Valentine.Composer
-
+  alias Valentine.Composer.Mitigations
   @impl true
   def render(assigns) do
     ~H"""
@@ -63,14 +62,14 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponent do
      socket
      |> assign(assigns)
      |> assign_new(:changeset, fn ->
-       Composer.change_mitigation(mitigation)
+       Mitigations.change_mitigation(mitigation)
      end)}
   end
 
   @impl true
   def handle_event("validate", %{"mitigation" => mitigation_params}, socket) do
     changeset =
-      Composer.change_mitigation(
+      Mitigations.change_mitigation(
         socket.assigns.mitigation,
         trusted_params(socket, mitigation_params)
       )
@@ -83,7 +82,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponent do
   end
 
   defp save_mitigation(socket, :edit, mitigation_params) do
-    case Composer.update_mitigation(socket.assigns.mitigation, mitigation_params) do
+    case Mitigations.update_mitigation(socket.assigns.mitigation, mitigation_params) do
       {:ok, mitigation} ->
         notify_parent({:saved, mitigation})
 
@@ -106,7 +105,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponent do
   end
 
   defp save_mitigation(socket, :new, mitigation_params) do
-    case Composer.create_mitigation(mitigation_params) do
+    case Mitigations.create_mitigation(mitigation_params) do
       {:ok, mitigation} ->
         notify_parent({:saved, mitigation})
 

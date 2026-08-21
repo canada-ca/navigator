@@ -23,7 +23,7 @@ defmodule Valentine.ControlCategorizerTest do
   describe "suggest/2" do
     test "uses the shared structured-output request and normalizes its response" do
       mitigation = mitigation_fixture(%{comments: "Confirm provider support"})
-      mitigation = Valentine.Composer.get_mitigation!(mitigation.id, [:threats])
+      mitigation = Valentine.Composer.Mitigations.get_mitigation!(mitigation.id, [:threats])
 
       with_mock ReqLLM,
         generate_object!: fn model_spec, context, schema, opts ->
@@ -69,8 +69,11 @@ defmodule Valentine.ControlCategorizerTest do
           content: "Require phishing-resistant authentication"
         })
 
-      {:ok, assumption} = Valentine.Composer.add_mitigation_to_assumption(assumption, mitigation)
-      assumption = Valentine.Composer.get_assumption!(assumption.id, [:mitigations, :threats])
+      {:ok, assumption} =
+        Valentine.Composer.Relationships.add_mitigation_to_assumption(assumption, mitigation)
+
+      assumption =
+        Valentine.Composer.Assumptions.get_assumption!(assumption.id, [:mitigations, :threats])
 
       prompts = ControlCategorizer.prompts(:assumption, assumption)
 
@@ -86,7 +89,7 @@ defmodule Valentine.ControlCategorizerTest do
           comments: "Confirm support with the identity provider"
         })
 
-      mitigation = Valentine.Composer.get_mitigation!(mitigation.id, [:threats])
+      mitigation = Valentine.Composer.Mitigations.get_mitigation!(mitigation.id, [:threats])
       prompts = ControlCategorizer.prompts(:mitigation, mitigation)
 
       assert prompts.system =~ "categorize the mitigation"

@@ -3,7 +3,7 @@ defmodule Valentine.Prompts.Architecture do
 
   def system_prompt(workspace_id, _action) do
     workspace =
-      Valentine.Composer.get_workspace!(workspace_id, [
+      Valentine.Composer.Workspaces.get_workspace!(workspace_id, [
         :application_information,
         :architecture
       ])

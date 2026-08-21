@@ -1,6 +1,8 @@
 defmodule ValentineWeb.WorkspaceLive.Assumption.IndexTest do
   use ValentineWeb.ConnCase
-  alias Valentine.Composer
+
+  alias Valentine.Composer.Assumptions
+
   import Mock
 
   import Valentine.ComposerFixtures
@@ -91,7 +93,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.IndexTest do
     test "updates filters on filter changes", %{socket: socket} do
       with_mocks([
         {
-          Composer,
+          Assumptions,
           [],
           list_assumptions_by_workspace: fn _, _ ->
             [%{id: 1, title: "Updated Assumption"}]
@@ -123,7 +125,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.IndexTest do
   end
 
   test "handles not found assumption", %{socket: socket, assumption: assumption} do
-    with_mock Composer,
+    with_mock Assumptions,
       get_assumption_for_workspace: fn _workspace_id, _id -> nil end do
       {:noreply, updated_socket} =
         ValentineWeb.WorkspaceLive.Assumption.Index.handle_event(
@@ -137,7 +139,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.IndexTest do
   end
 
   test "handles delete error", %{socket: socket, assumption: assumption} do
-    with_mock Composer,
+    with_mock Assumptions,
       get_assumption_for_workspace: fn _workspace_id, _id -> assumption end,
       delete_assumption: fn _assumption -> {:error, "some error"} end do
       {:noreply, updated_socket} =
@@ -154,7 +156,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.IndexTest do
   test "clears filters", %{socket: socket} do
     with_mocks([
       {
-        Composer,
+        Assumptions,
         [],
         list_assumptions_by_workspace: fn _, _ ->
           [%{id: 1, title: "Updated Assumption"}]

@@ -1,8 +1,7 @@
 defmodule Valentine.Composer.BrainstormItemsTest do
   use Valentine.DataCase
 
-  alias Valentine.Composer
-
+  alias Valentine.Composer.Brainstorm
   import Valentine.ComposerFixtures
 
   describe "list_brainstorm_items/2" do
@@ -10,20 +9,20 @@ defmodule Valentine.Composer.BrainstormItemsTest do
       workspace = workspace_fixture()
 
       {:ok, item1} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "First threat"
         })
 
       {:ok, item2} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :assumption,
           raw_text: "First assumption"
         })
 
-      items = Composer.list_brainstorm_items(workspace.id)
+      items = Brainstorm.list_brainstorm_items(workspace.id)
 
       assert length(items) == 2
       assert Enum.any?(items, &(&1.id == item1.id))
@@ -34,20 +33,20 @@ defmodule Valentine.Composer.BrainstormItemsTest do
       workspace = workspace_fixture()
 
       {:ok, threat_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "A threat"
         })
 
       {:ok, _assumption_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :assumption,
           raw_text: "An assumption"
         })
 
-      items = Composer.list_brainstorm_items(workspace.id, %{type: :threat})
+      items = Brainstorm.list_brainstorm_items(workspace.id, %{type: :threat})
 
       assert length(items) == 1
       assert hd(items).id == threat_item.id
@@ -57,21 +56,21 @@ defmodule Valentine.Composer.BrainstormItemsTest do
       workspace = workspace_fixture()
 
       {:ok, draft_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Draft item"
         })
 
       {:ok, _clustered_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Clustered item",
           status: :clustered
         })
 
-      items = Composer.list_brainstorm_items(workspace.id, %{status: :draft})
+      items = Brainstorm.list_brainstorm_items(workspace.id, %{status: :draft})
 
       assert length(items) == 1
       assert hd(items).id == draft_item.id
@@ -81,7 +80,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
       workspace = workspace_fixture()
 
       {:ok, item1} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Item with position 200",
@@ -89,14 +88,14 @@ defmodule Valentine.Composer.BrainstormItemsTest do
         })
 
       {:ok, item2} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Item with position 100",
           position: 100
         })
 
-      items = Composer.list_brainstorm_items(workspace.id)
+      items = Brainstorm.list_brainstorm_items(workspace.id)
 
       assert length(items) == 2
       # position 100 first
@@ -111,27 +110,27 @@ defmodule Valentine.Composer.BrainstormItemsTest do
       workspace = workspace_fixture()
 
       {:ok, threat1} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "First threat"
         })
 
       {:ok, threat2} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Second threat"
         })
 
       {:ok, assumption1} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :assumption,
           raw_text: "First assumption"
         })
 
-      grouped = Composer.list_brainstorm_items_by_type(workspace.id)
+      grouped = Brainstorm.list_brainstorm_items_by_type(workspace.id)
 
       assert length(grouped[:threat]) == 2
       assert length(grouped[:assumption]) == 1
@@ -146,7 +145,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
       workspace = workspace_fixture()
 
       {:ok, cluster_item1} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Clustered item 1",
@@ -154,7 +153,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
         })
 
       {:ok, cluster_item2} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Clustered item 2",
@@ -162,14 +161,14 @@ defmodule Valentine.Composer.BrainstormItemsTest do
         })
 
       {:ok, _other_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Different cluster",
           cluster_key: "cluster_456"
         })
 
-      items = Composer.list_cluster_items(workspace.id, "cluster_123")
+      items = Brainstorm.list_cluster_items(workspace.id, "cluster_123")
 
       assert length(items) == 2
       assert Enum.any?(items, &(&1.id == cluster_item1.id))
@@ -182,7 +181,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
       workspace = workspace_fixture()
 
       {:ok, clustered_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Clustered item",
@@ -190,7 +189,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
         })
 
       {:ok, candidate_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Candidate item",
@@ -198,14 +197,14 @@ defmodule Valentine.Composer.BrainstormItemsTest do
         })
 
       {:ok, _draft_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Draft item",
           status: :draft
         })
 
-      items = Composer.list_assembly_candidates(workspace.id)
+      items = Brainstorm.list_assembly_candidates(workspace.id)
 
       assert length(items) == 2
       assert Enum.any?(items, &(&1.id == clustered_item.id))
@@ -216,7 +215,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
       workspace = workspace_fixture()
 
       {:ok, target_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Target item",
@@ -225,7 +224,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
         })
 
       {:ok, _other_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Other item",
@@ -233,7 +232,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
           cluster_key: "other_cluster"
         })
 
-      items = Composer.list_assembly_candidates(workspace.id, "target_cluster")
+      items = Brainstorm.list_assembly_candidates(workspace.id, "target_cluster")
 
       assert length(items) == 1
       assert hd(items).id == target_item.id
@@ -245,7 +244,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
       workspace = workspace_fixture()
 
       {:ok, draft_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Draft item",
@@ -253,7 +252,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
         })
 
       {:ok, clustered_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Clustered item",
@@ -261,7 +260,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
         })
 
       {:ok, _used_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Used item",
@@ -269,14 +268,14 @@ defmodule Valentine.Composer.BrainstormItemsTest do
         })
 
       {:ok, _archived_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Archived item",
           status: :archived
         })
 
-      items = Composer.list_backlog_items(workspace.id)
+      items = Brainstorm.list_backlog_items(workspace.id)
 
       assert length(items) == 2
       assert Enum.any?(items, &(&1.id == draft_item.id))
@@ -289,7 +288,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
       workspace = workspace_fixture()
 
       assert {:ok, item} =
-               Composer.create_brainstorm_item(%{
+               Brainstorm.create_brainstorm_item(%{
                  workspace_id: workspace.id,
                  type: :threat,
                  raw_text: "A new threat item"
@@ -303,7 +302,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
     end
 
     test "returns error changeset with invalid data" do
-      assert {:error, changeset} = Composer.create_brainstorm_item(%{})
+      assert {:error, changeset} = Brainstorm.create_brainstorm_item(%{})
 
       assert %{workspace_id: ["can't be blank"]} = errors_on(changeset)
       assert %{type: ["can't be blank"]} = errors_on(changeset)
@@ -316,14 +315,14 @@ defmodule Valentine.Composer.BrainstormItemsTest do
       workspace = workspace_fixture()
 
       {:ok, item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Original text"
         })
 
       assert {:ok, updated_item} =
-               Composer.update_brainstorm_item(item, %{
+               Brainstorm.update_brainstorm_item(item, %{
                  raw_text: "Updated text",
                  status: :clustered
                })
@@ -337,14 +336,14 @@ defmodule Valentine.Composer.BrainstormItemsTest do
       workspace = workspace_fixture()
 
       {:ok, item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Original text"
         })
 
       assert {:error, changeset} =
-               Composer.update_brainstorm_item(item, %{
+               Brainstorm.update_brainstorm_item(item, %{
                  # Invalid transition from draft to used
                  status: :used
                })
@@ -358,13 +357,13 @@ defmodule Valentine.Composer.BrainstormItemsTest do
       workspace = workspace_fixture()
 
       {:ok, item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Item to cluster"
         })
 
-      assert {:ok, updated_item} = Composer.assign_to_cluster(item, "cluster_123")
+      assert {:ok, updated_item} = Brainstorm.assign_to_cluster(item, "cluster_123")
       assert updated_item.cluster_key == "cluster_123"
     end
   end
@@ -374,7 +373,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
       workspace = workspace_fixture()
 
       {:ok, item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Item for threat",
@@ -382,12 +381,12 @@ defmodule Valentine.Composer.BrainstormItemsTest do
         })
 
       # Mark as used
-      assert {:ok, updated_item} = Composer.mark_used_in_threat(item, 123)
+      assert {:ok, updated_item} = Brainstorm.mark_used_in_threat(item, 123)
       assert updated_item.used_in_threat_ids == [123]
       assert updated_item.status == :used
 
       # Unmark from threat
-      assert {:ok, final_item} = Composer.unmark_used_in_threat(updated_item, 123)
+      assert {:ok, final_item} = Brainstorm.unmark_used_in_threat(updated_item, 123)
       assert final_item.used_in_threat_ids == []
       assert final_item.status == :candidate
     end
@@ -399,7 +398,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
 
       # Create items with different statuses
       Enum.each(1..3, fn _ ->
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Draft item",
@@ -408,7 +407,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
       end)
 
       Enum.each(1..2, fn _ ->
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Clustered item",
@@ -416,7 +415,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
         })
       end)
 
-      metrics = Composer.get_funnel_metrics(workspace.id)
+      metrics = Brainstorm.get_funnel_metrics(workspace.id)
 
       assert metrics[:draft] == 3
       assert metrics[:clustered] == 2
@@ -429,7 +428,7 @@ defmodule Valentine.Composer.BrainstormItemsTest do
 
       # Create items with different types
       Enum.each(1..3, fn _ ->
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Threat item"
@@ -437,14 +436,14 @@ defmodule Valentine.Composer.BrainstormItemsTest do
       end)
 
       Enum.each(1..2, fn _ ->
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :assumption,
           raw_text: "Assumption item"
         })
       end)
 
-      metrics = Composer.get_type_metrics(workspace.id)
+      metrics = Brainstorm.get_type_metrics(workspace.id)
 
       assert metrics[:threat] == 3
       assert metrics[:assumption] == 2

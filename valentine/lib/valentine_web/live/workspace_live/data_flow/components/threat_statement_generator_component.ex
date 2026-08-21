@@ -6,7 +6,8 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementGenerato
 
   alias Valentine.AIProvider
   alias Valentine.AIResponseNormalizer
-  alias Valentine.Composer
+  alias Valentine.Composer.Threats
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.DataFlowDiagram
 
   alias Phoenix.LiveView.AsyncResult
@@ -96,7 +97,7 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementGenerato
       _ ->
         {:ok, threat} =
           socket.assigns.threat
-          |> Composer.change_threat(%{
+          |> Threats.change_threat(%{
             tags: [gettext("AI generated")],
             workspace_id: socket.assigns.workspace_id
           })
@@ -395,7 +396,7 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementGenerato
     dfd = DataFlowDiagram.get(workspace_id, false)
 
     workspace =
-      Composer.get_workspace!(
+      Workspaces.get_workspace!(
         workspace_id,
         [:application_information, :architecture, :assumptions, :threats]
       )

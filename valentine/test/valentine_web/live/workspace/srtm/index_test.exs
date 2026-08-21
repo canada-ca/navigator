@@ -8,7 +8,7 @@ defmodule ValentineWeb.WorkspaceLive.SRTM.IndexTest do
     workspace = workspace_fixture(%{cloud_profile: "A", cloud_profile_type: "B"})
 
     workspace =
-      Valentine.Composer.get_workspace!(workspace.id,
+      Valentine.Composer.Workspaces.get_workspace!(workspace.id,
         mitigations: [:assumptions, :threats],
         threats: [:assumptions, :mitigations],
         assumptions: [:threats, :mitigations],

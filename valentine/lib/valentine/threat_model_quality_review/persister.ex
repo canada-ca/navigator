@@ -4,7 +4,7 @@ defmodule Valentine.ThreatModelQualityReview.Persister do
   import Ecto.Query, warn: false
 
   alias Ecto.Multi
-  alias Valentine.Composer
+  alias Valentine.Composer.AnalysisJobs
   alias Valentine.Repo
 
   def persist(run_id, findings) do
@@ -28,7 +28,7 @@ defmodule Valentine.ThreatModelQualityReview.Persister do
     |> Enum.with_index()
     |> Enum.reduce(multi, fn {finding, index}, acc ->
       Multi.insert(acc, {:finding, index}, fn _changes ->
-        Composer.change_threat_model_quality_review_finding(
+        AnalysisJobs.change_threat_model_quality_review_finding(
           %Valentine.Composer.ThreatModelQualityReviewFinding{},
           Map.merge(finding, %{run_id: run_id, display_order: index})
         )

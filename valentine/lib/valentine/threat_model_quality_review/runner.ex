@@ -4,7 +4,7 @@ defmodule Valentine.ThreatModelQualityReview.Runner do
   require Logger
 
   alias Valentine.AIProvider
-  alias Valentine.Composer
+  alias Valentine.Composer.AnalysisJobs
   alias Valentine.ThreatModelQualityReview
   alias Valentine.ThreatModelQualityReview.Generator
   alias Valentine.ThreatModelQualityReview.Persister
@@ -41,7 +41,7 @@ defmodule Valentine.ThreatModelQualityReview.Runner do
   end
 
   defp do_run(run_id) do
-    run = Composer.get_threat_model_quality_review_run!(run_id)
+    run = AnalysisJobs.get_threat_model_quality_review_run!(run_id)
     put_debug_context(:workspace_id, run.workspace_id)
     set_stage(:loading_run)
     ensure_not_cancelled!(run)
@@ -64,7 +64,7 @@ defmodule Valentine.ThreatModelQualityReview.Runner do
 
     put_debug_context(:snapshot_counts, snapshot_counts)
 
-    ensure_not_cancelled!(Composer.get_threat_model_quality_review_run!(run_id))
+    ensure_not_cancelled!(AnalysisJobs.get_threat_model_quality_review_run!(run_id))
 
     set_stage(:reviewing)
 
@@ -133,7 +133,7 @@ defmodule Valentine.ThreatModelQualityReview.Runner do
   end
 
   defp stop_runtime(run_id) do
-    run = Composer.get_threat_model_quality_review_run!(run_id)
+    run = AnalysisJobs.get_threat_model_quality_review_run!(run_id)
 
     if is_binary(run.runtime_agent_id) do
       _ = Valentine.Jido.stop_agent(run.runtime_agent_id)
@@ -183,7 +183,7 @@ defmodule Valentine.ThreatModelQualityReview.Runner do
   end
 
   defp safe_get_run(run_id) do
-    Composer.get_threat_model_quality_review_run!(run_id)
+    AnalysisJobs.get_threat_model_quality_review_run!(run_id)
   rescue
     _ -> nil
   end

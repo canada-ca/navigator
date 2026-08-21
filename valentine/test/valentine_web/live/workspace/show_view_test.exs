@@ -231,7 +231,9 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
              |> element("button[phx-value-id=\"#{previous_repo_analysis_agent.id}\"]")
              |> render_click() =~ "Repository analysis queued"
 
-      updated_jobs = Valentine.Composer.list_repo_analysis_agents_by_workspace(workspace.id)
+      updated_jobs =
+        Valentine.Composer.AnalysisJobs.list_repo_analysis_agents_by_workspace(workspace.id)
+
       latest_job = Enum.find(updated_jobs, &(&1.id != previous_repo_analysis_agent.id))
 
       assert length(updated_jobs) == 3
@@ -265,7 +267,9 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
              |> element("button", "Retry import")
              |> render_click() =~ "Repository analysis queued"
 
-      updated_jobs = Valentine.Composer.list_repo_analysis_agents_by_workspace(workspace.id)
+      updated_jobs =
+        Valentine.Composer.AnalysisJobs.list_repo_analysis_agents_by_workspace(workspace.id)
+
       latest_job = Enum.find(updated_jobs, &(&1.id != repo_analysis_agent.id))
 
       assert length(updated_jobs) == 2

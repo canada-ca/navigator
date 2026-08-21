@@ -2,12 +2,13 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.Index do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.ApiKeys
 
+  alias Valentine.Composer.Workspaces
   @impl true
   def mount(%{"workspace_id" => workspace_id} = _params, _session, socket) do
-    workspace = Composer.get_workspace!(workspace_id)
-    api_keys = Composer.list_api_keys_by_workspace(workspace.id)
+    workspace = Workspaces.get_workspace!(workspace_id)
+    api_keys = ApiKeys.list_api_keys_by_workspace(workspace.id)
 
     {:ok,
      socket
@@ -35,12 +36,12 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    case Composer.get_api_key_for_workspace(socket.assigns.workspace_id, id) do
+    case ApiKeys.get_api_key_for_workspace(socket.assigns.workspace_id, id) do
       nil ->
         {:noreply, socket |> put_flash(:error, gettext("API key not found"))}
 
       api_key ->
-        case Composer.delete_api_key(api_key) do
+        case ApiKeys.delete_api_key(api_key) do
           {:ok, _} ->
             log(
               :info,
@@ -58,7 +59,7 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.Index do
              |> put_flash(:info, gettext("API key deleted successfully"))
              |> assign(
                :api_keys,
-               Composer.list_api_keys_by_workspace(socket.assigns.workspace_id)
+               ApiKeys.list_api_keys_by_workspace(socket.assigns.workspace_id)
              )
              |> assign(:recent_api_key, nil)}
 
@@ -84,7 +85,7 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.Index do
      socket
      |> assign(
        :api_keys,
-       Composer.list_api_keys_by_workspace(socket.assigns.workspace_id)
+       ApiKeys.list_api_keys_by_workspace(socket.assigns.workspace_id)
      )
      |> assign(:recent_api_key, api_key)}
   end

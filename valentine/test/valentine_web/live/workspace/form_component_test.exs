@@ -4,7 +4,7 @@ defmodule ValentineWeb.WorkspaceLive.FormComponentTest do
 
   import Valentine.ComposerFixtures
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Workspaces
   alias ValentineWeb.WorkspaceLive.FormComponent
 
   setup do
@@ -159,10 +159,10 @@ defmodule ValentineWeb.WorkspaceLive.FormComponentTest do
 
       assert socket.assigns.flash["info"] == "Workspace created successfully"
       assert socket.assigns.patch == socket.assigns.patch
-      assert Enum.any?(Composer.list_workspaces(), &(&1.max_threat_level == :td6))
+      assert Enum.any?(Workspaces.list_workspaces(), &(&1.max_threat_level == :td6))
 
       assert Enum.any?(
-               Composer.list_workspaces(),
+               Workspaces.list_workspaces(),
                &(&1.cloud_vendors == ["azure", "google_cloud"])
              )
     end

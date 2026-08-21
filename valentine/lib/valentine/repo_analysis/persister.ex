@@ -4,7 +4,11 @@ defmodule Valentine.RepoAnalysis.Persister do
   import Ecto.Query, warn: false
 
   alias Valentine.AIResponseNormalizer
-  alias Valentine.Composer
+  alias Valentine.Composer.Assumptions
+  alias Valentine.Composer.Documents
+  alias Valentine.Composer.Mitigations
+  alias Valentine.Composer.Threats
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.Assumption
   alias Valentine.Composer.AssumptionThreat
   alias Valentine.Composer.Mitigation
@@ -55,22 +59,22 @@ defmodule Valentine.RepoAnalysis.Persister do
   end
 
   defp upsert_application_information(workspace_id, content) do
-    case Composer.get_workspace!(workspace_id, [:application_information]).application_information do
+    case Workspaces.get_workspace!(workspace_id, [:application_information]).application_information do
       nil ->
-        Composer.create_application_information(%{workspace_id: workspace_id, content: content})
+        Documents.create_application_information(%{workspace_id: workspace_id, content: content})
 
       application_information ->
-        Composer.update_application_information(application_information, %{content: content})
+        Documents.update_application_information(application_information, %{content: content})
     end
   end
 
   defp upsert_architecture(workspace_id, content) do
-    case Composer.get_workspace!(workspace_id, [:architecture]).architecture do
+    case Workspaces.get_workspace!(workspace_id, [:architecture]).architecture do
       nil ->
-        Composer.create_architecture(%{workspace_id: workspace_id, content: content, image: ""})
+        Documents.create_architecture(%{workspace_id: workspace_id, content: content, image: ""})
 
       architecture ->
-        Composer.update_architecture(architecture, %{content: content})
+        Documents.update_architecture(architecture, %{content: content})
     end
   end
 
@@ -84,13 +88,13 @@ defmodule Valentine.RepoAnalysis.Persister do
 
         case pop_existing(acc, assumption_key) do
           {nil, updated_acc} ->
-            assumption = unwrap_result(Composer.create_assumption(assumption_attrs))
+            assumption = unwrap_result(Assumptions.create_assumption(assumption_attrs))
             {{assumption, assumption_json}, updated_acc}
 
           {existing_assumption, updated_acc} ->
             assumption =
               unwrap_result(
-                Composer.update_assumption(
+                Assumptions.update_assumption(
                   existing_assumption,
                   preserve_non_generated_tags(assumption_attrs, existing_assumption.tags)
                 )
@@ -100,7 +104,7 @@ defmodule Valentine.RepoAnalysis.Persister do
         end
       end)
 
-    delete_stale_records(remaining_assumptions, &Composer.delete_assumption/1)
+    delete_stale_records(remaining_assumptions, &Assumptions.delete_assumption/1)
 
     synchronize_existing_links(persisted_assumptions, threats)
   end
@@ -115,13 +119,13 @@ defmodule Valentine.RepoAnalysis.Persister do
 
         case pop_existing(acc, mitigation_key) do
           {nil, updated_acc} ->
-            mitigation = unwrap_result(Composer.create_mitigation(mitigation_attrs))
+            mitigation = unwrap_result(Mitigations.create_mitigation(mitigation_attrs))
             {{mitigation, mitigation_json}, updated_acc}
 
           {existing_mitigation, updated_acc} ->
             mitigation =
               unwrap_result(
-                Composer.update_mitigation(
+                Mitigations.update_mitigation(
                   existing_mitigation,
                   preserve_non_generated_tags(mitigation_attrs, existing_mitigation.tags)
                 )
@@ -131,7 +135,7 @@ defmodule Valentine.RepoAnalysis.Persister do
         end
       end)
 
-    delete_stale_records(remaining_mitigations, &Composer.delete_mitigation/1)
+    delete_stale_records(remaining_mitigations, &Mitigations.delete_mitigation/1)
 
     synchronize_existing_links(persisted_mitigations, threats)
   end
@@ -146,13 +150,13 @@ defmodule Valentine.RepoAnalysis.Persister do
 
         case pop_existing(acc, threat_key) do
           {nil, updated_acc} ->
-            persisted_threat = unwrap_result(Composer.create_threat(threat_attrs))
+            persisted_threat = unwrap_result(Threats.create_threat(threat_attrs))
             {{persisted_threat, threat_json}, updated_acc}
 
           {existing_threat, updated_acc} ->
             persisted_threat =
               unwrap_result(
-                Composer.update_threat(
+                Threats.update_threat(
                   existing_threat,
                   preserve_non_generated_tags(threat_attrs, existing_threat.tags)
                 )
@@ -162,7 +166,7 @@ defmodule Valentine.RepoAnalysis.Persister do
         end
       end)
 
-    delete_stale_records(remaining_threats, &Composer.delete_threat/1)
+    delete_stale_records(remaining_threats, &Threats.delete_threat/1)
 
     threat_ids_by_component =
       Enum.reduce(persisted_threats, %{}, fn {persisted_threat, threat_json}, acc ->
@@ -241,16 +245,16 @@ defmodule Valentine.RepoAnalysis.Persister do
       end)
       |> Map.new()
 
-    case Composer.get_data_flow_diagram_by_workspace_id(workspace_id) do
+    case Documents.get_data_flow_diagram_by_workspace_id(workspace_id) do
       nil ->
-        Composer.create_data_flow_diagram(%{
+        Documents.create_data_flow_diagram(%{
           workspace_id: workspace_id,
           nodes: nodes,
           edges: edges
         })
 
       data_flow_diagram ->
-        Composer.update_data_flow_diagram(data_flow_diagram, %{nodes: nodes, edges: edges})
+        Documents.update_data_flow_diagram(data_flow_diagram, %{nodes: nodes, edges: edges})
     end
   end
 
@@ -583,7 +587,7 @@ defmodule Valentine.RepoAnalysis.Persister do
 
   defp sync_assumption_links(persisted_assumptions, generated_threat_ids) do
     Enum.each(persisted_assumptions, fn {assumption, desired_threat_ids} ->
-      assumption = Composer.get_assumption!(assumption.id, [:threats])
+      assumption = Assumptions.get_assumption!(assumption.id, [:threats])
 
       sync_links(
         assumption.id,
@@ -598,7 +602,7 @@ defmodule Valentine.RepoAnalysis.Persister do
 
   defp sync_mitigation_links(persisted_mitigations, generated_threat_ids) do
     Enum.each(persisted_mitigations, fn {mitigation, desired_threat_ids} ->
-      mitigation = Composer.get_mitigation!(mitigation.id, [:threats])
+      mitigation = Mitigations.get_mitigation!(mitigation.id, [:threats])
 
       sync_links(
         mitigation.id,
@@ -670,19 +674,19 @@ defmodule Valentine.RepoAnalysis.Persister do
 
   defp existing_assumptions_by_key(workspace_id) do
     workspace_id
-    |> Composer.list_assumptions_by_workspace()
+    |> Assumptions.list_assumptions_by_workspace()
     |> existing_records_by_key(&assumption_key/1)
   end
 
   defp existing_mitigations_by_key(workspace_id) do
     workspace_id
-    |> Composer.list_mitigations_by_workspace()
+    |> Mitigations.list_mitigations_by_workspace()
     |> existing_records_by_key(&mitigation_key/1)
   end
 
   defp existing_threats_by_key(workspace_id) do
     workspace_id
-    |> Composer.list_threats_by_workspace()
+    |> Threats.list_threats_by_workspace()
     |> existing_records_by_key(&threat_key/1)
   end
 

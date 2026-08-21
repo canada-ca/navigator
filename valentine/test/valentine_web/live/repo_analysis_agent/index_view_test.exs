@@ -67,7 +67,7 @@ defmodule ValentineWeb.RepoAnalysisAgentLive.IndexViewTest do
              |> render_click() =~ "Cancellation requested"
 
       updated_repo_analysis_agent =
-        Valentine.Composer.get_repo_analysis_agent!(repo_analysis_agent.id)
+        Valentine.Composer.AnalysisJobs.get_repo_analysis_agent!(repo_analysis_agent.id)
 
       assert updated_repo_analysis_agent.status == :cancelled
     end
@@ -97,7 +97,9 @@ defmodule ValentineWeb.RepoAnalysisAgentLive.IndexViewTest do
              |> element("button", "Retry")
              |> render_click() =~ "Repository analysis queued"
 
-      updated_jobs = Valentine.Composer.list_repo_analysis_agents_by_workspace(workspace.id)
+      updated_jobs =
+        Valentine.Composer.AnalysisJobs.list_repo_analysis_agents_by_workspace(workspace.id)
+
       latest_job = Enum.find(updated_jobs, &(&1.id != repo_analysis_agent.id))
 
       assert length(updated_jobs) == 2

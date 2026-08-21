@@ -2,7 +2,7 @@ defmodule ValentineWeb.WorkspaceLive.Import.TcImportTest do
   use Valentine.DataCase
 
   alias ValentineWeb.WorkspaceLive.Import.TcImport
-  alias Valentine.Composer
+
   alias Valentine.Repo
 
   @valid_json """
@@ -115,49 +115,51 @@ defmodule ValentineWeb.WorkspaceLive.Import.TcImportTest do
       assert workspace.name == "Test Application"
 
       # Verify application info
-      app_info = Repo.get_by(Composer.ApplicationInformation, workspace_id: workspace.id)
+      app_info =
+        Repo.get_by(Valentine.Composer.ApplicationInformation, workspace_id: workspace.id)
+
       assert app_info.content =~ "This is a test description"
 
       # Verify architecture
-      architecture = Repo.get_by(Composer.Architecture, workspace_id: workspace.id)
+      architecture = Repo.get_by(Valentine.Composer.Architecture, workspace_id: workspace.id)
       assert architecture.content =~ "This is a test architecture"
 
       assert architecture.content =~
                "<p><img src=\"base64image\" alt=\"Architecture Diagram\" /></p>"
 
       # Verify assumption
-      assumption = Repo.get_by(Composer.Assumption, workspace_id: workspace.id)
+      assumption = Repo.get_by(Valentine.Composer.Assumption, workspace_id: workspace.id)
       assert assumption.content == "Test assumption"
       assert assumption.numeric_id == 1
       assert assumption.comments == "Test comment"
       assert assumption.tags == ["test"]
 
       # Verify mitigation
-      mitigation = Repo.get_by(Composer.Mitigation, workspace_id: workspace.id)
+      mitigation = Repo.get_by(Valentine.Composer.Mitigation, workspace_id: workspace.id)
       assert mitigation.content == "Test mitigation"
       assert mitigation.numeric_id == 1
       assert mitigation.comments == "Test comment"
       assert mitigation.tags == ["test"]
 
       # Verify threat
-      threat = Repo.get_by(Composer.Threat, workspace_id: workspace.id)
+      threat = Repo.get_by(Valentine.Composer.Threat, workspace_id: workspace.id)
       assert threat.threat_source == "Test source"
       assert threat.status == :identified
       assert threat.priority == :high
       assert threat.stride == [:spoofing, :tampering]
 
       # Verify relationships
-      assert Repo.get_by(Composer.AssumptionThreat,
+      assert Repo.get_by(Valentine.Composer.AssumptionThreat,
                assumption_id: assumption.id,
                threat_id: threat.id
              )
 
-      assert Repo.get_by(Composer.AssumptionMitigation,
+      assert Repo.get_by(Valentine.Composer.AssumptionMitigation,
                assumption_id: assumption.id,
                mitigation_id: mitigation.id
              )
 
-      assert Repo.get_by(Composer.MitigationThreat,
+      assert Repo.get_by(Valentine.Composer.MitigationThreat,
                mitigation_id: mitigation.id,
                threat_id: threat.id
              )

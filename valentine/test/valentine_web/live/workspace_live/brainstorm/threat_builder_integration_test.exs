@@ -2,7 +2,9 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.ThreatBuilderIntegrationTest do
   use ValentineWeb.ConnCase, async: true
   import Valentine.ComposerFixtures
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Brainstorm
+
+  alias Valentine.Composer.Threats
 
   describe "threat builder integration" do
     setup do
@@ -11,42 +13,42 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.ThreatBuilderIntegrationTest do
 
       # Create comprehensive brainstorm items for testing
       {:ok, threat_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "external attacker"
         })
 
       {:ok, attack_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :attack_vector,
           raw_text: "exploits SQL injection vulnerability"
         })
 
       {:ok, impact_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :impact,
           raw_text: "unauthorized access to sensitive data"
         })
 
       {:ok, asset_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :asset,
           raw_text: "customer database"
         })
 
       {:ok, requirement_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :requirement,
           raw_text: "having network access to the system"
         })
 
       {:ok, risk_item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :risk,
           raw_text: "confidentiality"
@@ -98,7 +100,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.ThreatBuilderIntegrationTest do
       }
 
       # Create the threat
-      assert {:ok, threat} = Composer.create_threat(threat_attrs)
+      assert {:ok, threat} = Threats.create_threat(threat_attrs)
 
       # Verify threat attributes
       assert threat.threat_source == "external attacker"
@@ -114,23 +116,23 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.ThreatBuilderIntegrationTest do
       selected_card_ids = Map.values(selected_cards)
 
       Enum.each(selected_card_ids, fn card_id ->
-        item = Composer.get_brainstorm_item!(card_id)
+        item = Brainstorm.get_brainstorm_item!(card_id)
 
         # Transition through the proper lifecycle
-        {:ok, item} = Composer.update_brainstorm_item(item, %{status: :clustered})
-        {:ok, item} = Composer.update_brainstorm_item(item, %{status: :candidate})
+        {:ok, item} = Brainstorm.update_brainstorm_item(item, %{status: :clustered})
+        {:ok, item} = Brainstorm.update_brainstorm_item(item, %{status: :candidate})
 
         # Now mark as used in threat
         changeset = Valentine.Composer.BrainstormItem.mark_used_in_threat(item, threat.numeric_id)
-        assert {:ok, _updated_item} = Composer.update_brainstorm_item(item, changeset.changes)
+        assert {:ok, _updated_item} = Brainstorm.update_brainstorm_item(item, changeset.changes)
       end)
 
       # Verify provenance tracking
-      updated_threat_item = Composer.get_brainstorm_item!(threat_item.id)
+      updated_threat_item = Brainstorm.get_brainstorm_item!(threat_item.id)
       assert updated_threat_item.status == :used
       assert threat.numeric_id in updated_threat_item.used_in_threat_ids
 
-      updated_attack_item = Composer.get_brainstorm_item!(attack_item.id)
+      updated_attack_item = Brainstorm.get_brainstorm_item!(attack_item.id)
       assert updated_attack_item.status == :used
       assert threat.numeric_id in updated_attack_item.used_in_threat_ids
 
@@ -166,14 +168,14 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.ThreatBuilderIntegrationTest do
 
       # Create multiple assets
       {:ok, asset1} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :asset,
           raw_text: "user database"
         })
 
       {:ok, asset2} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :asset,
           raw_text: "payment system"
@@ -193,7 +195,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.ThreatBuilderIntegrationTest do
             stride: [:tampering]
           }
 
-          {:ok, threat} = Composer.create_threat(threat_attrs)
+          {:ok, threat} = Threats.create_threat(threat_attrs)
           threat
         end)
 
@@ -222,7 +224,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.ThreatBuilderIntegrationTest do
 
       # This should still succeed because threat validation is minimal
       # but the statement won't be complete
-      assert {:ok, threat} = Composer.create_threat(incomplete_attrs)
+      assert {:ok, threat} = Threats.create_threat(incomplete_attrs)
       assert threat.threat_source == "external attacker"
       assert is_nil(threat.threat_action)
       assert is_nil(threat.threat_impact)
@@ -245,7 +247,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.ThreatBuilderIntegrationTest do
       Enum.each(test_cases, fn {action, expected_stride} ->
         # Create attack vector item
         {:ok, attack_item} =
-          Composer.create_brainstorm_item(%{
+          Brainstorm.create_brainstorm_item(%{
             workspace_id: workspace.id,
             type: :attack_vector,
             raw_text: action

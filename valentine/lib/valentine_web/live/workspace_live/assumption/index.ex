@@ -2,7 +2,9 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Assumptions
+
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.Assumption
 
   @impl true
@@ -32,7 +34,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
     |> assign(:page_title, gettext("Edit Assumption"))
     |> assign(
       :assumption,
-      Composer.get_assumption_for_workspace!(socket.assigns.workspace_id, id)
+      Assumptions.get_assumption_for_workspace!(socket.assigns.workspace_id, id)
     )
   end
 
@@ -41,7 +43,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
     |> assign(:page_title, gettext("Categorize Assumption"))
     |> assign(
       :assumption,
-      Composer.get_assumption_for_workspace!(
+      Assumptions.get_assumption_for_workspace!(
         socket.assigns.workspace_id,
         id,
         [:mitigations, :threats]
@@ -69,7 +71,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
     |> assign(:mitigations, socket.assigns.workspace.mitigations)
     |> assign(
       :assumption,
-      Composer.get_assumption_for_workspace!(socket.assigns.workspace_id, id, [:mitigations])
+      Assumptions.get_assumption_for_workspace!(socket.assigns.workspace_id, id, [:mitigations])
     )
   end
 
@@ -79,7 +81,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
     |> assign(:threats, socket.assigns.workspace.threats)
     |> assign(
       :assumption,
-      Composer.get_assumption_for_workspace!(socket.assigns.workspace_id, id, [:threats])
+      Assumptions.get_assumption_for_workspace!(socket.assigns.workspace_id, id, [:threats])
     )
   end
 
@@ -103,7 +105,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
       |> assign(:filters, filters)
       |> assign(
         :assumptions,
-        Composer.list_assumptions_by_workspace(socket.assigns.workspace_id, filters)
+        Assumptions.list_assumptions_by_workspace(socket.assigns.workspace_id, filters)
       )
     }
   end
@@ -119,12 +121,12 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    case Composer.get_assumption_for_workspace(socket.assigns.workspace_id, id) do
+    case Assumptions.get_assumption_for_workspace(socket.assigns.workspace_id, id) do
       nil ->
         {:noreply, socket |> put_flash(:error, gettext("Assumption not found"))}
 
       assumption ->
-        case Composer.delete_assumption(assumption) do
+        case Assumptions.delete_assumption(assumption) do
           {:ok, _} ->
             log(
               :info,
@@ -160,7 +162,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
      |> assign(:filters, %{})
      |> assign(
        :assumptions,
-       Composer.list_assumptions_by_workspace(socket.assigns.workspace_id, %{})
+       Assumptions.list_assumptions_by_workspace(socket.assigns.workspace_id, %{})
      )}
   end
 
@@ -169,6 +171,6 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Index do
   end
 
   defp get_workspace(id) do
-    Composer.get_workspace!(id, [:mitigations, :threats, assumptions: [:mitigations, :threats]])
+    Workspaces.get_workspace!(id, [:mitigations, :threats, assumptions: [:mitigations, :threats]])
   end
 end

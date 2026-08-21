@@ -4,8 +4,9 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.IndexViewTest do
   import Phoenix.LiveViewTest
   import Valentine.ComposerFixtures
 
-  alias Valentine.Composer
+  alias Valentine.Composer.ApiKeys
 
+  alias Valentine.Composer.Workspaces
   @create_attrs %{label: "some label"}
 
   defp create_api_key(_) do
@@ -79,7 +80,7 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.IndexViewTest do
       conn: conn,
       workspace_id: workspace_id
     } do
-      workspace = Composer.get_workspace!(workspace_id)
+      workspace = Workspaces.get_workspace!(workspace_id)
       other_workspace = workspace_fixture(%{owner: "other.owner@localhost"})
       conn = Phoenix.ConnTest.init_test_session(conn, %{user_id: workspace.owner})
 
@@ -102,13 +103,13 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.IndexViewTest do
 
       api_key =
         workspace.id
-        |> Composer.list_api_keys_by_workspace()
+        |> ApiKeys.list_api_keys_by_workspace()
         |> Enum.find(&(&1.label == "forged submission"))
 
       assert api_key.owner == workspace.owner
       assert api_key.status == :active
       assert api_key.workspace_id == workspace.id
-      assert Composer.list_api_keys_by_workspace(other_workspace.id) == []
+      assert ApiKeys.list_api_keys_by_workspace(other_workspace.id) == []
     end
 
     test "deletes api_key in listing", %{

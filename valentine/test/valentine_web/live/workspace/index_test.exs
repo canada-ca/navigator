@@ -1,7 +1,8 @@
 defmodule ValentineWeb.WorkspaceLive.IndexTest do
   use ValentineWeb.ConnCase
+  alias Valentine.Composer.Workspaces
   import Valentine.ComposerFixtures
-  alias Valentine.Composer
+
   import Mock
 
   setup do
@@ -120,7 +121,7 @@ defmodule ValentineWeb.WorkspaceLive.IndexTest do
     end
 
     test "handles delete error", %{socket: socket, workspace: workspace} do
-      with_mock Composer,
+      with_mock Workspaces,
         get_workspace!: fn _workspace_id -> workspace end,
         delete_workspace: fn _workspace -> {:error, "some error"} end do
         {:noreply, updated_socket} =

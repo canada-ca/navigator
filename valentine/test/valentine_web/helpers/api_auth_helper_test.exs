@@ -85,7 +85,7 @@ defmodule ValentineWeb.Helpers.ApiAuthHelperTest do
       assert resp_conn.assigns[:api_key].id == api_key.id
 
       # Verify that the last_used field is updated
-      updated_api_key = Valentine.Composer.get_api_key(api_key.id)
+      updated_api_key = Valentine.Composer.ApiKeys.get_api_key(api_key.id)
       assert updated_api_key.last_used != nil
     end
   end

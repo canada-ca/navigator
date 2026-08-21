@@ -3,7 +3,8 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.ReviewShow do
   use PrimerLive
 
   alias Phoenix.PubSub
-  alias Valentine.Composer
+  alias Valentine.Composer.AnalysisJobs
+  alias Valentine.Composer.Workspaces
   alias Valentine.ThreatModelQualityReview
 
   @impl true
@@ -27,17 +28,17 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.ReviewShow do
 
   defp assign_review(socket, workspace_id, id) do
     review_run =
-      Composer.get_threat_model_quality_review_run_for_workspace!(
+      AnalysisJobs.get_threat_model_quality_review_run_for_workspace!(
         workspace_id,
         id,
         [:findings, :workspace]
       )
 
-    findings = Composer.list_threat_model_quality_review_findings_by_run(id)
+    findings = AnalysisJobs.list_threat_model_quality_review_findings_by_run(id)
 
     socket
     |> assign(:workspace_id, workspace_id)
-    |> assign(:workspace, Composer.get_workspace!(workspace_id))
+    |> assign(:workspace, Workspaces.get_workspace!(workspace_id))
     |> assign(:review_run, review_run)
     |> assign(:findings, findings)
     |> assign(:summary_counts, summary_counts(review_run, findings))

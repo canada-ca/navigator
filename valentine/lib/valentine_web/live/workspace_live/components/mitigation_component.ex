@@ -2,8 +2,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
   use ValentineWeb, :live_component
   use PrimerLive
 
-  alias Valentine.Composer
-
+  alias Valentine.Composer.Mitigations
   @impl true
   def mount(socket) do
     {:ok,
@@ -175,7 +174,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
   @impl true
   def update(%{selected_label_dropdown: {_id, field, value}}, socket) do
     {:ok, mitigation} =
-      Composer.update_mitigation(
+      Mitigations.update_mitigation(
         socket.assigns.mitigation,
         %{}
         |> Map.put(field, value)
@@ -202,7 +201,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
     if tag not in current_tags do
       updated_tags = current_tags ++ [tag]
 
-      case Composer.update_mitigation(socket.assigns.mitigation, %{tags: updated_tags}) do
+      case Mitigations.update_mitigation(socket.assigns.mitigation, %{tags: updated_tags}) do
         {:ok, mitigation} ->
           broadcast_mitigation_change(mitigation)
 
@@ -225,7 +224,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
   def handle_event("remove_tag", %{"tag" => tag}, socket) do
     updated_tags = List.delete(socket.assigns.mitigation.tags, tag)
 
-    case Composer.update_mitigation(socket.assigns.mitigation, %{tags: updated_tags}) do
+    case Mitigations.update_mitigation(socket.assigns.mitigation, %{tags: updated_tags}) do
       {:ok, mitigation} ->
         broadcast_mitigation_change(mitigation)
         {:noreply, assign(socket, :mitigation, mitigation)}
@@ -238,7 +237,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
   @impl true
   def handle_event("save_comments", %{"comments" => comments}, socket) do
     # Forces a changeset change
-    case Composer.update_mitigation(Map.put(socket.assigns.mitigation, :comments, nil), %{
+    case Mitigations.update_mitigation(Map.put(socket.assigns.mitigation, :comments, nil), %{
            :comments => comments
          }) do
       {:ok, mitigation} ->

@@ -3,7 +3,9 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
   use PrimerLive
   require Logger
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Documents
+
+  alias Valentine.Composer.Workspaces
   alias Phoenix.PubSub
 
   alias Valentine.Composer.DataFlowDiagram
@@ -11,7 +13,7 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
 
   @impl true
   def mount(%{"workspace_id" => workspace_id} = _params, _session, socket) do
-    workspace = Composer.get_workspace!(workspace_id)
+    workspace = Workspaces.get_workspace!(workspace_id)
 
     # Subscribe to workspace-specific updates
     if connected?(socket) do
@@ -93,8 +95,8 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
   # Handles the base64 encoded image data sent from the client
   @impl true
   def handle_event("export", %{"base64" => base64}, socket) do
-    Composer.get_data_flow_diagram_by_workspace_id(socket.assigns.workspace_id)
-    |> Composer.update_data_flow_diagram(%{raw_image: base64})
+    Documents.get_data_flow_diagram_by_workspace_id(socket.assigns.workspace_id)
+    |> Documents.update_data_flow_diagram(%{raw_image: base64})
 
     {:noreply, socket}
   end

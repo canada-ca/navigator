@@ -2,8 +2,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
   use Valentine.DataCase
 
   alias Valentine.Composer.BrainstormItem
-  alias Valentine.Composer
-
+  alias Valentine.Composer.Brainstorm
   import Valentine.ComposerFixtures
 
   describe "changeset/2" do
@@ -168,7 +167,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
       workspace = workspace_fixture()
 
       {:ok, item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Some threat",
@@ -180,17 +179,17 @@ defmodule Valentine.Composer.BrainstormItemTest do
       assert changeset.valid?
 
       # clustered -> candidate
-      {:ok, item} = Composer.update_brainstorm_item(item, %{status: :clustered})
+      {:ok, item} = Brainstorm.update_brainstorm_item(item, %{status: :clustered})
       changeset = BrainstormItem.changeset(item, %{status: :candidate})
       assert changeset.valid?
 
       # candidate -> used
-      {:ok, item} = Composer.update_brainstorm_item(item, %{status: :candidate})
+      {:ok, item} = Brainstorm.update_brainstorm_item(item, %{status: :candidate})
       changeset = BrainstormItem.changeset(item, %{status: :used})
       assert changeset.valid?
 
       # used -> archived
-      {:ok, item} = Composer.update_brainstorm_item(item, %{status: :used})
+      {:ok, item} = Brainstorm.update_brainstorm_item(item, %{status: :used})
       changeset = BrainstormItem.changeset(item, %{status: :archived})
       assert changeset.valid?
     end
@@ -199,7 +198,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
       workspace = workspace_fixture()
 
       {:ok, item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Some threat",
@@ -212,7 +211,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
       assert %{status: ["invalid transition from draft to used"]} = errors_on(changeset)
 
       # Test other invalid transitions
-      {:ok, item} = Composer.update_brainstorm_item(item, %{status: :clustered})
+      {:ok, item} = Brainstorm.update_brainstorm_item(item, %{status: :clustered})
 
       # clustered -> draft (invalid)
       changeset = BrainstormItem.changeset(item, %{status: :draft})
@@ -224,7 +223,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
       workspace = workspace_fixture()
 
       {:ok, item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Some threat",
@@ -242,7 +241,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
 
       # Create first item and ensure it's saved
       {:ok, item1} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "SQL injection vulnerability"
@@ -251,7 +250,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
       # Create second item with same normalized text but different raw text
       # Note: normalization only lowercases first char, so case of other chars must match
       {:ok, item2} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           # Same casing, different spacing/punctuation
@@ -270,7 +269,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
 
       # Create first item as threat
       {:ok, _item1} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "SQL injection vulnerability"
@@ -293,7 +292,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
 
       # Create first item in workspace1
       {:ok, _item1} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace1.id,
           type: :threat,
           raw_text: "SQL injection vulnerability"
@@ -316,7 +315,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
       workspace = workspace_fixture()
 
       {:ok, item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Some threat",
@@ -332,7 +331,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
       workspace = workspace_fixture()
 
       {:ok, item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Some threat",
@@ -347,7 +346,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
       workspace = workspace_fixture()
 
       {:ok, item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Some threat",
@@ -364,7 +363,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
       workspace = workspace_fixture()
 
       {:ok, item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Some threat",
@@ -381,7 +380,7 @@ defmodule Valentine.Composer.BrainstormItemTest do
       workspace = workspace_fixture()
 
       {:ok, item} =
-        Composer.create_brainstorm_item(%{
+        Brainstorm.create_brainstorm_item(%{
           workspace_id: workspace.id,
           type: :threat,
           raw_text: "Some threat",

@@ -11,7 +11,7 @@ defmodule Valentine.Guardian do
   end
 
   def resource_from_claims(%{"sub" => id}) do
-    resource = Valentine.Composer.get_api_key(id)
+    resource = Valentine.Composer.ApiKeys.get_api_key(id)
     {:ok, resource}
   end
 

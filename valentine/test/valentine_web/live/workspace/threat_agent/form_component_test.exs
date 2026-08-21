@@ -4,7 +4,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.FormComponentTest do
   import Phoenix.LiveViewTest
   import Valentine.ComposerFixtures
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Threats
   alias ValentineWeb.WorkspaceLive.ThreatAgent.Components.FormComponent
 
   setup do
@@ -40,7 +40,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.FormComponentTest do
             Map.put(
               socket.assigns,
               :changeset,
-              Valentine.Composer.change_threat_agent(threat_agent)
+              Threats.change_threat_agent(threat_agent)
             )
       }
 
@@ -57,7 +57,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.FormComponentTest do
         id: "form-component",
         action: :edit,
         threat_agent: threat_agent,
-        changeset: Composer.change_threat_agent(threat_agent),
+        changeset: Threats.change_threat_agent(threat_agent),
         flash: %{},
         on_cancel: "/workspaces/#{threat_agent.workspace_id}/threat_agents",
         patch: "/workspaces/#{threat_agent.workspace_id}/threat_agents"
@@ -80,6 +80,6 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.FormComponentTest do
       )
 
     assert updated_socket.assigns.flash["info"] =~ "updated successfully"
-    assert Composer.get_threat_agent!(threat_agent.id).td_level == :td6
+    assert Threats.get_threat_agent!(threat_agent.id).td_level == :td6
   end
 end

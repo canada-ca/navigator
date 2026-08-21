@@ -2,8 +2,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Index do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  alias Valentine.Composer
-
+  alias Valentine.Composer.Workspaces
   @impl true
   def mount(%{"workspace_id" => workspace_id} = _params, _session, socket) do
     workspace = get_workspace(workspace_id)
@@ -26,7 +25,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.Index do
   end
 
   defp get_workspace(id) do
-    Composer.get_workspace!(id, [
+    Workspaces.get_workspace!(id, [
       :application_information,
       :architecture,
       :data_flow_diagram,

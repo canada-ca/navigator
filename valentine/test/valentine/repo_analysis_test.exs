@@ -1,7 +1,9 @@
 defmodule Valentine.RepoAnalysisTest do
   use Valentine.DataCase
 
-  alias Valentine.Composer
+  alias Valentine.Composer.AnalysisJobs
+
+  alias Valentine.Composer.Workspaces
   alias Valentine.RepoAnalysis
   alias Valentine.RepoAnalysis.Generator.Analysis
   alias Valentine.RepoAnalysis.GitHub.RepoRef
@@ -58,7 +60,9 @@ defmodule Valentine.RepoAnalysisTest do
       assert repo_analysis_agent.progress_message == "Queued for repository analysis"
       assert is_map(repo_analysis_agent.limits)
 
-      persisted_repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent.id)
+      persisted_repo_analysis_agent =
+        AnalysisJobs.get_repo_analysis_agent!(repo_analysis_agent.id)
+
       assert persisted_repo_analysis_agent.workspace_id == workspace.id
 
       assert persisted_repo_analysis_agent.runtime_agent_id ==
@@ -85,8 +89,8 @@ defmodule Valentine.RepoAnalysisTest do
                })
 
       assert "can't be blank" in errors_on(changeset).owner
-      assert Composer.list_workspaces() == []
-      assert Composer.list_repo_analysis_agents_by_owner("owner-1") == []
+      assert Workspaces.list_workspaces() == []
+      assert AnalysisJobs.list_repo_analysis_agents_by_owner("owner-1") == []
     end
 
     test "returns a changeset error for a non-GitHub URL" do
@@ -96,8 +100,8 @@ defmodule Valentine.RepoAnalysisTest do
                })
 
       assert "Only public GitHub repository URLs are supported" in errors_on(changeset).github_url
-      assert Composer.list_workspaces() == []
-      assert Composer.list_repo_analysis_agents_by_owner("owner-1") == []
+      assert Workspaces.list_workspaces() == []
+      assert AnalysisJobs.list_repo_analysis_agents_by_owner("owner-1") == []
     end
 
     test "returns a changeset error for an incomplete GitHub URL" do
@@ -155,8 +159,8 @@ defmodule Valentine.RepoAnalysisTest do
                changeset
              ).github_url
 
-      assert Composer.list_workspaces() == []
-      assert Composer.list_repo_analysis_agents_by_owner("owner-1") == []
+      assert Workspaces.list_workspaces() == []
+      assert AnalysisJobs.list_repo_analysis_agents_by_owner("owner-1") == []
     end
   end
 
@@ -167,7 +171,9 @@ defmodule Valentine.RepoAnalysisTest do
       assert {:error, :not_found} =
                RepoAnalysis.cancel_for_owner(repo_analysis_agent.id, "owner-2")
 
-      persisted_repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent.id)
+      persisted_repo_analysis_agent =
+        AnalysisJobs.get_repo_analysis_agent!(repo_analysis_agent.id)
+
       assert is_nil(persisted_repo_analysis_agent.cancel_requested_at)
       assert persisted_repo_analysis_agent.status == :queued
     end
@@ -191,7 +197,9 @@ defmodule Valentine.RepoAnalysisTest do
       assert %DateTime{} = cancelled_repo_analysis_agent.cancel_requested_at
       assert %DateTime{} = cancelled_repo_analysis_agent.completed_at
 
-      persisted_repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent.id)
+      persisted_repo_analysis_agent =
+        AnalysisJobs.get_repo_analysis_agent!(repo_analysis_agent.id)
+
       assert persisted_repo_analysis_agent.status == :cancelled
       assert persisted_repo_analysis_agent.progress_message == "Repository analysis cancelled"
       assert %DateTime{} = persisted_repo_analysis_agent.cancel_requested_at
@@ -225,7 +233,7 @@ defmodule Valentine.RepoAnalysisTest do
       assert retried_repo_analysis_agent.progress_message == "Queued for repository analysis"
       assert retried_repo_analysis_agent.limits == %{"max_files" => 15}
 
-      persisted_jobs = Composer.list_repo_analysis_agents_by_workspace(workspace.id)
+      persisted_jobs = AnalysisJobs.list_repo_analysis_agents_by_workspace(workspace.id)
 
       assert length(persisted_jobs) == 2
       assert Enum.any?(persisted_jobs, &(&1.id == repo_analysis_agent.id))
@@ -278,7 +286,7 @@ defmodule Valentine.RepoAnalysisTest do
       assert first_rerun.status == :queued
 
       {:ok, first_rerun} =
-        Composer.update_repo_analysis_agent(first_rerun, %{
+        AnalysisJobs.update_repo_analysis_agent(first_rerun, %{
           status: :completed,
           progress_message: "Threat model created from GitHub repository",
           completed_at: DateTime.utc_now()
@@ -287,7 +295,7 @@ defmodule Valentine.RepoAnalysisTest do
       assert {:ok, second_rerun} =
                RepoAnalysis.retry_for_owner(first_rerun.id, workspace.owner)
 
-      jobs = Composer.list_repo_analysis_agents_by_workspace(workspace.id)
+      jobs = AnalysisJobs.list_repo_analysis_agents_by_workspace(workspace.id)
 
       assert length(jobs) == 3
       assert Enum.all?(jobs, &(&1.workspace_id == workspace.id))
@@ -324,7 +332,7 @@ defmodule Valentine.RepoAnalysisTest do
       assert RepoAnalysis.recover_stale_jobs() == 1
 
       timed_out_repo_analysis_agent =
-        Composer.get_repo_analysis_agent!(stale_repo_analysis_agent.id)
+        AnalysisJobs.get_repo_analysis_agent!(stale_repo_analysis_agent.id)
 
       assert timed_out_repo_analysis_agent.status == :timed_out
       assert timed_out_repo_analysis_agent.progress_message == "Repository analysis timed out"
@@ -333,7 +341,7 @@ defmodule Valentine.RepoAnalysisTest do
       refute File.exists?(clone_dir)
 
       unchanged_repo_analysis_agent =
-        Composer.get_repo_analysis_agent!(recent_repo_analysis_agent.id)
+        AnalysisJobs.get_repo_analysis_agent!(recent_repo_analysis_agent.id)
 
       assert unchanged_repo_analysis_agent.status == :indexing
     end
@@ -364,13 +372,13 @@ defmodule Valentine.RepoAnalysisTest do
       assert RepoAnalysis.recover_stale_jobs() == 1
 
       timed_out_repo_analysis_agent =
-        Composer.get_repo_analysis_agent!(stale_repo_analysis_agent.id)
+        AnalysisJobs.get_repo_analysis_agent!(stale_repo_analysis_agent.id)
 
       assert timed_out_repo_analysis_agent.status == :timed_out
       assert timed_out_repo_analysis_agent.failure_reason =~ "No heartbeat received"
 
       unchanged_completed_repo_analysis_agent =
-        Composer.get_repo_analysis_agent!(completed_repo_analysis_agent.id)
+        AnalysisJobs.get_repo_analysis_agent!(completed_repo_analysis_agent.id)
 
       assert unchanged_completed_repo_analysis_agent.status == :completed
       assert unchanged_completed_repo_analysis_agent.completed_at
@@ -403,10 +411,10 @@ defmodule Valentine.RepoAnalysisTest do
           Valentine.RepoAnalysis.GitHub,
           [:passthrough],
           clone: fn _repo_ref, repo_analysis_agent_id, _limits ->
-            repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent_id)
+            repo_analysis_agent = AnalysisJobs.get_repo_analysis_agent!(repo_analysis_agent_id)
 
             {:ok, _repo_analysis_agent} =
-              Composer.update_repo_analysis_agent(repo_analysis_agent, %{
+              AnalysisJobs.update_repo_analysis_agent(repo_analysis_agent, %{
                 cancel_requested_at: DateTime.utc_now()
               })
 
@@ -425,7 +433,7 @@ defmodule Valentine.RepoAnalysisTest do
         assert :ok = Runner.run(repo_analysis_agent.id)
       end
 
-      updated_repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent.id)
+      updated_repo_analysis_agent = AnalysisJobs.get_repo_analysis_agent!(repo_analysis_agent.id)
 
       assert updated_repo_analysis_agent.status == :cancelled
       assert updated_repo_analysis_agent.progress_message == "Repository analysis cancelled"
@@ -450,7 +458,7 @@ defmodule Valentine.RepoAnalysisTest do
 
       assert log =~ "[RepoAnalysis] job failed"
 
-      failed_repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent.id)
+      failed_repo_analysis_agent = AnalysisJobs.get_repo_analysis_agent!(repo_analysis_agent.id)
       assert failed_repo_analysis_agent.status == :failed
       assert failed_repo_analysis_agent.progress_message == "Repository analysis failed"
 
@@ -505,7 +513,7 @@ defmodule Valentine.RepoAnalysisTest do
         assert log =~ "[RepoAnalysis] job failed"
       end
 
-      failed_repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent.id)
+      failed_repo_analysis_agent = AnalysisJobs.get_repo_analysis_agent!(repo_analysis_agent.id)
 
       assert failed_repo_analysis_agent.status == :failed
       assert failed_repo_analysis_agent.progress_message == "Repository analysis failed"
@@ -600,7 +608,7 @@ defmodule Valentine.RepoAnalysisTest do
 
       assert_received :generator_called
 
-      failed_repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent.id)
+      failed_repo_analysis_agent = AnalysisJobs.get_repo_analysis_agent!(repo_analysis_agent.id)
 
       assert failed_repo_analysis_agent.status == :failed
       assert failed_repo_analysis_agent.progress_message == "Repository analysis failed"
@@ -641,7 +649,8 @@ defmodule Valentine.RepoAnalysisTest do
       assert cancelled_repo_analysis_agent.progress_message == "Repository analysis cancelled"
       assert %DateTime{} = cancelled_repo_analysis_agent.completed_at
 
-      persisted_repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent.id)
+      persisted_repo_analysis_agent =
+        AnalysisJobs.get_repo_analysis_agent!(repo_analysis_agent.id)
 
       assert persisted_repo_analysis_agent.status == :cancelled
       refute File.exists?(clone_dir)

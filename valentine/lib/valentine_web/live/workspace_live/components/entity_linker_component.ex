@@ -77,40 +77,40 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponent do
     {adder, remover} =
       case {source_entity_type, target_entity_type} do
         {:assumption, :mitigations} ->
-          {&Valentine.Composer.add_mitigation_to_assumption/2,
-           &Valentine.Composer.remove_mitigation_from_assumption/2}
+          {&Valentine.Composer.Relationships.add_mitigation_to_assumption/2,
+           &Valentine.Composer.Relationships.remove_mitigation_from_assumption/2}
 
         {:assumption, :threats} ->
-          {&Valentine.Composer.add_threat_to_assumption/2,
-           &Valentine.Composer.remove_threat_from_assumption/2}
+          {&Valentine.Composer.Relationships.add_threat_to_assumption/2,
+           &Valentine.Composer.Relationships.remove_threat_from_assumption/2}
 
         {:mitigation, :assumptions} ->
-          {&Valentine.Composer.add_assumption_to_mitigation/2,
-           &Valentine.Composer.remove_assumption_from_mitigation/2}
+          {&Valentine.Composer.Relationships.add_assumption_to_mitigation/2,
+           &Valentine.Composer.Relationships.remove_assumption_from_mitigation/2}
 
         {:mitigation, :threats} ->
-          {&Valentine.Composer.add_threat_to_mitigation/2,
-           &Valentine.Composer.remove_threat_from_mitigation/2}
+          {&Valentine.Composer.Relationships.add_threat_to_mitigation/2,
+           &Valentine.Composer.Relationships.remove_threat_from_mitigation/2}
 
         {:threat, :assumptions} ->
-          {&Valentine.Composer.add_assumption_to_threat/2,
-           &Valentine.Composer.remove_assumption_from_threat/2}
+          {&Valentine.Composer.Relationships.add_assumption_to_threat/2,
+           &Valentine.Composer.Relationships.remove_assumption_from_threat/2}
 
         {:threat, :mitigations} ->
-          {&Valentine.Composer.add_mitigation_to_threat/2,
-           &Valentine.Composer.remove_mitigation_from_threat/2}
+          {&Valentine.Composer.Relationships.add_mitigation_to_threat/2,
+           &Valentine.Composer.Relationships.remove_mitigation_from_threat/2}
 
         {:evidence, :assumptions} ->
-          {&Valentine.Composer.add_assumption_to_evidence/2,
-           &Valentine.Composer.remove_assumption_from_evidence/2}
+          {&Valentine.Composer.Relationships.add_assumption_to_evidence/2,
+           &Valentine.Composer.Relationships.remove_assumption_from_evidence/2}
 
         {:evidence, :threats} ->
-          {&Valentine.Composer.add_threat_to_evidence/2,
-           &Valentine.Composer.remove_threat_from_evidence/2}
+          {&Valentine.Composer.Relationships.add_threat_to_evidence/2,
+           &Valentine.Composer.Relationships.remove_threat_from_evidence/2}
 
         {:evidence, :mitigations} ->
-          {&Valentine.Composer.add_mitigation_to_evidence/2,
-           &Valentine.Composer.remove_mitigation_from_evidence/2}
+          {&Valentine.Composer.Relationships.add_mitigation_to_evidence/2,
+           &Valentine.Composer.Relationships.remove_mitigation_from_evidence/2}
 
         {_, _} ->
           {nil, nil}

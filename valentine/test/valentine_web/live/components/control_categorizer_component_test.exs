@@ -9,10 +9,12 @@ defmodule ValentineWeb.WorkspaceLive.Components.ControlCategorizerComponentTest 
 
   defp create_component(_) do
     assumption = assumption_fixture()
-    assumption = Valentine.Composer.get_assumption!(assumption.id, [:threats, :mitigations])
+
+    assumption =
+      Valentine.Composer.Assumptions.get_assumption!(assumption.id, [:threats, :mitigations])
 
     mitigation = mitigation_fixture()
-    mitigation = Valentine.Composer.get_mitigation!(mitigation.id, [:threats])
+    mitigation = Valentine.Composer.Mitigations.get_mitigation!(mitigation.id, [:threats])
 
     %{
       assumption: assumption,
@@ -192,6 +194,6 @@ defmodule ValentineWeb.WorkspaceLive.Components.ControlCategorizerComponentTest 
     end
   end
 
-  defp fetch_entity(:assumption, id), do: Valentine.Composer.get_assumption!(id)
-  defp fetch_entity(:mitigation, id), do: Valentine.Composer.get_mitigation!(id)
+  defp fetch_entity(:assumption, id), do: Valentine.Composer.Assumptions.get_assumption!(id)
+  defp fetch_entity(:mitigation, id), do: Valentine.Composer.Mitigations.get_mitigation!(id)
 end

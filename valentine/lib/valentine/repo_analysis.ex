@@ -8,7 +8,8 @@ defmodule Valentine.RepoAnalysis do
   alias Jido.AgentServer
   alias Jido.Signal
   alias Phoenix.PubSub
-  alias Valentine.Composer
+  alias Valentine.Composer.AnalysisJobs
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.RepoAnalysisAgent
   alias Valentine.Composer.Workspace
   alias Valentine.RepoAnalysis.GitHub
@@ -34,10 +35,10 @@ defmodule Valentine.RepoAnalysis do
       Multi.new()
       |> Multi.insert(
         :workspace,
-        Composer.change_workspace(%Valentine.Composer.Workspace{}, workspace_attrs)
+        Workspaces.change_workspace(%Valentine.Composer.Workspace{}, workspace_attrs)
       )
       |> Multi.insert(:repo_analysis_agent, fn %{workspace: workspace} ->
-        Composer.change_repo_analysis_agent(%RepoAnalysisAgent{}, %{
+        AnalysisJobs.change_repo_analysis_agent(%RepoAnalysisAgent{}, %{
           workspace_id: workspace.id,
           owner: owner,
           github_url: github_url,
@@ -70,7 +71,7 @@ defmodule Valentine.RepoAnalysis do
     runtime_agent_id = runtime_agent_id(repo_analysis_agent.id)
 
     with {:ok, repo_analysis_agent} <-
-           Composer.update_repo_analysis_agent(repo_analysis_agent, %{
+           AnalysisJobs.update_repo_analysis_agent(repo_analysis_agent, %{
              runtime_agent_id: runtime_agent_id
            }) do
       result =
@@ -121,13 +122,13 @@ defmodule Valentine.RepoAnalysis do
   end
 
   def cancel_for_owner(id, owner) do
-    case Composer.get_repo_analysis_agent_for_owner(id, owner) do
+    case AnalysisJobs.get_repo_analysis_agent_for_owner(id, owner) do
       nil ->
         {:error, :not_found}
 
       repo_analysis_agent ->
         with {:ok, repo_analysis_agent} <-
-               Composer.request_repo_analysis_agent_cancel(repo_analysis_agent) do
+               AnalysisJobs.request_repo_analysis_agent_cancel(repo_analysis_agent) do
           case repo_analysis_agent.runtime_agent_id &&
                  Valentine.Jido.whereis(repo_analysis_agent.runtime_agent_id) do
             pid when is_pid(pid) ->
@@ -142,7 +143,7 @@ defmodule Valentine.RepoAnalysis do
 
             _ ->
               {:ok, updated_repo_analysis_agent} =
-                Composer.update_repo_analysis_agent(repo_analysis_agent, %{
+                AnalysisJobs.update_repo_analysis_agent(repo_analysis_agent, %{
                   status: :cancelled,
                   completed_at: DateTime.utc_now(),
                   progress_message: "Repository analysis cancelled"
@@ -156,7 +157,7 @@ defmodule Valentine.RepoAnalysis do
   end
 
   def retry_for_owner(id, owner) do
-    case Composer.get_repo_analysis_agent_for_owner(id, owner) do
+    case AnalysisJobs.get_repo_analysis_agent_for_owner(id, owner) do
       nil ->
         {:error, :not_found}
 
@@ -205,10 +206,10 @@ defmodule Valentine.RepoAnalysis do
   end
 
   def update_status(repo_analysis_agent_id, attrs) do
-    repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent_id)
+    repo_analysis_agent = AnalysisJobs.get_repo_analysis_agent!(repo_analysis_agent_id)
 
     result =
-      Composer.update_repo_analysis_agent(
+      AnalysisJobs.update_repo_analysis_agent(
         repo_analysis_agent,
         Map.put(attrs, :last_heartbeat_at, DateTime.utc_now())
       )
@@ -246,7 +247,7 @@ defmodule Valentine.RepoAnalysis do
          {:ok, github_url} <- validate_github_url(%{github_url: github_url}),
          :ok <- ensure_no_running_job(workspace.id),
          {:ok, repo_analysis_agent} <-
-           Composer.create_repo_analysis_agent(%{
+           AnalysisJobs.create_repo_analysis_agent(%{
              workspace_id: workspace.id,
              owner: owner,
              github_url: github_url,
@@ -263,7 +264,7 @@ defmodule Valentine.RepoAnalysis do
 
   defp ensure_no_running_job(workspace_id) do
     if Enum.any?(
-         Composer.list_repo_analysis_agents_by_workspace(workspace_id),
+         AnalysisJobs.list_repo_analysis_agents_by_workspace(workspace_id),
          fn repo_analysis_agent ->
            running_status?(repo_analysis_agent.status)
          end
@@ -283,7 +284,7 @@ defmodule Valentine.RepoAnalysis do
     else
       {:error, reason} ->
         _ =
-          Composer.update_repo_analysis_agent(repo_analysis_agent, %{
+          AnalysisJobs.update_repo_analysis_agent(repo_analysis_agent, %{
             status: :failed,
             failure_reason: format_error(reason),
             completed_at: DateTime.utc_now(),
@@ -314,7 +315,7 @@ defmodule Valentine.RepoAnalysis do
     stop_runtime(repo_analysis_agent.runtime_agent_id)
 
     {:ok, updated_repo_analysis_agent} =
-      Composer.update_repo_analysis_agent(repo_analysis_agent, %{
+      AnalysisJobs.update_repo_analysis_agent(repo_analysis_agent, %{
         status: :timed_out,
         progress_message: "Repository analysis timed out",
         failure_reason: "No heartbeat received before the recovery timeout elapsed",

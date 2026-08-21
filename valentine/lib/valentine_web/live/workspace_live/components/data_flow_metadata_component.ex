@@ -9,7 +9,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.DataFlowMetadataComponent do
 
     threats =
       if element do
-        Valentine.Composer.list_threats_by_ids(element["data"]["linked_threats"])
+        Valentine.Composer.Threats.list_threats_by_ids(element["data"]["linked_threats"])
       else
         []
       end

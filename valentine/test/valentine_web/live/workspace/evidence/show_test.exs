@@ -493,7 +493,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.ShowTest do
       view |> element("button", "Save") |> render_click()
 
       # Verify evidence was updated and URL preserved
-      updated_evidence = Valentine.Composer.get_evidence!(evidence.id)
+      updated_evidence = Valentine.Composer.EvidenceManagement.get_evidence!(evidence.id)
       assert updated_evidence.name == "Original Evidence"
       assert updated_evidence.evidence_type == :blob_store_link
       assert updated_evidence.blob_store_url == "https://example.com/original.pdf"

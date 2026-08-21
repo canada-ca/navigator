@@ -106,13 +106,13 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.Components.ApiKeyComponentTest do
 
       api_key =
         workspace.id
-        |> Valentine.Composer.list_api_keys_by_workspace()
+        |> Valentine.Composer.ApiKeys.list_api_keys_by_workspace()
         |> Enum.find(&(&1.label == "some label"))
 
       assert api_key.owner == workspace.owner
       assert api_key.status == :active
       assert api_key.workspace_id == workspace.id
-      assert Valentine.Composer.list_api_keys_by_workspace(other_workspace.id) == []
+      assert Valentine.Composer.ApiKeys.list_api_keys_by_workspace(other_workspace.id) == []
     end
 
     test "returns a changeset for a new api_key", %{socket: socket} do
@@ -168,7 +168,7 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.Components.ApiKeyComponentTest do
       assert socket.assigns.flash["error"] ==
                "Only workspace owners can generate API keys"
 
-      assert Valentine.Composer.list_api_keys_by_workspace(workspace.id)
+      assert Valentine.Composer.ApiKeys.list_api_keys_by_workspace(workspace.id)
              |> Enum.all?(&(&1.label != "Unauthorized key"))
     end
   end

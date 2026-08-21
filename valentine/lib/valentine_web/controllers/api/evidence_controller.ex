@@ -1,7 +1,7 @@
 defmodule ValentineWeb.Api.EvidenceController do
   use ValentineWeb, :controller
 
-  alias Valentine.Composer
+  alias Valentine.Composer.EvidenceManagement
 
   def create(conn, %{"evidence" => evidence_params} = params) do
     api_key = conn.assigns[:api_key]
@@ -18,7 +18,7 @@ defmodule ValentineWeb.Api.EvidenceController do
     # Add workspace_id to evidence params
     evidence_attrs = Map.put(evidence_params, "workspace_id", workspace_id)
 
-    case Composer.create_evidence_with_linking(evidence_attrs, linking_opts) do
+    case EvidenceManagement.create_evidence_with_linking(evidence_attrs, linking_opts) do
       {:ok, evidence_with_associations} ->
         conn
         |> put_status(:created)
