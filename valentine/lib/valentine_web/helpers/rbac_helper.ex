@@ -6,7 +6,7 @@ defmodule ValentineWeb.Helpers.RbacHelper do
       %{"workspace_id" => workspace_id} ->
         identity = Plug.Conn.get_session(conn, "user_id")
 
-        case Valentine.Composer.check_workspace_permissions(workspace_id, identity) do
+        case Valentine.Composer.Workspaces.check_workspace_permissions(workspace_id, identity) do
           nil ->
             Phoenix.Controller.redirect(conn, to: "/workspaces")
             |> Plug.Conn.halt()
@@ -27,7 +27,10 @@ defmodule ValentineWeb.Helpers.RbacHelper do
   def on_mount(:default, _params, _session, socket), do: {:cont, socket}
 
   defp check_permissions(workspace_id, socket) do
-    case Valentine.Composer.check_workspace_permissions(workspace_id, socket.assigns.current_user) do
+    case Valentine.Composer.Workspaces.check_workspace_permissions(
+           workspace_id,
+           socket.assigns.current_user
+         ) do
       nil ->
         {:halt, Phoenix.LiveView.redirect(socket, to: "/workspaces")}
 

@@ -1,7 +1,17 @@
 defmodule Valentine.RepoAnalysis.PersisterTest do
   use Valentine.DataCase
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Assumptions
+
+  alias Valentine.Composer.Documents
+
+  alias Valentine.Composer.Mitigations
+
+  alias Valentine.Composer.Relationships
+
+  alias Valentine.Composer.Threats
+
+  alias Valentine.Composer.Workspaces
   alias Valentine.RepoAnalysis.Generator.Analysis
   alias Valentine.RepoAnalysis.Persister
 
@@ -35,7 +45,9 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
 
       assert :ok = Persister.persist(workspace.id, analysis)
 
-      workspace = Composer.get_workspace!(workspace.id, [:application_information, :architecture])
+      workspace =
+        Workspaces.get_workspace!(workspace.id, [:application_information, :architecture])
+
       assert workspace.application_information.content == "Generated application information"
       assert workspace.architecture.content == "Generated architecture"
 
@@ -45,16 +57,16 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
       [first_threat, second_threat] = Enum.sort_by(generated_threats, & &1.numeric_id)
 
       [assumption] = generated_assumptions(workspace.id)
-      assumption = Composer.get_assumption!(assumption.id, [:threats])
+      assumption = Assumptions.get_assumption!(assumption.id, [:threats])
       assert Enum.map(assumption.threats, & &1.id) == [first_threat.id]
 
       [mitigation] = generated_mitigations(workspace.id)
-      mitigation = Composer.get_mitigation!(mitigation.id, [:threats])
+      mitigation = Mitigations.get_mitigation!(mitigation.id, [:threats])
 
       assert Enum.sort(Enum.map(mitigation.threats, & &1.id)) ==
                Enum.sort([first_threat.id, second_threat.id])
 
-      data_flow_diagram = Composer.get_data_flow_diagram_by_workspace_id(workspace.id)
+      data_flow_diagram = Documents.get_data_flow_diagram_by_workspace_id(workspace.id)
 
       assert get_in(data_flow_diagram.nodes, ["api", "data", "linked_threats"]) == [
                first_threat.id
@@ -79,7 +91,7 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
       workspace = workspace_fixture()
 
       {:ok, manual_threat} =
-        Composer.create_threat(%{
+        Threats.create_threat(%{
           workspace_id: workspace.id,
           threat_source: "manual actor",
           prerequisites: "already has access",
@@ -110,10 +122,10 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
       [generated_mitigation] = generated_mitigations(workspace.id)
 
       assert {:ok, _assumption} =
-               Composer.add_threat_to_assumption(generated_assumption, manual_threat)
+               Relationships.add_threat_to_assumption(generated_assumption, manual_threat)
 
       assert {:ok, _threat} =
-               Composer.add_mitigation_to_threat(manual_threat, generated_mitigation)
+               Relationships.add_mitigation_to_threat(manual_threat, generated_mitigation)
 
       assert :ok = Persister.persist(workspace.id, analysis)
 
@@ -126,10 +138,10 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
       assert rerun_generated_mitigation.id == generated_mitigation.id
 
       rerun_generated_assumption =
-        Composer.get_assumption!(rerun_generated_assumption.id, [:threats])
+        Assumptions.get_assumption!(rerun_generated_assumption.id, [:threats])
 
       rerun_generated_mitigation =
-        Composer.get_mitigation!(rerun_generated_mitigation.id, [:threats])
+        Mitigations.get_mitigation!(rerun_generated_mitigation.id, [:threats])
 
       assert Enum.sort(Enum.map(rerun_generated_assumption.threats, & &1.id)) ==
                Enum.sort([manual_threat.id, rerun_generated_threat.id])
@@ -138,7 +150,7 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
                Enum.sort([manual_threat.id, rerun_generated_threat.id])
 
       assert length(generated_threats(workspace.id)) == 1
-      assert length(Composer.list_threats_by_workspace(workspace.id)) == 2
+      assert length(Threats.list_threats_by_workspace(workspace.id)) == 2
     end
 
     test "removes stale generated records on rerun" do
@@ -176,7 +188,9 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
       assert generated_assumptions(workspace.id) == []
       assert generated_mitigations(workspace.id) == []
 
-      workspace = Composer.get_workspace!(workspace.id, [:application_information, :architecture])
+      workspace =
+        Workspaces.get_workspace!(workspace.id, [:application_information, :architecture])
+
       assert workspace.application_information.content == "Updated application information"
       assert workspace.architecture.content == "Updated architecture"
     end
@@ -191,7 +205,7 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
 
       assert :ok = Persister.persist(workspace.id, analysis)
 
-      data_flow_diagram = Composer.get_data_flow_diagram_by_workspace_id(workspace.id)
+      data_flow_diagram = Documents.get_data_flow_diagram_by_workspace_id(workspace.id)
 
       browser_y = get_in(data_flow_diagram.nodes, ["browser", "position", "y"])
       admin_y = get_in(data_flow_diagram.nodes, ["admin", "position", "y"])
@@ -222,7 +236,7 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
 
       assert :ok = Persister.persist(workspace.id, analysis)
 
-      data_flow_diagram = Composer.get_data_flow_diagram_by_workspace_id(workspace.id)
+      data_flow_diagram = Documents.get_data_flow_diagram_by_workspace_id(workspace.id)
 
       boundary_positions =
         Enum.map(["clients", "platform", "data"], fn boundary_id ->
@@ -475,19 +489,19 @@ defmodule Valentine.RepoAnalysis.PersisterTest do
 
   defp generated_assumptions(workspace_id) do
     workspace_id
-    |> Composer.list_assumptions_by_workspace()
+    |> Assumptions.list_assumptions_by_workspace()
     |> Enum.filter(&generated_record?/1)
   end
 
   defp generated_mitigations(workspace_id) do
     workspace_id
-    |> Composer.list_mitigations_by_workspace()
+    |> Mitigations.list_mitigations_by_workspace()
     |> Enum.filter(&generated_record?/1)
   end
 
   defp generated_threats(workspace_id) do
     workspace_id
-    |> Composer.list_threats_by_workspace()
+    |> Threats.list_threats_by_workspace()
     |> Enum.filter(&generated_record?/1)
   end
 

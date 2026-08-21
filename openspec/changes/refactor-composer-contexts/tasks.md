@@ -66,3 +66,32 @@
 - [x] 10.3 Run the complete automated test suite and resolve every regression
 - [x] 10.4 Review the final diff for accidental caller, schema, route, migration, configuration, permission, PubSub, export, or AI-provider behavior changes
 - [x] 10.5 Confirm the OpenSpec task list and implementation artifacts accurately describe the completed refactor
+
+## 11. Facade Removal Design and Inventory
+
+- [x] 11.1 Inventory every production, fixture, and test call to the `Valentine.Composer` facade and map each function to its capability owner
+- [x] 11.2 Update the OpenSpec proposal, design, specification, and tasks for an atomic caller migration and facade removal
+
+## 12. Production Caller Migration
+
+- [x] 12.1 Migrate core domain, AI workflow, prompt, repository analysis, quality review, seed, and MCP callers to capability modules
+- [x] 12.2 Migrate controllers, authentication, authorization, export, and web helper callers to capability modules
+- [x] 12.3 Migrate LiveViews and components to capability modules
+
+## 13. Test Caller Migration
+
+- [x] 13.1 Migrate Composer fixtures and domain/context tests to capability modules
+- [x] 13.2 Migrate controller, helper, LiveView, and component tests to capability modules
+
+## 14. Facade Deletion and Architecture Enforcement
+
+- [x] 14.1 Replace facade parity assertions with direct capability ownership and behavior assertions
+- [x] 14.2 Add a structural assertion that no facade definition, alias, or function call remains in Elixir source
+- [x] 14.3 Delete `valentine/lib/valentine/composer.ex` after the repository facade-reference scan reaches zero
+
+## 15. Final Verification
+
+- [x] 15.1 Run formatting and a forced warnings-as-errors compilation
+- [x] 15.2 Run focused capability and migrated caller tests
+- [x] 15.3 Run the complete Elixir and frontend test suites and resolve regressions
+- [x] 15.4 Validate OpenSpec and review the final diff for unintended behavioral changes

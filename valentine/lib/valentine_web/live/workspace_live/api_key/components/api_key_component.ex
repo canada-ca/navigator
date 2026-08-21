@@ -2,8 +2,7 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.Components.ApiKeyComponent do
   use ValentineWeb, :live_component
   use PrimerLive
 
-  alias Valentine.Composer
-
+  alias Valentine.Composer.ApiKeys
   @impl true
   def render(assigns) do
     ~H"""
@@ -53,14 +52,14 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.Components.ApiKeyComponent do
      socket
      |> assign(assigns)
      |> assign_new(:changeset, fn ->
-       Composer.change_api_key(api_key)
+       ApiKeys.change_api_key(api_key)
      end)}
   end
 
   @impl true
   def handle_event("validate", %{"api_key" => api_key_params}, socket) do
     changeset =
-      Composer.change_api_key(
+      ApiKeys.change_api_key(
         socket.assigns.api_key,
         trusted_api_key_params(socket, api_key_params)
       )
@@ -74,7 +73,7 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.Components.ApiKeyComponent do
   end
 
   defp save_api_key(socket, :generate, api_key_params) do
-    case Composer.create_api_key_for_workspace(
+    case ApiKeys.create_api_key_for_workspace(
            socket.assigns.workspace,
            socket.assigns.current_user,
            api_key_params

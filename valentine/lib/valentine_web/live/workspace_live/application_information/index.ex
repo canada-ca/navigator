@@ -2,7 +2,9 @@ defmodule ValentineWeb.WorkspaceLive.ApplicationInformation.Index do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Documents
+
+  alias Valentine.Composer.Workspaces
   alias Phoenix.PubSub
 
   @impl true
@@ -15,7 +17,7 @@ defmodule ValentineWeb.WorkspaceLive.ApplicationInformation.Index do
     end
 
     socket =
-      Composer.ApplicationInformation.get_cache(workspace.id)
+      Valentine.Composer.ApplicationInformation.get_cache(workspace.id)
       |> Enum.reduce(socket, fn ops, socket ->
         socket
         |> push_event("updateQuill", %{event: "text_change", payload: %{ops: ops}})
@@ -25,7 +27,7 @@ defmodule ValentineWeb.WorkspaceLive.ApplicationInformation.Index do
      socket
      |> assign(
        :application_information,
-       workspace.application_information || %Composer.ApplicationInformation{}
+       workspace.application_information || %Valentine.Composer.ApplicationInformation{}
      )
      |> assign(:touched, false)
      |> assign(:workspace_id, workspace_id)
@@ -58,7 +60,9 @@ defmodule ValentineWeb.WorkspaceLive.ApplicationInformation.Index do
   # Local change
   @impl true
   def handle_info({:quill_change, delta}, socket) do
-    Composer.ApplicationInformation.push_cache(socket.assigns.workspace_id, [delta["ops"]])
+    Valentine.Composer.ApplicationInformation.push_cache(socket.assigns.workspace_id, [
+      delta["ops"]
+    ])
 
     broadcast("workspace_application_information:#{socket.assigns.workspace_id}", %{
       event: :quill_change,
@@ -107,7 +111,7 @@ defmodule ValentineWeb.WorkspaceLive.ApplicationInformation.Index do
           "application information"
         )
 
-        Composer.create_application_information(%{content: content, workspace_id: workspace.id})
+        Documents.create_application_information(%{content: content, workspace_id: workspace.id})
 
       _ ->
         log(
@@ -118,13 +122,13 @@ defmodule ValentineWeb.WorkspaceLive.ApplicationInformation.Index do
           "application information"
         )
 
-        Composer.update_application_information(workspace.application_information, %{
+        Documents.update_application_information(workspace.application_information, %{
           content: content
         })
     end
 
     # Flush the cache
-    Composer.ApplicationInformation.flush_cache(workspace.id)
+    Valentine.Composer.ApplicationInformation.flush_cache(workspace.id)
 
     # Broadcast the change
     broadcast("workspace_application_information:#{socket.assigns.workspace_id}", %{
@@ -141,6 +145,6 @@ defmodule ValentineWeb.WorkspaceLive.ApplicationInformation.Index do
   end
 
   defp get_workspace(workspace_id) do
-    Composer.get_workspace!(workspace_id, [:application_information])
+    Workspaces.get_workspace!(workspace_id, [:application_information])
   end
 end

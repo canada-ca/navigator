@@ -3,7 +3,9 @@ defmodule ValentineWeb.Api.MCPControllerTest do
 
   import Valentine.ComposerFixtures
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Threats
+
+  alias Valentine.Composer.Workspaces
 
   setup do
     workspace = workspace_fixture(%{name: "MCP Workspace", owner: "mcp@example.com"})
@@ -108,7 +110,7 @@ defmodule ValentineWeb.Api.MCPControllerTest do
 
     assert get_in(json_response(conn, 200), ["result", "isError"]) == false
 
-    updated_workspace = Composer.get_workspace!(workspace.id)
+    updated_workspace = Workspaces.get_workspace!(workspace.id)
     assert updated_workspace.name == "Renamed by MCP"
     assert updated_workspace.owner == "mcp@example.com"
     assert updated_workspace.permissions == %{}
@@ -326,7 +328,7 @@ defmodule ValentineWeb.Api.MCPControllerTest do
       )
 
     assert get_in(json_response(conn, 200), ["result", "isError"]) == false
-    linked = Composer.get_threat!(threat.id, [:assumptions])
+    linked = Threats.get_threat!(threat.id, [:assumptions])
     assert Enum.map(linked.assumptions, & &1.id) == [assumption.id]
   end
 
@@ -345,7 +347,7 @@ defmodule ValentineWeb.Api.MCPControllerTest do
       )
 
     assert get_in(json_response(conn, 200), ["result", "isError"]) == true
-    assert Composer.get_threat!(other_threat.id).threat_source == "before"
+    assert Threats.get_threat!(other_threat.id).threat_source == "before"
   end
 
   test "unknown tool returns a JSON-RPC protocol error", %{conn: conn} do

@@ -2,7 +2,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Components.FormComponent do
   use ValentineWeb, :live_component
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Threats
   alias Valentine.Composer.DeliberateThreatLevel
 
   @impl true
@@ -88,14 +88,14 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Components.FormComponent do
      socket
      |> assign(assigns)
      |> assign_new(:changeset, fn ->
-       Composer.change_threat_agent(threat_agent)
+       Threats.change_threat_agent(threat_agent)
      end)}
   end
 
   @impl true
   def handle_event("validate", %{"threat_agent" => threat_agent_params}, socket) do
     changeset =
-      Composer.change_threat_agent(
+      Threats.change_threat_agent(
         socket.assigns.threat_agent,
         trusted_params(socket, threat_agent_params)
       )
@@ -108,7 +108,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Components.FormComponent do
   end
 
   defp save_threat_agent(socket, :edit, threat_agent_params) do
-    case Composer.update_threat_agent(socket.assigns.threat_agent, threat_agent_params) do
+    case Threats.update_threat_agent(socket.assigns.threat_agent, threat_agent_params) do
       {:ok, threat_agent} ->
         notify_parent({:saved, threat_agent})
 
@@ -123,7 +123,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Components.FormComponent do
   end
 
   defp save_threat_agent(socket, :new, threat_agent_params) do
-    case Composer.create_threat_agent(threat_agent_params) do
+    case Threats.create_threat_agent(threat_agent_params) do
       {:ok, threat_agent} ->
         notify_parent({:saved, threat_agent})
 

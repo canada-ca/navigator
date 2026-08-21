@@ -2,7 +2,9 @@ defmodule ValentineWeb.WorkspaceLive.Architecture.Index do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Documents
+
+  alias Valentine.Composer.Workspaces
   alias Phoenix.PubSub
 
   @impl true
@@ -15,7 +17,7 @@ defmodule ValentineWeb.WorkspaceLive.Architecture.Index do
     end
 
     socket =
-      Composer.Architecture.get_cache(workspace.id)
+      Valentine.Composer.Architecture.get_cache(workspace.id)
       |> Enum.reduce(socket, fn ops, socket ->
         socket
         |> push_event("updateQuill", %{event: "text_change", payload: %{ops: ops}})
@@ -25,7 +27,7 @@ defmodule ValentineWeb.WorkspaceLive.Architecture.Index do
      socket
      |> assign(
        :architecture,
-       workspace.architecture || %Composer.Architecture{}
+       workspace.architecture || %Valentine.Composer.Architecture{}
      )
      |> assign(:touched, false)
      |> assign(:workspace_id, workspace_id)
@@ -45,7 +47,7 @@ defmodule ValentineWeb.WorkspaceLive.Architecture.Index do
   # Local change
   @impl true
   def handle_info({:quill_change, delta}, socket) do
-    Composer.Architecture.push_cache(socket.assigns.workspace_id, [delta["ops"]])
+    Valentine.Composer.Architecture.push_cache(socket.assigns.workspace_id, [delta["ops"]])
 
     broadcast("workspace_architecture:#{socket.assigns.workspace_id}", %{
       event: :quill_change,
@@ -87,18 +89,18 @@ defmodule ValentineWeb.WorkspaceLive.Architecture.Index do
     case workspace.architecture do
       nil ->
         log(:info, socket.assigns.current_user, "created", workspace.id, "architecture")
-        Composer.create_architecture(%{content: content, workspace_id: workspace.id})
+        Documents.create_architecture(%{content: content, workspace_id: workspace.id})
 
       _ ->
         log(:info, socket.assigns.current_user, "updated", workspace.id, "architecture")
 
-        Composer.update_architecture(workspace.architecture, %{
+        Documents.update_architecture(workspace.architecture, %{
           content: content
         })
     end
 
     # Flush the cache
-    Composer.Architecture.flush_cache(workspace.id)
+    Valentine.Composer.Architecture.flush_cache(workspace.id)
 
     # Broadcast the change
     broadcast("workspace_architecture:#{socket.assigns.workspace_id}", %{
@@ -115,6 +117,6 @@ defmodule ValentineWeb.WorkspaceLive.Architecture.Index do
   end
 
   defp get_workspace(workspace_id) do
-    Composer.get_workspace!(workspace_id, [:architecture])
+    Workspaces.get_workspace!(workspace_id, [:architecture])
   end
 end

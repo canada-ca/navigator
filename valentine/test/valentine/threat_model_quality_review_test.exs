@@ -4,7 +4,7 @@ defmodule Valentine.ThreatModelQualityReviewTest do
   import Mock
   import Valentine.ComposerFixtures
 
-  alias Valentine.Composer
+  alias Valentine.Composer.AnalysisJobs
   alias Valentine.ThreatModelQualityReview
   alias Valentine.ThreatModelQualityReview.Runner
   alias Valentine.ThreatModelQualityReview.Snapshot
@@ -36,7 +36,7 @@ defmodule Valentine.ThreatModelQualityReviewTest do
       assert run.status == :queued
       assert run.progress_message == "Queued for threat model quality review"
 
-      persisted = Composer.get_threat_model_quality_review_run!(run.id)
+      persisted = AnalysisJobs.get_threat_model_quality_review_run!(run.id)
       assert persisted.runtime_agent_id == ThreatModelQualityReview.runtime_agent_id(run.id)
     end
 
@@ -109,9 +109,9 @@ defmodule Valentine.ThreatModelQualityReviewTest do
 
       assert ThreatModelQualityReview.recover_stale_runs() == 1
 
-      assert Composer.get_threat_model_quality_review_run!(stale_run.id).status == :timed_out
+      assert AnalysisJobs.get_threat_model_quality_review_run!(stale_run.id).status == :timed_out
 
-      assert Composer.get_threat_model_quality_review_run!(recent_run.id).status ==
+      assert AnalysisJobs.get_threat_model_quality_review_run!(recent_run.id).status ==
                :assembling_context
     end
   end
@@ -179,7 +179,7 @@ defmodule Valentine.ThreatModelQualityReviewTest do
         assert :ok = Runner.run(run.id)
       end
 
-      persisted_run = Composer.get_threat_model_quality_review_run!(run.id, [:findings])
+      persisted_run = AnalysisJobs.get_threat_model_quality_review_run!(run.id, [:findings])
       assert persisted_run.status == :completed
       assert persisted_run.result_summary["finding_count"] == 1
       assert length(persisted_run.findings) == 1

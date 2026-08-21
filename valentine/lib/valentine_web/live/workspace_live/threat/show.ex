@@ -2,7 +2,15 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Assumptions
+
+  alias Valentine.Composer.Mitigations
+
+  alias Valentine.Composer.Relationships
+
+  alias Valentine.Composer.Threats
+
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.Assumption
   alias Valentine.Composer.DeliberateThreatLevel
   alias Valentine.Composer.Mitigation
@@ -39,7 +47,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
     workspace = get_workspace(socket.assigns.workspace_id)
 
     threat =
-      Composer.get_threat_for_workspace!(
+      Threats.get_threat_for_workspace!(
         socket.assigns.workspace_id,
         id,
         [:assumptions, :mitigations]
@@ -127,9 +135,9 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
   @impl true
   def handle_event("remove_assumption", %{"id" => id}, socket) do
     threat = socket.assigns.threat
-    assumption = Composer.get_assumption_for_workspace!(workspace_id(socket), id)
+    assumption = Assumptions.get_assumption_for_workspace!(workspace_id(socket), id)
 
-    {:ok, threat} = Composer.remove_assumption_from_threat(threat, assumption)
+    {:ok, threat} = Relationships.remove_assumption_from_threat(threat, assumption)
 
     {:noreply, assign(socket, :threat, threat)}
   end
@@ -137,9 +145,9 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
   @impl true
   def handle_event("remove_mitigation", %{"id" => id}, socket) do
     threat = socket.assigns.threat
-    mitigation = Composer.get_mitigation_for_workspace!(workspace_id(socket), id)
+    mitigation = Mitigations.get_mitigation_for_workspace!(workspace_id(socket), id)
 
-    {:ok, threat} = Composer.remove_mitigation_from_threat(threat, mitigation)
+    {:ok, threat} = Relationships.remove_mitigation_from_threat(threat, mitigation)
 
     {:noreply, assign(socket, :threat, threat)}
   end
@@ -150,7 +158,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
         socket
       ) do
     threat = socket.assigns.threat
-    {:ok, threat} = Composer.add_assumption_to_threat(threat, assumption)
+    {:ok, threat} = Relationships.add_assumption_to_threat(threat, assumption)
 
     {:noreply, assign(socket, :threat, threat)}
   end
@@ -160,7 +168,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
         socket
       ) do
     threat = socket.assigns.threat
-    {:ok, threat} = Composer.add_mitigation_to_threat(threat, mitigation)
+    {:ok, threat} = Relationships.add_mitigation_to_threat(threat, mitigation)
 
     {:noreply, assign(socket, :threat, threat)}
   end
@@ -173,12 +181,12 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
     threat = socket.assigns.threat
 
     assumption =
-      Composer.get_assumption_for_workspace!(
+      Assumptions.get_assumption_for_workspace!(
         workspace_id(socket),
         selected_item.id
       )
 
-    {:ok, threat} = Composer.add_assumption_to_threat(threat, assumption)
+    {:ok, threat} = Relationships.add_assumption_to_threat(threat, assumption)
 
     {:noreply, assign(socket, :threat, threat)}
   end
@@ -187,18 +195,18 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
     threat = socket.assigns.threat
 
     mitigation =
-      Composer.get_mitigation_for_workspace!(
+      Mitigations.get_mitigation_for_workspace!(
         workspace_id(socket),
         selected_item.id
       )
 
-    {:ok, threat} = Composer.add_mitigation_to_threat(threat, mitigation)
+    {:ok, threat} = Relationships.add_mitigation_to_threat(threat, mitigation)
 
     {:noreply, assign(socket, :threat, threat)}
   end
 
   defp update_existing_threat(socket) do
-    case Composer.update_threat(socket.assigns.threat, trusted_threat_changes(socket)) do
+    case Threats.update_threat(socket.assigns.threat, trusted_threat_changes(socket)) do
       {:ok, threat} ->
         broadcast_threat_change(threat, "threat_updated")
 
@@ -221,7 +229,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
   end
 
   defp create_new_threat(socket) do
-    case Composer.create_threat(trusted_threat_changes(socket)) do
+    case Threats.create_threat(trusted_threat_changes(socket)) do
       {:ok, threat} ->
         broadcast_threat_change(threat, "threat_created")
 
@@ -279,7 +287,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Show do
   def get_dfd_data(_, _), do: []
 
   def get_workspace(id) do
-    Composer.get_workspace!(id, [:assumptions, :mitigations, :threat_agents])
+    Workspaces.get_workspace!(id, [:assumptions, :mitigations, :threat_agents])
   end
 
   def td_level_options do

@@ -2,7 +2,9 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.EvidenceManagement
+
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.Evidence
   alias ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers
 
@@ -40,7 +42,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
   end
 
   defp apply_action(socket, :edit, %{"id" => id} = _params) do
-    evidence = Composer.get_evidence_for_workspace!(socket.assigns.workspace_id, id)
+    evidence = EvidenceManagement.get_evidence_for_workspace!(socket.assigns.workspace_id, id)
 
     socket
     |> assign(:page_title, gettext("Edit Evidence"))
@@ -158,7 +160,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
 
   defp create_new_evidence(socket) do
     with {:ok, attrs} <- build_evidence_attrs(socket),
-         {:ok, evidence} <- Composer.create_evidence_with_linking(attrs, %{}) do
+         {:ok, evidence} <- EvidenceManagement.create_evidence_with_linking(attrs, %{}) do
       log(
         :info,
         socket.assigns.current_user,
@@ -182,8 +184,8 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
 
   defp update_existing_evidence(socket) do
     with {:ok, attrs} <- build_evidence_attrs(socket),
-         {:ok, evidence} <- Composer.update_evidence(socket.assigns.evidence, attrs) do
-      Composer.apply_evidence_linking(evidence, %{})
+         {:ok, evidence} <- EvidenceManagement.update_evidence(socket.assigns.evidence, attrs) do
+      EvidenceManagement.apply_evidence_linking(evidence, %{})
 
       log(
         :info,
@@ -280,6 +282,6 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Show do
   defp tag_field_from_param(_), do: :tags
 
   defp get_workspace(id) do
-    Composer.get_workspace!(id)
+    Workspaces.get_workspace!(id)
   end
 end

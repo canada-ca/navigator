@@ -78,7 +78,9 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.ReviewIndexViewTest do
            |> render_click() =~ "Threat model quality review queued"
 
     [run | _] =
-      Valentine.Composer.list_threat_model_quality_review_runs_by_workspace(workspace.id)
+      Valentine.Composer.AnalysisJobs.list_threat_model_quality_review_runs_by_workspace(
+        workspace.id
+      )
 
     assert run.status == :queued
   end
@@ -107,7 +109,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.ReviewIndexViewTest do
            )
            |> render_click() =~ "Quality review deleted"
 
-    refute Valentine.Composer.get_threat_model_quality_review_run_for_owner(
+    refute Valentine.Composer.AnalysisJobs.get_threat_model_quality_review_run_for_owner(
              run.id,
              workspace.owner
            )

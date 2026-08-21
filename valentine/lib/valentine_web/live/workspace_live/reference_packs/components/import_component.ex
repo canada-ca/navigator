@@ -2,8 +2,7 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Components.ImportComponent d
   use ValentineWeb, :live_component
   use PrimerLive
 
-  alias Valentine.Composer
-
+  alias Valentine.Composer.ReferencePacks
   @impl true
   def render(assigns) do
     ~H"""
@@ -109,7 +108,7 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Components.ImportComponent d
           data: assumption
       }
     end)
-    |> Enum.each(&Composer.create_reference_pack_item/1)
+    |> Enum.each(&ReferencePacks.create_reference_pack_item/1)
 
     # Create all the threats in this reference pack
     (data["threats"] || [])
@@ -120,7 +119,7 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Components.ImportComponent d
           data: threat
       }
     end)
-    |> Enum.each(&Composer.create_reference_pack_item/1)
+    |> Enum.each(&ReferencePacks.create_reference_pack_item/1)
 
     # Create all the mitigations in this reference pack
     (data["mitigations"] || [])
@@ -131,7 +130,7 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Components.ImportComponent d
           data: mitigation
       }
     end)
-    |> Enum.each(&Composer.create_reference_pack_item/1)
+    |> Enum.each(&ReferencePacks.create_reference_pack_item/1)
 
     {:ok, :ok}
   end

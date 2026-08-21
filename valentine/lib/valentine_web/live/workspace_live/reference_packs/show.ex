@@ -2,8 +2,9 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Show do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.ReferencePacks
 
+  alias Valentine.Composer.Workspaces
   @impl true
   def mount(
         %{
@@ -14,13 +15,13 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Show do
         _session,
         socket
       ) do
-    workspace = Composer.get_workspace!(workspace_id)
+    workspace = Workspaces.get_workspace!(workspace_id)
 
     {:ok,
      socket
      |> assign(
        :reference_pack,
-       Composer.list_reference_pack_items_by_collection(collection_id, collection_type)
+       ReferencePacks.list_reference_pack_items_by_collection(collection_id, collection_type)
      )
      |> assign(:selected_references, [])
      |> assign(:workspace_id, workspace_id)
@@ -38,9 +39,9 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Show do
   def handle_event("add_references", _params, socket) do
     total =
       socket.assigns.selected_references
-      |> Enum.map(&Composer.get_reference_pack_item!/1)
+      |> Enum.map(&ReferencePacks.get_reference_pack_item!/1)
       |> Enum.reduce(0, fn reference_pack_item, acc ->
-        case Composer.add_reference_pack_item_to_workspace(
+        case ReferencePacks.add_reference_pack_item_to_workspace(
                socket.assigns.workspace_id,
                reference_pack_item
              ) do

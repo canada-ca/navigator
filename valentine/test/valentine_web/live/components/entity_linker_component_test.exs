@@ -2,7 +2,11 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
   use ValentineWeb.ConnCase
 
   import Phoenix.LiveViewTest
-  alias Valentine.Composer
+  alias Valentine.Composer.Assumptions
+  alias Valentine.Composer.EvidenceManagement
+  alias Valentine.Composer.Mitigations
+  alias Valentine.Composer.Relationships
+  alias Valentine.Composer.Threats
   import Valentine.ComposerFixtures
 
   alias ValentineWeb.WorkspaceLive.Components.EntityLinkerComponent
@@ -62,7 +66,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
     test "displays threat statement for link threat", %{assigns: assigns, threat: threat} do
       assigns = Map.put(assigns, :linked_entities, [threat])
       html = render_component(EntityLinkerComponent, assigns)
-      assert html =~ Composer.Threat.show_statement(threat)
+      assert html =~ Valentine.Composer.Threat.show_statement(threat)
     end
   end
 
@@ -102,7 +106,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       assert socket.assigns.linked_entities == [mitigation]
       assert socket.assigns.linkable_entities == []
 
-      assert (Composer.get_mitigation!(mitigation.id)
+      assert (Mitigations.get_mitigation!(mitigation.id)
               |> Valentine.Repo.preload(:assumptions)).assumptions == [assumption]
     end
 
@@ -111,7 +115,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       mitigation: mitigation,
       socket: socket
     } do
-      Composer.add_mitigation_to_assumption(assumption, mitigation)
+      Relationships.add_mitigation_to_assumption(assumption, mitigation)
 
       socket =
         update_in(socket.assigns, fn assigns ->
@@ -130,7 +134,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       assert socket.assigns.linked_entities == []
       assert socket.assigns.linkable_entities == [mitigation]
 
-      assert (Composer.get_mitigation!(mitigation.id)
+      assert (Mitigations.get_mitigation!(mitigation.id)
               |> Valentine.Repo.preload(:assumptions)).assumptions == []
     end
 
@@ -156,7 +160,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       assert socket.assigns.linked_entities == [threat]
       assert socket.assigns.linkable_entities == []
 
-      assert (Composer.get_threat!(threat.id)
+      assert (Threats.get_threat!(threat.id)
               |> Valentine.Repo.preload(:assumptions)).assumptions == [assumption]
     end
 
@@ -165,7 +169,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       threat: threat,
       socket: socket
     } do
-      Composer.add_threat_to_assumption(assumption, threat)
+      Relationships.add_threat_to_assumption(assumption, threat)
 
       socket =
         update_in(socket.assigns, fn assigns ->
@@ -184,7 +188,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       assert socket.assigns.linked_entities == []
       assert socket.assigns.linkable_entities == [threat]
 
-      assert (Composer.get_threat!(threat.id)
+      assert (Threats.get_threat!(threat.id)
               |> Valentine.Repo.preload(:assumptions)).assumptions == []
     end
 
@@ -210,7 +214,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       assert socket.assigns.linked_entities == [assumption]
       assert socket.assigns.linkable_entities == []
 
-      assert (Composer.get_mitigation!(mitigation.id)
+      assert (Mitigations.get_mitigation!(mitigation.id)
               |> Valentine.Repo.preload(:assumptions)).assumptions == [assumption]
     end
 
@@ -219,7 +223,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       mitigation: mitigation,
       socket: socket
     } do
-      Composer.add_assumption_to_mitigation(mitigation, assumption)
+      Relationships.add_assumption_to_mitigation(mitigation, assumption)
 
       socket =
         update_in(socket.assigns, fn assigns ->
@@ -238,7 +242,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       assert socket.assigns.linked_entities == []
       assert socket.assigns.linkable_entities == [assumption]
 
-      assert (Composer.get_mitigation!(mitigation.id)
+      assert (Mitigations.get_mitigation!(mitigation.id)
               |> Valentine.Repo.preload(:assumptions)).assumptions == []
     end
 
@@ -264,7 +268,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       assert socket.assigns.linked_entities == [threat]
       assert socket.assigns.linkable_entities == []
 
-      assert (Composer.get_threat!(threat.id)
+      assert (Threats.get_threat!(threat.id)
               |> Valentine.Repo.preload(:mitigations)).mitigations == [mitigation]
     end
 
@@ -273,7 +277,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       threat: threat,
       socket: socket
     } do
-      Composer.add_threat_to_mitigation(mitigation, threat)
+      Relationships.add_threat_to_mitigation(mitigation, threat)
 
       socket =
         update_in(socket.assigns, fn assigns ->
@@ -292,7 +296,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       assert socket.assigns.linked_entities == []
       assert socket.assigns.linkable_entities == [threat]
 
-      assert (Composer.get_threat!(threat.id)
+      assert (Threats.get_threat!(threat.id)
               |> Valentine.Repo.preload(:mitigations)).mitigations == []
     end
 
@@ -318,7 +322,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       assert socket.assigns.linked_entities == [assumption]
       assert socket.assigns.linkable_entities == []
 
-      assert (Composer.get_threat!(threat.id)
+      assert (Threats.get_threat!(threat.id)
               |> Valentine.Repo.preload(:assumptions)).assumptions == [assumption]
     end
 
@@ -327,7 +331,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       threat: threat,
       socket: socket
     } do
-      Composer.add_assumption_to_threat(threat, assumption)
+      Relationships.add_assumption_to_threat(threat, assumption)
 
       socket =
         update_in(socket.assigns, fn assigns ->
@@ -346,7 +350,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       assert socket.assigns.linked_entities == []
       assert socket.assigns.linkable_entities == [assumption]
 
-      assert (Composer.get_threat!(threat.id)
+      assert (Threats.get_threat!(threat.id)
               |> Valentine.Repo.preload(:assumptions)).assumptions == []
     end
 
@@ -372,7 +376,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       assert socket.assigns.linked_entities == [mitigation]
       assert socket.assigns.linkable_entities == []
 
-      assert (Composer.get_threat!(threat.id)
+      assert (Threats.get_threat!(threat.id)
               |> Valentine.Repo.preload(:mitigations)).mitigations == [mitigation]
     end
 
@@ -381,7 +385,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       threat: threat,
       socket: socket
     } do
-      Composer.add_mitigation_to_threat(threat, mitigation)
+      Relationships.add_mitigation_to_threat(threat, mitigation)
 
       socket =
         update_in(socket.assigns, fn assigns ->
@@ -400,7 +404,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       assert socket.assigns.linked_entities == []
       assert socket.assigns.linkable_entities == [mitigation]
 
-      assert (Composer.get_threat!(threat.id)
+      assert (Threats.get_threat!(threat.id)
               |> Valentine.Repo.preload(:mitigations)).mitigations == []
     end
 
@@ -486,11 +490,11 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       {:noreply, _updated_socket} = EntityLinkerComponent.handle_event("save", %{}, socket)
 
       # Verify the link was created
-      evidence_with_assumptions = Composer.get_evidence!(evidence.id, [:assumptions])
+      evidence_with_assumptions = EvidenceManagement.get_evidence!(evidence.id, [:assumptions])
       assert Enum.any?(evidence_with_assumptions.assumptions, &(&1.id == assumption.id))
 
       # Verify bidirectional link
-      assumption_with_evidence = Composer.get_assumption!(assumption.id, [:evidence])
+      assumption_with_evidence = Assumptions.get_assumption!(assumption.id, [:evidence])
       assert Enum.any?(assumption_with_evidence.evidence, &(&1.id == evidence.id))
     end
 
@@ -500,7 +504,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       workspace: workspace
     } do
       # First create the link
-      Composer.add_assumption_to_evidence(evidence, assumption)
+      Relationships.add_assumption_to_evidence(evidence, assumption)
 
       socket = %Phoenix.LiveView.Socket{
         assigns: %{
@@ -520,7 +524,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       {:noreply, _updated_socket} = EntityLinkerComponent.handle_event("save", %{}, socket)
 
       # Verify the link was removed
-      evidence_with_assumptions = Composer.get_evidence!(evidence.id, [:assumptions])
+      evidence_with_assumptions = EvidenceManagement.get_evidence!(evidence.id, [:assumptions])
       refute Enum.any?(evidence_with_assumptions.assumptions, &(&1.id == assumption.id))
     end
 
@@ -543,11 +547,11 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       {:noreply, _updated_socket} = EntityLinkerComponent.handle_event("save", %{}, socket)
 
       # Verify the link was created
-      evidence_with_threats = Composer.get_evidence!(evidence.id, [:threats])
+      evidence_with_threats = EvidenceManagement.get_evidence!(evidence.id, [:threats])
       assert Enum.any?(evidence_with_threats.threats, &(&1.id == threat.id))
 
       # Verify bidirectional link
-      threat_with_evidence = Composer.get_threat!(threat.id, [:evidence])
+      threat_with_evidence = Threats.get_threat!(threat.id, [:evidence])
       assert Enum.any?(threat_with_evidence.evidence, &(&1.id == evidence.id))
     end
 
@@ -557,7 +561,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       workspace: workspace
     } do
       # First create the link
-      Composer.add_threat_to_evidence(evidence, threat)
+      Relationships.add_threat_to_evidence(evidence, threat)
 
       socket = %Phoenix.LiveView.Socket{
         assigns: %{
@@ -577,7 +581,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       {:noreply, _updated_socket} = EntityLinkerComponent.handle_event("save", %{}, socket)
 
       # Verify the link was removed
-      evidence_with_threats = Composer.get_evidence!(evidence.id, [:threats])
+      evidence_with_threats = EvidenceManagement.get_evidence!(evidence.id, [:threats])
       refute Enum.any?(evidence_with_threats.threats, &(&1.id == threat.id))
     end
 
@@ -604,11 +608,11 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       {:noreply, _updated_socket} = EntityLinkerComponent.handle_event("save", %{}, socket)
 
       # Verify the link was created
-      evidence_with_mitigations = Composer.get_evidence!(evidence.id, [:mitigations])
+      evidence_with_mitigations = EvidenceManagement.get_evidence!(evidence.id, [:mitigations])
       assert Enum.any?(evidence_with_mitigations.mitigations, &(&1.id == mitigation.id))
 
       # Verify bidirectional link
-      mitigation_with_evidence = Composer.get_mitigation!(mitigation.id, [:evidence])
+      mitigation_with_evidence = Mitigations.get_mitigation!(mitigation.id, [:evidence])
       assert Enum.any?(mitigation_with_evidence.evidence, &(&1.id == evidence.id))
     end
 
@@ -618,7 +622,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       workspace: workspace
     } do
       # First create the link
-      Composer.add_mitigation_to_evidence(evidence, mitigation)
+      Relationships.add_mitigation_to_evidence(evidence, mitigation)
 
       socket = %Phoenix.LiveView.Socket{
         assigns: %{
@@ -638,7 +642,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       {:noreply, _updated_socket} = EntityLinkerComponent.handle_event("save", %{}, socket)
 
       # Verify the link was removed
-      evidence_with_mitigations = Composer.get_evidence!(evidence.id, [:mitigations])
+      evidence_with_mitigations = EvidenceManagement.get_evidence!(evidence.id, [:mitigations])
       refute Enum.any?(evidence_with_mitigations.mitigations, &(&1.id == mitigation.id))
     end
 

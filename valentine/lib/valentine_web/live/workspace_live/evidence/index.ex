@@ -5,7 +5,9 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
   import Ecto.Query
   import ValentineWeb.WorkspaceLive.Evidence.Components.EvidenceHelpers
 
-  alias Valentine.Composer
+  alias Valentine.Composer.EvidenceManagement
+
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.Evidence
 
   @impl true
@@ -35,7 +37,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
 
   defp apply_action(socket, :assumptions, %{"id" => evidence_id}) do
     evidence_item =
-      Composer.get_evidence_for_workspace!(
+      EvidenceManagement.get_evidence_for_workspace!(
         socket.assigns.workspace_id,
         evidence_id,
         [:assumptions]
@@ -52,7 +54,9 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
 
   defp apply_action(socket, :threats, %{"id" => evidence_id}) do
     evidence_item =
-      Composer.get_evidence_for_workspace!(socket.assigns.workspace_id, evidence_id, [:threats])
+      EvidenceManagement.get_evidence_for_workspace!(socket.assigns.workspace_id, evidence_id, [
+        :threats
+      ])
 
     socket
     |> assign(:page_title, gettext("Link Evidence"))
@@ -65,7 +69,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
 
   defp apply_action(socket, :mitigations, %{"id" => evidence_id}) do
     evidence_item =
-      Composer.get_evidence_for_workspace!(
+      EvidenceManagement.get_evidence_for_workspace!(
         socket.assigns.workspace_id,
         evidence_id,
         [:mitigations]
@@ -82,12 +86,12 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    case Composer.get_evidence_for_workspace(socket.assigns.workspace_id, id) do
+    case EvidenceManagement.get_evidence_for_workspace(socket.assigns.workspace_id, id) do
       nil ->
         {:noreply, socket |> put_flash(:error, gettext("Evidence not found"))}
 
       evidence ->
-        case Composer.delete_evidence(evidence) do
+        case EvidenceManagement.delete_evidence(evidence) do
           {:ok, _} ->
             log(
               :info,
@@ -175,7 +179,7 @@ defmodule ValentineWeb.WorkspaceLive.Evidence.Index do
   end
 
   defp get_workspace(id) do
-    Composer.get_workspace!(id, [:evidence, :assumptions, :threats, :mitigations])
+    Workspaces.get_workspace!(id, [:evidence, :assumptions, :threats, :mitigations])
   end
 
   defp get_all_tags(evidence_list) when is_list(evidence_list) and length(evidence_list) > 0 do

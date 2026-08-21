@@ -1,6 +1,8 @@
 defmodule ValentineWeb.WorkspaceLive.Mitigation.IndexTest do
   use ValentineWeb.ConnCase
-  alias Valentine.Composer
+
+  alias Valentine.Composer.Mitigations
+
   import Mock
 
   import Valentine.ComposerFixtures
@@ -132,7 +134,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.IndexTest do
     test "updates filters on filter changes", %{socket: socket} do
       with_mocks([
         {
-          Composer,
+          Mitigations,
           [],
           list_mitigations_by_workspace: fn _, _ ->
             [%{id: 1, title: "Updated Mitigation"}]
@@ -163,7 +165,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.IndexTest do
     end
 
     test "handles not found mitigation", %{socket: socket, mitigation: mitigation} do
-      with_mock Composer,
+      with_mock Mitigations,
         get_mitigation_for_workspace: fn _workspace_id, _id -> nil end do
         {:noreply, updated_socket} =
           ValentineWeb.WorkspaceLive.Mitigation.Index.handle_event(
@@ -177,7 +179,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.IndexTest do
     end
 
     test "handles delete error", %{socket: socket, mitigation: mitigation} do
-      with_mock Composer,
+      with_mock Mitigations,
         get_mitigation_for_workspace: fn _workspace_id, _id -> mitigation end,
         delete_mitigation: fn _mitigation -> {:error, "some error"} end do
         {:noreply, updated_socket} =
@@ -194,7 +196,7 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.IndexTest do
     test "clears filters", %{socket: socket} do
       with_mocks([
         {
-          Composer,
+          Mitigations,
           [],
           list_mitigations_by_workspace: fn _, _ ->
             [%{id: 1, title: "Updated Mitigation"}]

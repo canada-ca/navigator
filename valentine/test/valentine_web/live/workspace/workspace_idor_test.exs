@@ -4,7 +4,15 @@ defmodule ValentineWeb.WorkspaceLive.WorkspaceIdorTest do
   import Phoenix.LiveViewTest
   import Valentine.ComposerFixtures
 
-  alias Valentine.Composer
+  alias Valentine.Composer.ApiKeys
+
+  alias Valentine.Composer.Assumptions
+
+  alias Valentine.Composer.EvidenceManagement
+
+  alias Valentine.Composer.Mitigations
+
+  alias Valentine.Composer.Threats
 
   test "forged delete events cannot delete records from another workspace", %{conn: conn} do
     workspace = workspace_fixture(%{owner: "attacker@localhost"})
@@ -24,32 +32,32 @@ defmodule ValentineWeb.WorkspaceLive.WorkspaceIdorTest do
       {
         "/workspaces/#{workspace.id}/assumptions",
         assumption.id,
-        fn -> Composer.get_assumption!(assumption.id) end
+        fn -> Assumptions.get_assumption!(assumption.id) end
       },
       {
         "/workspaces/#{workspace.id}/mitigations",
         mitigation.id,
-        fn -> Composer.get_mitigation!(mitigation.id) end
+        fn -> Mitigations.get_mitigation!(mitigation.id) end
       },
       {
         "/workspaces/#{workspace.id}/threats",
         threat.id,
-        fn -> Composer.get_threat!(threat.id) end
+        fn -> Threats.get_threat!(threat.id) end
       },
       {
         "/workspaces/#{workspace.id}/evidence",
         evidence.id,
-        fn -> Composer.get_evidence!(evidence.id) end
+        fn -> EvidenceManagement.get_evidence!(evidence.id) end
       },
       {
         "/workspaces/#{workspace.id}/threat_agents",
         threat_agent.id,
-        fn -> Composer.get_threat_agent!(threat_agent.id) end
+        fn -> Threats.get_threat_agent!(threat_agent.id) end
       },
       {
         "/workspaces/#{workspace.id}/api_keys",
         api_key.id,
-        fn -> Composer.get_api_key(api_key.id) end
+        fn -> ApiKeys.get_api_key(api_key.id) end
       }
     ]
 
@@ -119,10 +127,10 @@ defmodule ValentineWeb.WorkspaceLive.WorkspaceIdorTest do
 
     render_hook(threat_view, "save", %{})
 
-    assert Composer.get_assumption!(assumption.id).workspace_id == workspace.id
-    assert Composer.get_mitigation!(mitigation.id).workspace_id == workspace.id
-    assert Composer.get_threat!(threat.id).workspace_id == workspace.id
-    assert Composer.get_threat_agent!(threat_agent.id).workspace_id == workspace.id
+    assert Assumptions.get_assumption!(assumption.id).workspace_id == workspace.id
+    assert Mitigations.get_mitigation!(mitigation.id).workspace_id == workspace.id
+    assert Threats.get_threat!(threat.id).workspace_id == workspace.id
+    assert Threats.get_threat_agent!(threat_agent.id).workspace_id == workspace.id
   end
 
   test "nested routes reject IDs belonging to another workspace", %{conn: conn} do

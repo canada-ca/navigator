@@ -2,8 +2,7 @@ defmodule ValentineWeb.Helpers.ApiAuthHelper do
   import Plug.Conn
 
   alias Valentine.Guardian
-  alias Valentine.Composer
-
+  alias Valentine.Composer.ApiKeys
   alias ValentineWeb.Helpers.LogHelper
 
   def init(default), do: default
@@ -44,7 +43,7 @@ defmodule ValentineWeb.Helpers.ApiAuthHelper do
                 "api"
               )
 
-              Composer.update_api_key(api_key, %{last_used: DateTime.utc_now()})
+              ApiKeys.update_api_key(api_key, %{last_used: DateTime.utc_now()})
               assign(conn, :api_key, api_key)
             else
               LogHelper.log(

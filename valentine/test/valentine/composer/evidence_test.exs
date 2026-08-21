@@ -1,7 +1,15 @@
 defmodule Valentine.Composer.EvidenceTest do
   use Valentine.DataCase
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Assumptions
+
+  alias Valentine.Composer.EvidenceManagement
+
+  alias Valentine.Composer.Mitigations
+
+  alias Valentine.Composer.Threats
+
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.Evidence
 
   import Valentine.ComposerFixtures
@@ -14,7 +22,7 @@ defmodule Valentine.Composer.EvidenceTest do
       other_workspace = workspace_fixture()
       _other_evidence = evidence_fixture(%{workspace_id: other_workspace.id})
 
-      evidence_list = Composer.list_evidence(workspace.id)
+      evidence_list = EvidenceManagement.list_evidence(workspace.id)
       assert length(evidence_list) == 2
       assert Enum.any?(evidence_list, fn e -> e.id == evidence1.id end)
       assert Enum.any?(evidence_list, fn e -> e.id == evidence2.id end)
@@ -22,7 +30,7 @@ defmodule Valentine.Composer.EvidenceTest do
 
     test "get_evidence!/1 returns the evidence with given id" do
       evidence = evidence_fixture()
-      assert Composer.get_evidence!(evidence.id).id == evidence.id
+      assert EvidenceManagement.get_evidence!(evidence.id).id == evidence.id
     end
 
     test "create_evidence/1 with valid json_data creates evidence" do
@@ -38,7 +46,7 @@ defmodule Valentine.Composer.EvidenceTest do
         tags: ["security", "compliance"]
       }
 
-      assert {:ok, %Evidence{} = evidence} = Composer.create_evidence(valid_attrs)
+      assert {:ok, %Evidence{} = evidence} = EvidenceManagement.create_evidence(valid_attrs)
       assert evidence.name == "Test Evidence"
       assert evidence.description == "Test description"
       assert evidence.evidence_type == :json_data
@@ -62,7 +70,7 @@ defmodule Valentine.Composer.EvidenceTest do
         tags: ["external"]
       }
 
-      assert {:ok, %Evidence{} = evidence} = Composer.create_evidence(valid_attrs)
+      assert {:ok, %Evidence{} = evidence} = EvidenceManagement.create_evidence(valid_attrs)
       assert evidence.name == "External Document"
       assert evidence.evidence_type == :blob_store_link
       assert evidence.blob_store_url == "https://example.com/document.pdf"
@@ -83,7 +91,9 @@ defmodule Valentine.Composer.EvidenceTest do
         blob_store_url: "https://example.com/doc.pdf"
       }
 
-      assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(invalid_attrs)
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               EvidenceManagement.create_evidence(invalid_attrs)
+
       assert "must be provided for this evidence type" in errors_on(changeset).content
     end
 
@@ -99,7 +109,8 @@ defmodule Valentine.Composer.EvidenceTest do
         content: %{"data" => "some data"}
       }
 
-      assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(invalid_attrs)
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               EvidenceManagement.create_evidence(invalid_attrs)
 
       assert "must be provided for this evidence type" in errors_on(changeset).blob_store_url
     end
@@ -124,7 +135,7 @@ defmodule Valentine.Composer.EvidenceTest do
           blob_store_url: url
         }
 
-        assert {:ok, %Evidence{} = evidence} = Composer.create_evidence(attrs)
+        assert {:ok, %Evidence{} = evidence} = EvidenceManagement.create_evidence(attrs)
         assert evidence.blob_store_url == url
       end
     end
@@ -148,7 +159,7 @@ defmodule Valentine.Composer.EvidenceTest do
           blob_store_url: url
         }
 
-        assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(attrs)
+        assert {:error, %Ecto.Changeset{} = changeset} = EvidenceManagement.create_evidence(attrs)
 
         assert "must be a valid URL with a scheme (e.g., https://example.com)" in errors_on(
                  changeset
@@ -175,7 +186,7 @@ defmodule Valentine.Composer.EvidenceTest do
           blob_store_url: url
         }
 
-        assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(attrs)
+        assert {:error, %Ecto.Changeset{} = changeset} = EvidenceManagement.create_evidence(attrs)
         errors = errors_on(changeset).blob_store_url
         assert Enum.any?(errors, fn error -> String.contains?(error, "must be a valid URL") end)
       end
@@ -200,7 +211,7 @@ defmodule Valentine.Composer.EvidenceTest do
           blob_store_url: url
         }
 
-        assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(attrs)
+        assert {:error, %Ecto.Changeset{} = changeset} = EvidenceManagement.create_evidence(attrs)
 
         assert "must include a host (e.g., https://example.com)" in errors_on(changeset).blob_store_url
       end
@@ -226,7 +237,7 @@ defmodule Valentine.Composer.EvidenceTest do
           blob_store_url: url
         }
 
-        assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(attrs)
+        assert {:error, %Ecto.Changeset{} = changeset} = EvidenceManagement.create_evidence(attrs)
 
         # Some URLs fail parsing entirely, others fail scheme validation
         # Both are acceptable rejections for security purposes
@@ -253,7 +264,7 @@ defmodule Valentine.Composer.EvidenceTest do
         blob_store_url: "not a valid url"
       }
 
-      assert {:ok, %Evidence{} = evidence} = Composer.create_evidence(attrs)
+      assert {:ok, %Evidence{} = evidence} = EvidenceManagement.create_evidence(attrs)
       assert evidence.evidence_type == :json_data
       assert evidence.content == %{"data" => "test content"}
       # blob_store_url should be cleared for json_data type
@@ -272,7 +283,7 @@ defmodule Valentine.Composer.EvidenceTest do
         tags: ["policy"]
       }
 
-      assert {:ok, %Evidence{} = evidence} = Composer.create_evidence(valid_attrs)
+      assert {:ok, %Evidence{} = evidence} = EvidenceManagement.create_evidence(valid_attrs)
       assert evidence.name == "Description Only Evidence"
       assert evidence.description == "This evidence only has a description, no attachments"
       assert evidence.evidence_type == :description_only
@@ -296,7 +307,7 @@ defmodule Valentine.Composer.EvidenceTest do
       }
 
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Composer.create_evidence(invalid_attrs_content)
+               EvidenceManagement.create_evidence(invalid_attrs_content)
 
       assert "description_only evidence cannot have content or blob_store_url" in errors_on(
                changeset
@@ -312,7 +323,7 @@ defmodule Valentine.Composer.EvidenceTest do
       }
 
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Composer.create_evidence(invalid_attrs_url)
+               EvidenceManagement.create_evidence(invalid_attrs_url)
 
       assert "description_only evidence cannot have content or blob_store_url" in errors_on(
                changeset
@@ -324,7 +335,7 @@ defmodule Valentine.Composer.EvidenceTest do
 
       # Test description_only without description
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Composer.create_evidence(%{
+               EvidenceManagement.create_evidence(%{
                  workspace_id: workspace.id,
                  name: "No Description",
                  evidence_type: :description_only
@@ -334,7 +345,7 @@ defmodule Valentine.Composer.EvidenceTest do
 
       # Test json_data without description
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Composer.create_evidence(%{
+               EvidenceManagement.create_evidence(%{
                  workspace_id: workspace.id,
                  name: "No Description",
                  evidence_type: :json_data,
@@ -345,7 +356,7 @@ defmodule Valentine.Composer.EvidenceTest do
 
       # Test blob_store_link without description
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Composer.create_evidence(%{
+               EvidenceManagement.create_evidence(%{
                  workspace_id: workspace.id,
                  name: "No Description",
                  evidence_type: :blob_store_link,
@@ -360,7 +371,7 @@ defmodule Valentine.Composer.EvidenceTest do
 
       # Test json_data still works
       {:ok, json_evidence} =
-        Composer.create_evidence(%{
+        EvidenceManagement.create_evidence(%{
           workspace_id: workspace.id,
           name: "JSON Test",
           description: "JSON description",
@@ -374,7 +385,7 @@ defmodule Valentine.Composer.EvidenceTest do
 
       # Test blob_store_link still works
       {:ok, link_evidence} =
-        Composer.create_evidence(%{
+        EvidenceManagement.create_evidence(%{
           workspace_id: workspace.id,
           name: "Link Test",
           description: "Link description",
@@ -392,7 +403,7 @@ defmodule Valentine.Composer.EvidenceTest do
 
       # Create valid evidence first
       {:ok, evidence} =
-        Composer.create_evidence(%{
+        EvidenceManagement.create_evidence(%{
           workspace_id: workspace.id,
           name: "Valid Evidence",
           description: "Test description",
@@ -404,7 +415,7 @@ defmodule Valentine.Composer.EvidenceTest do
       invalid_update = %{blob_store_url: "example.com/no-scheme.pdf"}
 
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Composer.update_evidence(evidence, invalid_update)
+               EvidenceManagement.update_evidence(evidence, invalid_update)
 
       assert "must be a valid URL with a scheme (e.g., https://example.com)" in errors_on(
                changeset
@@ -423,7 +434,9 @@ defmodule Valentine.Composer.EvidenceTest do
         nist_controls: ["AC-1", "INVALID-ID", "SC-7.4"]
       }
 
-      assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(invalid_attrs)
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               EvidenceManagement.create_evidence(invalid_attrs)
+
       assert "contains invalid NIST control IDs: INVALID-ID" in errors_on(changeset).nist_controls
     end
 
@@ -439,14 +452,16 @@ defmodule Valentine.Composer.EvidenceTest do
         nist_controls: ["AC-1", "SC-7.4", "AU-12", "IA-2.1"]
       }
 
-      assert {:ok, %Evidence{} = evidence} = Composer.create_evidence(valid_attrs)
+      assert {:ok, %Evidence{} = evidence} = EvidenceManagement.create_evidence(valid_attrs)
       assert evidence.nist_controls == ["AC-1", "SC-7.4", "AU-12", "IA-2.1"]
     end
 
     test "create_evidence/1 without required fields returns error changeset" do
       invalid_attrs = %{}
 
-      assert {:error, %Ecto.Changeset{} = changeset} = Composer.create_evidence(invalid_attrs)
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               EvidenceManagement.create_evidence(invalid_attrs)
+
       assert "can't be blank" in errors_on(changeset).workspace_id
       assert "can't be blank" in errors_on(changeset).name
       assert "can't be blank" in errors_on(changeset).evidence_type
@@ -462,7 +477,9 @@ defmodule Valentine.Composer.EvidenceTest do
         tags: ["updated"]
       }
 
-      assert {:ok, %Evidence{} = evidence} = Composer.update_evidence(evidence, update_attrs)
+      assert {:ok, %Evidence{} = evidence} =
+               EvidenceManagement.update_evidence(evidence, update_attrs)
+
       assert evidence.name == "Updated Evidence"
       assert evidence.description == "Updated description"
       assert evidence.nist_controls == ["IA-5"]
@@ -472,26 +489,28 @@ defmodule Valentine.Composer.EvidenceTest do
     test "update_evidence/2 with invalid data returns error changeset" do
       evidence = evidence_fixture()
 
-      assert {:error, %Ecto.Changeset{}} = Composer.update_evidence(evidence, %{name: nil})
-      assert evidence == Composer.get_evidence!(evidence.id)
+      assert {:error, %Ecto.Changeset{}} =
+               EvidenceManagement.update_evidence(evidence, %{name: nil})
+
+      assert evidence == EvidenceManagement.get_evidence!(evidence.id)
     end
 
     test "delete_evidence/1 deletes the evidence" do
       evidence = evidence_fixture()
-      assert {:ok, %Evidence{}} = Composer.delete_evidence(evidence)
-      assert_raise Ecto.NoResultsError, fn -> Composer.get_evidence!(evidence.id) end
+      assert {:ok, %Evidence{}} = EvidenceManagement.delete_evidence(evidence)
+      assert_raise Ecto.NoResultsError, fn -> EvidenceManagement.get_evidence!(evidence.id) end
     end
 
     test "change_evidence/1 returns an evidence changeset" do
       evidence = evidence_fixture()
-      assert %Ecto.Changeset{} = Composer.change_evidence(evidence)
+      assert %Ecto.Changeset{} = EvidenceManagement.change_evidence(evidence)
     end
 
     test "numeric_id is auto-incremented within workspace" do
       workspace = workspace_fixture()
 
       {:ok, evidence1} =
-        Composer.create_evidence(%{
+        EvidenceManagement.create_evidence(%{
           workspace_id: workspace.id,
           name: "Evidence 1",
           description: "Test description",
@@ -500,7 +519,7 @@ defmodule Valentine.Composer.EvidenceTest do
         })
 
       {:ok, evidence2} =
-        Composer.create_evidence(%{
+        EvidenceManagement.create_evidence(%{
           workspace_id: workspace.id,
           name: "Evidence 2",
           description: "Test description",
@@ -512,7 +531,7 @@ defmodule Valentine.Composer.EvidenceTest do
       other_workspace = workspace_fixture()
 
       {:ok, evidence3} =
-        Composer.create_evidence(%{
+        EvidenceManagement.create_evidence(%{
           workspace_id: other_workspace.id,
           name: "Evidence 3",
           description: "Test description",
@@ -546,7 +565,9 @@ defmodule Valentine.Composer.EvidenceTest do
         })
 
       # Reload and verify association
-      evidence = Valentine.Repo.preload(Composer.get_evidence!(evidence.id), :assumptions)
+      evidence =
+        Valentine.Repo.preload(EvidenceManagement.get_evidence!(evidence.id), :assumptions)
+
       assert length(evidence.assumptions) == 1
       assert List.first(evidence.assumptions).id == assumption.id
     end
@@ -570,7 +591,7 @@ defmodule Valentine.Composer.EvidenceTest do
         })
 
       # Reload and verify association
-      evidence = Valentine.Repo.preload(Composer.get_evidence!(evidence.id), :threats)
+      evidence = Valentine.Repo.preload(EvidenceManagement.get_evidence!(evidence.id), :threats)
       assert length(evidence.threats) == 1
       assert List.first(evidence.threats).id == threat.id
     end
@@ -594,7 +615,9 @@ defmodule Valentine.Composer.EvidenceTest do
         })
 
       # Reload and verify association
-      evidence = Valentine.Repo.preload(Composer.get_evidence!(evidence.id), :mitigations)
+      evidence =
+        Valentine.Repo.preload(EvidenceManagement.get_evidence!(evidence.id), :mitigations)
+
       assert length(evidence.mitigations) == 1
       assert List.first(evidence.mitigations).id == mitigation.id
     end
@@ -612,7 +635,7 @@ defmodule Valentine.Composer.EvidenceTest do
         })
 
       # Load assumption with evidence
-      assumption = Valentine.Repo.preload(Composer.get_assumption!(assumption.id), :evidence)
+      assumption = Valentine.Repo.preload(Assumptions.get_assumption!(assumption.id), :evidence)
       assert length(assumption.evidence) == 1
       assert List.first(assumption.evidence).id == evidence.id
     end
@@ -630,7 +653,7 @@ defmodule Valentine.Composer.EvidenceTest do
         })
 
       # Load threat with evidence
-      threat = Valentine.Repo.preload(Composer.get_threat!(threat.id), :evidence)
+      threat = Valentine.Repo.preload(Threats.get_threat!(threat.id), :evidence)
       assert length(threat.evidence) == 1
       assert List.first(threat.evidence).id == evidence.id
     end
@@ -648,7 +671,7 @@ defmodule Valentine.Composer.EvidenceTest do
         })
 
       # Load mitigation with evidence
-      mitigation = Valentine.Repo.preload(Composer.get_mitigation!(mitigation.id), :evidence)
+      mitigation = Valentine.Repo.preload(Mitigations.get_mitigation!(mitigation.id), :evidence)
       assert length(mitigation.evidence) == 1
       assert List.first(mitigation.evidence).id == evidence.id
     end
@@ -659,10 +682,10 @@ defmodule Valentine.Composer.EvidenceTest do
       evidence_id = evidence.id
 
       # Delete workspace
-      Composer.delete_workspace(workspace)
+      Workspaces.delete_workspace(workspace)
 
       # Evidence should be deleted
-      assert_raise Ecto.NoResultsError, fn -> Composer.get_evidence!(evidence_id) end
+      assert_raise Ecto.NoResultsError, fn -> EvidenceManagement.get_evidence!(evidence_id) end
     end
 
     test "evidence associations are deleted when evidence is deleted" do
@@ -692,7 +715,7 @@ defmodule Valentine.Composer.EvidenceTest do
         })
 
       # Delete evidence
-      Composer.delete_evidence(evidence)
+      EvidenceManagement.delete_evidence(evidence)
 
       # Associations should be deleted
       assert Valentine.Repo.get(Valentine.Composer.EvidenceAssumption, evidence_assumption.id) ==
@@ -704,9 +727,9 @@ defmodule Valentine.Composer.EvidenceTest do
                nil
 
       # But the related entities should still exist
-      assert Composer.get_assumption!(assumption.id)
-      assert Composer.get_threat!(threat.id)
-      assert Composer.get_mitigation!(mitigation.id)
+      assert Assumptions.get_assumption!(assumption.id)
+      assert Threats.get_threat!(threat.id)
+      assert Mitigations.get_mitigation!(mitigation.id)
     end
   end
 
@@ -732,7 +755,9 @@ defmodule Valentine.Composer.EvidenceTest do
         nist_controls: ["AC-1"]
       }
 
-      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+      assert {:ok, evidence} =
+               EvidenceManagement.create_evidence_with_linking(evidence_attrs, %{})
+
       assert evidence.name == "NIST Control Evidence"
       assert length(evidence.assumptions) == 1
       assert List.first(evidence.assumptions).id == assumption.id
@@ -759,7 +784,9 @@ defmodule Valentine.Composer.EvidenceTest do
         nist_controls: ["AU-12"]
       }
 
-      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+      assert {:ok, evidence} =
+               EvidenceManagement.create_evidence_with_linking(evidence_attrs, %{})
+
       assert evidence.name == "Audit Evidence"
       assert length(evidence.threats) == 1
       assert List.first(evidence.threats).id == threat.id
@@ -786,7 +813,9 @@ defmodule Valentine.Composer.EvidenceTest do
         nist_controls: ["SC-7"]
       }
 
-      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+      assert {:ok, evidence} =
+               EvidenceManagement.create_evidence_with_linking(evidence_attrs, %{})
+
       assert evidence.name == "Network Evidence"
       assert length(evidence.mitigations) == 1
       assert List.first(evidence.mitigations).id == mitigation.id
@@ -827,7 +856,8 @@ defmodule Valentine.Composer.EvidenceTest do
         nist_controls: ["AC-1", "AU-12"]
       }
 
-      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+      assert {:ok, evidence} =
+               EvidenceManagement.create_evidence_with_linking(evidence_attrs, %{})
 
       # Should link to assumption (has AC-1 tag)
       assert length(evidence.assumptions) == 1
@@ -864,7 +894,8 @@ defmodule Valentine.Composer.EvidenceTest do
         nist_controls: ["AC-1"]
       }
 
-      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+      assert {:ok, evidence} =
+               EvidenceManagement.create_evidence_with_linking(evidence_attrs, %{})
 
       # Should not link to entities from different workspace
       assert length(evidence.assumptions) == 0
@@ -907,7 +938,8 @@ defmodule Valentine.Composer.EvidenceTest do
         assumption_id: assumption_for_direct_link.id
       }
 
-      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, linking_opts)
+      assert {:ok, evidence} =
+               EvidenceManagement.create_evidence_with_linking(evidence_attrs, linking_opts)
 
       # Should only link to directly specified entity, not NIST control matches
       assert length(evidence.assumptions) == 1
@@ -936,7 +968,8 @@ defmodule Valentine.Composer.EvidenceTest do
         # No nist_controls field
       }
 
-      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+      assert {:ok, evidence} =
+               EvidenceManagement.create_evidence_with_linking(evidence_attrs, %{})
 
       # Should not link to any entities
       assert length(evidence.assumptions) == 0
@@ -966,7 +999,8 @@ defmodule Valentine.Composer.EvidenceTest do
         nist_controls: []
       }
 
-      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+      assert {:ok, evidence} =
+               EvidenceManagement.create_evidence_with_linking(evidence_attrs, %{})
 
       # Should not link to any entities
       assert length(evidence.assumptions) == 0
@@ -1004,7 +1038,8 @@ defmodule Valentine.Composer.EvidenceTest do
         nist_controls: ["AC-1"]
       }
 
-      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+      assert {:ok, evidence} =
+               EvidenceManagement.create_evidence_with_linking(evidence_attrs, %{})
 
       # Should only link to entity with matching tag
       assert length(evidence.assumptions) == 1
@@ -1028,7 +1063,9 @@ defmodule Valentine.Composer.EvidenceTest do
 
       linking_opts = %{assumption_id: assumption.id}
 
-      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, linking_opts)
+      assert {:ok, evidence} =
+               EvidenceManagement.create_evidence_with_linking(evidence_attrs, linking_opts)
+
       assert evidence.name == "Linked Evidence"
       assert length(evidence.assumptions) == 1
       assert List.first(evidence.assumptions).id == assumption.id
@@ -1054,7 +1091,9 @@ defmodule Valentine.Composer.EvidenceTest do
         mitigation_id: mitigation.id
       }
 
-      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, linking_opts)
+      assert {:ok, evidence} =
+               EvidenceManagement.create_evidence_with_linking(evidence_attrs, linking_opts)
+
       assert length(evidence.assumptions) == 1
       assert length(evidence.threats) == 1
       assert length(evidence.mitigations) == 1
@@ -1079,7 +1118,9 @@ defmodule Valentine.Composer.EvidenceTest do
       }
 
       # Should create evidence successfully but with no links
-      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, linking_opts)
+      assert {:ok, evidence} =
+               EvidenceManagement.create_evidence_with_linking(evidence_attrs, linking_opts)
+
       assert evidence.name == "Evidence with Invalid Links"
       assert length(evidence.assumptions) == 0
       assert length(evidence.threats) == 0
@@ -1103,7 +1144,9 @@ defmodule Valentine.Composer.EvidenceTest do
       linking_opts = %{assumption_id: assumption.id}
 
       # Should create evidence but not link to assumption from different workspace
-      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, linking_opts)
+      assert {:ok, evidence} =
+               EvidenceManagement.create_evidence_with_linking(evidence_attrs, linking_opts)
+
       assert evidence.workspace_id == workspace1.id
       assert length(evidence.assumptions) == 0
     end
@@ -1119,7 +1162,9 @@ defmodule Valentine.Composer.EvidenceTest do
         content: %{"data" => "test"}
       }
 
-      assert {:ok, evidence} = Composer.create_evidence_with_linking(evidence_attrs, %{})
+      assert {:ok, evidence} =
+               EvidenceManagement.create_evidence_with_linking(evidence_attrs, %{})
+
       assert evidence.name == "Orphaned Evidence"
       assert length(evidence.assumptions) == 0
       assert length(evidence.threats) == 0
@@ -1135,7 +1180,9 @@ defmodule Valentine.Composer.EvidenceTest do
         content: %{"data" => "test"}
       }
 
-      assert {:error, changeset} = Composer.create_evidence_with_linking(invalid_attrs, %{})
+      assert {:error, changeset} =
+               EvidenceManagement.create_evidence_with_linking(invalid_attrs, %{})
+
       assert changeset.errors[:name]
       assert changeset.errors[:evidence_type]
     end

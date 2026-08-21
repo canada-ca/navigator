@@ -1,12 +1,12 @@
 defmodule Valentine.ThreatModelQualityReview.Snapshot do
   @moduledoc false
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.DataFlowDiagram
 
   def build(workspace_id) do
     workspace =
-      Composer.get_workspace!(workspace_id, [
+      Workspaces.get_workspace!(workspace_id, [
         :application_information,
         :architecture,
         threats: [:assumptions, :mitigations, :evidence],

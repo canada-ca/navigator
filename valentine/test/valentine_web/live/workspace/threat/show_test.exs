@@ -1,6 +1,7 @@
 defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
   use ValentineWeb.ConnCase
-  alias Valentine.Composer
+  alias Valentine.Composer.Relationships
+  alias Valentine.Composer.Threats
   alias Valentine.Repo
   import Mock
 
@@ -56,7 +57,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
         )
 
       assert updated_socket.assigns.page_title == "Create new threat statement"
-      assert updated_socket.assigns.threat == %Composer.Threat{}
+      assert updated_socket.assigns.threat == %Valentine.Composer.Threat{}
       assert updated_socket.assigns.changes == %{workspace_id: workspace.id}
     end
 
@@ -85,9 +86,10 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
 
   describe "handle_event save" do
     test "creates new threat successfully", %{socket: socket, workspace: workspace} do
-      socket = put_in(socket.assigns.threat, %Composer.Threat{workspace_id: workspace.id})
+      socket =
+        put_in(socket.assigns.threat, %Valentine.Composer.Threat{workspace_id: workspace.id})
 
-      with_mock Composer,
+      with_mock Threats,
         create_threat: fn _params -> {:ok, %{workspace_id: workspace.id, id: "abcd"}} end do
         {:noreply, updated_socket} =
           ValentineWeb.WorkspaceLive.Threat.Show.handle_event(
@@ -101,9 +103,10 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
     end
 
     test "creates new  threat unsuccessfully", %{socket: socket, workspace: workspace} do
-      socket = put_in(socket.assigns.threat, %Composer.Threat{workspace_id: workspace.id})
+      socket =
+        put_in(socket.assigns.threat, %Valentine.Composer.Threat{workspace_id: workspace.id})
 
-      with_mock Composer,
+      with_mock Threats,
         create_threat: fn _params -> {:error, %Ecto.Changeset{}} end do
         {:noreply, updated_socket} =
           ValentineWeb.WorkspaceLive.Threat.Show.handle_event(
@@ -119,7 +122,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
     test "updates existing threat successfully", %{socket: socket, threat: threat} do
       socket = put_in(socket.assigns.threat, threat)
 
-      with_mock Composer,
+      with_mock Threats,
         update_threat: fn _threat, _params -> {:ok, threat} end do
         {:noreply, updated_socket} =
           ValentineWeb.WorkspaceLive.Threat.Show.handle_event(
@@ -135,7 +138,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
     test "updates existing threat unsuccessfully", %{socket: socket, threat: threat} do
       socket = put_in(socket.assigns.threat, threat)
 
-      with_mock Composer,
+      with_mock Threats,
         update_threat: fn _threat, _params -> {:error, %Ecto.Changeset{}} end do
         {:noreply, updated_socket} =
           ValentineWeb.WorkspaceLive.Threat.Show.handle_event(
@@ -278,7 +281,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
     test "removes an assumption", %{socket: socket, threat: threat} do
       assumption = assumption_fixture(%{workspace_id: threat.workspace_id})
 
-      Composer.add_assumption_to_threat(threat, assumption)
+      Relationships.add_assumption_to_threat(threat, assumption)
 
       socket = put_in(socket.assigns.threat, threat)
 
@@ -297,7 +300,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.ShowTest do
     test "removes a mitigation", %{socket: socket, threat: threat} do
       mitigation = mitigation_fixture(%{workspace_id: threat.workspace_id})
 
-      Composer.add_mitigation_to_threat(threat, mitigation)
+      Relationships.add_mitigation_to_threat(threat, mitigation)
 
       socket = put_in(socket.assigns.threat, threat)
 

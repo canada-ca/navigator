@@ -1,37 +1,38 @@
 ## Context
 
-`Valentine.Composer` is the application's established business context and the public API used by LiveViews, controllers, MCP tools, AI workflows, exports, fixtures, and tests. The module is currently 2,856 lines and owns workspace access, analysis jobs, core threat-model entities, cross-entity relationships, narrative documents, reference material, controls, users, API keys, evidence, and brainstorming. Those capabilities already have separate Ecto schemas, but their query and persistence functions share one source file and one compile dependency.
+`Valentine.Composer` began as the application's 2,856-line business context. Its implementations have now been extracted into capability modules, leaving a broad compatibility facade used by LiveViews, controllers, MCP tools, AI workflows, exports, fixtures, and tests. The remaining migration removes that indirection by moving all callers to the capability that owns each operation and then deleting the facade.
 
 The refactor must preserve all externally observable behavior. In particular, workspace scoping and permission checks, preload shapes, bang/non-bang behavior, changesets, return tuples, PubSub effects triggered by callers, and function defaults are compatibility constraints. No schemas, migrations, routes, authorization rules, AI-provider integrations, or real-time collaboration flows are being changed.
 
-The primary implementation anchors are `valentine/lib/valentine/composer.ex`, the schemas under `valentine/lib/valentine/composer/`, Composer DataCase tests under `valentine/test/valentine/`, workspace LiveViews under `valentine/lib/valentine_web/live/workspace_live/`, and export/report behavior in `ValentineWeb.WorkspaceController`.
+The primary implementation anchors are the capability modules and schemas under `valentine/lib/valentine/composer/`, domain tests under `valentine/test/valentine/`, workspace LiveViews under `valentine/lib/valentine_web/live/workspace_live/`, MCP tools, repository-analysis and quality-review workflows, and export/report behavior in `ValentineWeb.WorkspaceController`.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
 - Give each persistence/query capability a small, discoverable owner under `Valentine.Composer`.
-- Preserve the complete public `Valentine.Composer` API so existing callers require no coordinated rewrite.
+- Make every repository caller depend directly on the narrow capability it uses.
+- Remove the `Valentine.Composer` facade once the caller inventory reaches zero.
 - Centralize only genuinely shared query mechanics, especially workspace scoping and enum filters.
 - Make cross-capability dependencies explicit and acyclic.
 - Reduce source-file size, compile blast radius, merge conflicts, and the amount of unrelated code needed to understand a change.
-- Verify compatibility through compilation, existing behavioral tests, and facade/structure-focused tests.
+- Verify behavior through compilation, existing behavioral tests, and capability-boundary structural tests.
 
 **Non-Goals:**
 
 - Changing domain behavior, persisted data, Ecto schemas, database constraints, or associations.
 - Renaming public functions or changing arguments, defaults, return values, exceptions, ordering, or preload shapes.
-- Rewriting application callers to use the new capability modules in this change.
+- Retaining or deprecating the compatibility facade after all callers have migrated.
 - Introducing a new generic repository abstraction, protocol, macro-based context generator, or external dependency.
 - Reworking permissions, authentication, PubSub, AI providers, routes, UI workflows, reports, or exports.
 
 ## Decisions
 
-### 1. Keep `Valentine.Composer` as a compatibility facade
+### 1. Remove `Valentine.Composer` after an atomic caller migration
 
-`valentine/lib/valentine/composer.ex` will retain every existing public function and delegate to capability modules. `defdelegate` will be used where it preserves the exact arity and defaults; explicit thin wrappers will be used for overloaded, guarded, or defaulted APIs where delegation would make the contract less clear. Module documentation will identify the facade as stable and point new code toward capability modules.
+Every `Composer.function(...)` and fully qualified `Valentine.Composer.function(...)` call will be mapped to the capability owner established by the extracted modules. Files will alias only the capability modules they use. Once production code, fixtures, and tests compile without facade references, `valentine/lib/valentine/composer.ex` will be deleted.
 
-This avoids a repository-wide caller migration and separates architectural movement from behavioral change. Removing or immediately bypassing the facade was rejected because it would enlarge the diff, couple unrelated callers to the refactor, and make regressions harder to localize.
+The earlier compatibility-facade stage provided a safe behavioral checkpoint while implementations moved. Keeping it permanently was rejected because it preserves the broad dependency, obscures ownership at call sites, and allows new code to continue coupling itself to unrelated capabilities. The migration is atomic because a partially retained facade would make completion difficult to enforce.
 
 ### 2. Split by existing domain capabilities
 
@@ -55,13 +56,13 @@ These boundaries follow current function groupings and schema ownership rather t
 
 ### 3. Use a small internal query helper module
 
-`Valentine.Composer.QueryHelpers` will contain shared workspace-scoped lookup/preload helpers and enum filter construction. It will be documented as internal infrastructure and will not become part of the `Valentine.Composer` facade.
+`Valentine.Composer.QueryHelpers` contains shared workspace-scoped lookup/preload helpers and enum filter construction. It remains internal infrastructure used only by capability modules.
 
 Capability modules will continue to own domain-specific queries. A generic repository layer was rejected because it would hide Ecto semantics, add indirection, and make capability-specific preload and ordering behavior harder to see.
 
 ### 4. Make cross-capability calls direct and acyclic
 
-When one extracted capability needs another, it will call the owning capability module directly rather than routing through the compatibility facade. For example, evidence association orchestration can use `Threats`, `Assumptions`, and `Mitigations` lookups; relationship operations remain in `Relationships`. The facade depends on all capability modules, while no capability module depends on the facade.
+When one extracted capability needs another, it calls the owning capability module directly. For example, evidence association orchestration uses `Threats`, `Assumptions`, and `Mitigations` lookups; relationship operations remain in `Relationships`. Application callers follow the same direct dependency rule.
 
 This creates a one-way dependency graph and prevents circular compilation. Routing internal calls through the facade was rejected because it obscures ownership and risks cycles.
 
@@ -73,30 +74,31 @@ This keeps the change reviewable and lets the existing test suite act as a behav
 
 ### 6. Verify both behavior and architecture
 
-Existing DataCase, ConnCase, LiveView, MCP, export, and AI workflow tests remain the principal behavioral regression suite. Focused tests will additionally prove that representative capability APIs work directly and through the facade, and a structural test will guard against accidentally moving persistence implementation back into the facade.
+Existing DataCase, ConnCase, LiveView, MCP, export, and AI workflow tests remain the principal behavioral regression suite. Focused tests prove representative capability APIs directly, and structural checks require zero facade calls, aliases, or module definitions.
 
 No route, schema, export format, or real-time collaboration test expectation is intentionally changed.
 
 ## Risks / Trade-offs
 
-- [Risk] A delegated function loses a default argument, guard, clause order, documentation, or exception behavior. → Inventory every public name/arity before extraction, prefer explicit wrappers for ambiguous APIs, compile with warnings treated as errors where supported, and run the existing suite through the facade.
+- [Risk] A caller is mapped to the wrong capability or a facade alias remains hidden in a less common code path. → Generate the mapping from the compiled facade ownership, scan all `.ex` and `.exs` files, force a clean compilation, and enforce zero facade references structurally.
 - [Risk] Moving private helpers changes query ordering, workspace scoping, or preload shapes. → Move bodies unchanged, centralize only byte-for-byte equivalent shared mechanics, and run focused context tests after each capability group.
-- [Risk] Cross-capability references create compile cycles. → Enforce the dependency direction `Composer facade -> capability modules -> QueryHelpers/schemas/Repo`, with direct capability-to-capability calls only where necessary and never back through the facade.
+- [Risk] Cross-capability references create compile cycles. → Keep capability-to-capability calls explicit and one-way where necessary, and keep shared query behavior directed toward `QueryHelpers`, schemas, and `Repo`.
 - [Risk] The larger number of modules makes navigation noisier. → Use capability-level modules matching existing product vocabulary and keep closely related schemas together.
-- [Risk] The facade preserves a broad API and therefore does not immediately force better caller boundaries. → Treat it as a compatibility seam; future changes can adopt capability modules incrementally without coupling that migration to this refactor.
-- [Risk] A large mechanical move creates merge conflicts. → Complete the extraction on the dedicated branch, keep application caller files unchanged, format once boundaries stabilize, and maintain an OpenSpec checklist with independently verifiable checkpoints.
+- [Risk] Files using several Composer capabilities gain multiple aliases. → Alias only the capability modules used by each file and retain the established domain vocabulary.
+- [Risk] A large mechanical caller migration creates merge conflicts. → Complete it atomically on the dedicated branch, format once aliases stabilize, and keep behavior changes out of the migration.
 
 ## Migration Plan
 
 1. Record the public Composer API and establish a clean baseline test result.
 2. Add `QueryHelpers` and extract capability modules in dependency order, running focused compilation/tests after each coherent group.
-3. Replace implementation in `Valentine.Composer` with compatibility delegates/wrappers only after all capability modules compile.
-4. Add facade parity and architectural boundary tests.
-5. Run formatter checks, focused Composer tests, and the complete test suite.
-6. Deploy normally. There are no migrations, feature flags, data backfills, route changes, or configuration changes.
+3. Use the facade ownership map to migrate production callers, fixtures, and tests to capability modules.
+4. Require a zero-result repository scan for facade calls and aliases, then delete `valentine/lib/valentine/composer.ex`.
+5. Replace facade parity checks with direct capability and no-facade structural tests.
+6. Run formatter checks, a forced warnings-as-errors compilation, focused capability tests, and the complete backend and frontend suites.
+7. Deploy normally. There are no migrations, feature flags, data backfills, route changes, or configuration changes.
 
 Rollback consists of deploying the preceding application release or reverting this code change. Persisted data is fully compatible in both directions.
 
 ## Open Questions
 
-None blocking. Direct caller adoption of capability modules and any future deprecation policy for the facade are intentionally deferred to separate changes.
+None blocking. The user has selected immediate removal rather than a deprecation period.

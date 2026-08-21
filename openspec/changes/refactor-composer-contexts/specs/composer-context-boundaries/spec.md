@@ -11,23 +11,23 @@ The system SHALL organize Composer persistence and query behavior into capabilit
 - **WHEN** an operation creates or removes an association between threats, assumptions, mitigations, or evidence
 - **THEN** the association behavior is owned by the explicit relationship or evidence capability rather than duplicated across entity modules
 
-### Requirement: Backward-compatible Composer facade
-`Valentine.Composer` MUST continue to expose the public functions available before the refactor with the same names, accepted arguments, default arguments, return values, ordering, preload shapes, error tuples, and exception behavior.
+### Requirement: Direct capability dependencies
+All application, fixture, and test callers MUST invoke the capability-focused module that owns an operation, and the system MUST NOT define or call a broad `Valentine.Composer` compatibility facade.
 
-#### Scenario: Existing caller invokes Composer
-- **WHEN** an unchanged LiveView, controller, MCP tool, AI workflow, export, fixture, or test calls a public `Valentine.Composer` function
-- **THEN** the call delegates to the owning capability and produces the same observable result as before the refactor
+#### Scenario: Existing caller invokes domain behavior
+- **WHEN** a LiveView, controller, MCP tool, AI workflow, export, fixture, or test invokes Composer domain behavior
+- **THEN** the call targets the capability module that owns that behavior
 
-#### Scenario: Caller uses a bang lookup
-- **WHEN** an existing caller invokes a Composer bang function for a missing or inaccessible entity
-- **THEN** the same exception type and workspace-scoping behavior are preserved
+#### Scenario: Broad facade is absent
+- **WHEN** the repository is compiled and structurally inspected after migration
+- **THEN** no `Valentine.Composer` facade module, facade alias, or facade function call remains
 
 ### Requirement: Direct capability API
-Each extracted capability module SHALL expose the operations delegated to it by the Composer facade so new code can depend on the narrow capability without depending on unrelated Composer behavior.
+Each extracted capability module SHALL expose the operations it owns so code can depend on the narrow capability without depending on unrelated Composer behavior.
 
 #### Scenario: New code invokes a capability directly
 - **WHEN** new application code calls an extracted capability function with valid arguments
-- **THEN** it receives the same result it would receive through the corresponding Composer facade function
+- **THEN** it receives the established result directly from the owning capability
 
 ### Requirement: Workspace and permission isolation
 The refactor MUST preserve existing workspace scoping, ownership checks, invitation behavior, and permission-aware access for every Composer operation.
@@ -52,7 +52,7 @@ The refactor SHALL preserve schemas, database tables, changesets, transactions, 
 - **THEN** the same error tuple or exception and equivalent changeset errors are returned
 
 ### Requirement: One-way module dependencies
-The extracted architecture MUST keep the compatibility facade out of capability-module dependencies and SHALL place shared query mechanics in an internal helper rather than duplicating them.
+The extracted architecture MUST use direct capability dependencies and SHALL place shared query mechanics in an internal helper rather than duplicating them.
 
 #### Scenario: Capability needs shared workspace query behavior
 - **WHEN** a capability performs a standard workspace-scoped lookup or preload
@@ -63,8 +63,8 @@ The extracted architecture MUST keep the compatibility facade out of capability-
 - **THEN** it calls the owning capability directly without creating a dependency back through the facade
 
 ### Requirement: Regression verification
-The change MUST be verified by focused capability/facade tests and the existing complete automated test suite, with no intentional changes to product behavior.
+The change MUST be verified by focused capability tests, a no-facade structural check, and the existing complete automated test suite, with no intentional changes to product behavior.
 
 #### Scenario: Refactor verification completes
 - **WHEN** implementation is ready for handoff
-- **THEN** formatting checks, focused Composer tests, and the complete test suite pass
+- **THEN** formatting checks, forced compilation, focused capability tests, and the complete backend and frontend test suites pass

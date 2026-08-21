@@ -15,8 +15,13 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
 
   defp create_candidate_item(workspace, type, raw_text) do
     item = brainstorm_item_fixture(%{workspace_id: workspace.id, type: type, raw_text: raw_text})
-    {:ok, item} = Valentine.Composer.update_brainstorm_item(item, %{status: :clustered})
-    {:ok, item} = Valentine.Composer.update_brainstorm_item(item, %{status: :candidate})
+
+    {:ok, item} =
+      Valentine.Composer.Brainstorm.update_brainstorm_item(item, %{status: :clustered})
+
+    {:ok, item} =
+      Valentine.Composer.Brainstorm.update_brainstorm_item(item, %{status: :candidate})
+
     item
   end
 

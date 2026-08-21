@@ -2,16 +2,17 @@ defmodule ValentineWeb.WorkspaceLive.Controls.Index do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Controls
 
+  alias Valentine.Composer.Workspaces
   @impl true
   def mount(%{"workspace_id" => workspace_id} = _params, _session, socket) do
     workspace = get_workspace(workspace_id)
 
     {:ok,
      socket
-     |> assign(:controls, Composer.list_controls())
-     |> assign(:nist_families, Composer.list_control_families())
+     |> assign(:controls, Controls.list_controls())
+     |> assign(:nist_families, Controls.list_control_families())
      |> assign(:workspace, workspace)
      |> assign(:filters, %{})}
   end
@@ -31,12 +32,12 @@ defmodule ValentineWeb.WorkspaceLive.Controls.Index do
     if Kernel.map_size(filters) == 0 do
       {:noreply,
        socket
-       |> assign(:controls, Composer.list_controls())
+       |> assign(:controls, Controls.list_controls())
        |> assign(:filters, filters)}
     else
       {:noreply,
        socket
-       |> assign(:controls, Composer.list_controls_in_families(filters.nist_family))
+       |> assign(:controls, Controls.list_controls_in_families(filters.nist_family))
        |> assign(:filters, filters)}
     end
   end
@@ -50,6 +51,6 @@ defmodule ValentineWeb.WorkspaceLive.Controls.Index do
   end
 
   defp get_workspace(id) do
-    Composer.get_workspace!(id)
+    Workspaces.get_workspace!(id)
   end
 end

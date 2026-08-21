@@ -1,54 +1,56 @@
 defmodule Valentine.MCP.Tools.Documents do
   import Valentine.MCP.ToolHelpers
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Documents
+
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.DataFlowDiagram
   alias ValentineWeb.Workspace.Mermaid
 
   @node_types ["actor", "process", "datastore", "trust_boundary"]
 
   def get_application_information(_args, api_key) do
-    workspace = Composer.get_workspace!(api_key.workspace_id, [:application_information])
+    workspace = Workspaces.get_workspace!(api_key.workspace_id, [:application_information])
     ok_json(document_map(workspace.application_information))
   end
 
   def update_application_information(%{"content" => content}, api_key) do
-    workspace = Composer.get_workspace!(api_key.workspace_id, [:application_information])
+    workspace = Workspaces.get_workspace!(api_key.workspace_id, [:application_information])
 
     result =
       case workspace.application_information do
         nil ->
-          Composer.create_application_information(%{
+          Documents.create_application_information(%{
             "workspace_id" => workspace.id,
             "content" => content
           })
 
         doc ->
-          Composer.update_application_information(doc, %{"content" => content})
+          Documents.update_application_information(doc, %{"content" => content})
       end
 
-    Composer.ApplicationInformation.flush_cache(workspace.id)
+    Valentine.Composer.ApplicationInformation.flush_cache(workspace.id)
     document_result(result)
   end
 
   def get_architecture(_args, api_key) do
-    workspace = Composer.get_workspace!(api_key.workspace_id, [:architecture])
+    workspace = Workspaces.get_workspace!(api_key.workspace_id, [:architecture])
     ok_json(document_map(workspace.architecture))
   end
 
   def update_architecture(%{"content" => content}, api_key) do
-    workspace = Composer.get_workspace!(api_key.workspace_id, [:architecture])
+    workspace = Workspaces.get_workspace!(api_key.workspace_id, [:architecture])
 
     result =
       case workspace.architecture do
         nil ->
-          Composer.create_architecture(%{"workspace_id" => workspace.id, "content" => content})
+          Documents.create_architecture(%{"workspace_id" => workspace.id, "content" => content})
 
         doc ->
-          Composer.update_architecture(doc, %{"content" => content})
+          Documents.update_architecture(doc, %{"content" => content})
       end
 
-    Composer.Architecture.flush_cache(workspace.id)
+    Valentine.Composer.Architecture.flush_cache(workspace.id)
     document_result(result)
   end
 
@@ -66,7 +68,7 @@ defmodule Valentine.MCP.Tools.Documents do
 
     case validate_dfd_attrs(attrs, dfd) do
       :ok ->
-        case Composer.update_data_flow_diagram(dfd, attrs) do
+        case Documents.update_data_flow_diagram(dfd, attrs) do
           {:ok, dfd} ->
             DataFlowDiagram.put(dfd)
             ok_json(Map.put(dfd_map(dfd), :validation_hints, dfd_hints(dfd, normalization_hints)))

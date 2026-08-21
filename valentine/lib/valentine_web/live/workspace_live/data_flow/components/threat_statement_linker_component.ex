@@ -2,7 +2,9 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementLinkerCo
   use ValentineWeb, :live_component
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Threats
+
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.Threat
 
   @impl true
@@ -74,9 +76,7 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementLinkerCo
     )
 
     linked_threats =
-      Valentine.Composer.list_threats_by_ids(
-        socket.assigns.element["data"]["linked_threats"] -- [id]
-      )
+      Threats.list_threats_by_ids(socket.assigns.element["data"]["linked_threats"] -- [id])
 
     {:noreply,
      socket
@@ -99,7 +99,7 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementLinkerCo
     )
 
     linked_threats =
-      Valentine.Composer.list_threats_by_ids(element["data"]["linked_threats"] ++ [id])
+      Threats.list_threats_by_ids(element["data"]["linked_threats"] ++ [id])
 
     element = put_in(element["data"]["linked_threats"], Enum.map(linked_threats, & &1.id))
 
@@ -117,12 +117,12 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementLinkerCo
 
     linked_threats =
       if element do
-        Valentine.Composer.list_threats_by_ids(element["data"]["linked_threats"])
+        Threats.list_threats_by_ids(element["data"]["linked_threats"])
       else
         []
       end
 
-    threats = Composer.get_workspace!(assigns.workspace_id, [:threats]).threats
+    threats = Workspaces.get_workspace!(assigns.workspace_id, [:threats]).threats
 
     {:ok,
      socket

@@ -2,7 +2,9 @@ defmodule ValentineWeb.WorkspaceLive.SRTM.Index do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Controls
+
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.Workspace
 
   @impl true
@@ -21,7 +23,7 @@ defmodule ValentineWeb.WorkspaceLive.SRTM.Index do
     {:ok,
      socket
      |> assign(:controls, map_controls(controls, workspace))
-     |> assign(:nist_families, Composer.list_control_families())
+     |> assign(:nist_families, Controls.list_control_families())
      |> assign(:filters, filters)
      |> assign(:workspace, workspace)
      |> assign(:evidence_by_control, Workspace.get_evidence_by_controls(workspace.evidence))
@@ -115,7 +117,7 @@ defmodule ValentineWeb.WorkspaceLive.SRTM.Index do
   end
 
   defp filter_controls(filters) when map_size(filters) == 0,
-    do: Composer.list_controls()
+    do: Controls.list_controls()
 
   defp filter_controls(filters) do
     # This should be dynamically generated
@@ -135,7 +137,7 @@ defmodule ValentineWeb.WorkspaceLive.SRTM.Index do
       |> Enum.flat_map(&Map.get(filters, &1, []))
       |> Enum.filter(&(&1 in valid_tags))
 
-    Composer.list_controls_by_filters(%{
+    Controls.list_controls_by_filters(%{
       tags: allowed_tags,
       classes: filters[:class] || [],
       nist_families: filters[:nist_family] || []
@@ -143,7 +145,7 @@ defmodule ValentineWeb.WorkspaceLive.SRTM.Index do
   end
 
   defp get_workspace(id) do
-    Composer.get_workspace!(id,
+    Workspaces.get_workspace!(id,
       mitigations: [:assumptions, :threats],
       threats: [:assumptions, :mitigations],
       assumptions: [:threats, :mitigations],
@@ -151,7 +153,9 @@ defmodule ValentineWeb.WorkspaceLive.SRTM.Index do
     )
   end
 
-  defp item_content(item = %Composer.Threat{}), do: Composer.Threat.show_statement(item)
+  defp item_content(item = %Valentine.Composer.Threat{}),
+    do: Valentine.Composer.Threat.show_statement(item)
+
   defp item_content(item), do: item.content
 
   defp map_controls(controls, workspace) do

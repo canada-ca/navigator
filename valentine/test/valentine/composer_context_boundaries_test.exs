@@ -1,7 +1,6 @@
 defmodule Valentine.ComposerContextBoundariesTest do
   use Valentine.DataCase
 
-  alias Valentine.Composer
   alias Valentine.Composer.AnalysisJobs
   alias Valentine.Composer.ApiKeys
   alias Valentine.Composer.Assumptions
@@ -34,28 +33,13 @@ defmodule Valentine.ComposerContextBoundariesTest do
     Workspaces
   ]
 
-  test "every facade function has exactly one capability owner" do
-    Enum.each(@capability_modules, &Code.ensure_loaded!/1)
-
-    for function <- Composer.__info__(:functions) do
-      owners =
-        Enum.filter(
-          @capability_modules,
-          &function_exported?(&1, elem(function, 0), elem(function, 1))
-        )
-
-      assert length(owners) == 1,
-             "expected #{inspect(function)} to have one capability owner, got: #{inspect(owners)}"
-    end
-  end
-
-  test "workspace and analysis APIs work directly and through the facade" do
+  test "workspace and analysis APIs work through their capability owners" do
     workspace = workspace_fixture()
 
     analysis_job =
       repo_analysis_agent_fixture(%{workspace_id: workspace.id, owner: workspace.owner})
 
-    assert Workspaces.get_workspace!(workspace.id) == Composer.get_workspace!(workspace.id)
+    assert Workspaces.get_workspace!(workspace.id) == workspace
 
     assert Enum.map(AnalysisJobs.list_repo_analysis_agents_by_workspace(workspace.id), & &1.id) ==
              [
@@ -86,14 +70,9 @@ defmodule Valentine.ComposerContextBoundariesTest do
            ]
 
     assert Threats.get_threat_for_workspace(other_workspace.id, threat.id) == nil
-    assert Composer.get_threat_for_workspace(other_workspace.id, threat.id) == nil
 
     assert_raise Ecto.NoResultsError, fn ->
       Threats.get_threat_for_workspace!(other_workspace.id, threat.id)
-    end
-
-    assert_raise Ecto.NoResultsError, fn ->
-      Composer.get_threat_for_workspace!(other_workspace.id, threat.id)
     end
   end
 
@@ -113,10 +92,6 @@ defmodule Valentine.ComposerContextBoundariesTest do
            ) == [
              assumption.id
            ]
-
-    assert Enum.map(Composer.get_evidence!(evidence.id, [:assumptions]).assumptions, & &1.id) == [
-             assumption.id
-           ]
   end
 
   test "document, reference, and control APIs are available through their owners" do
@@ -126,10 +101,9 @@ defmodule Valentine.ComposerContextBoundariesTest do
     control = control_fixture()
 
     assert Documents.get_application_information!(application_information.id) ==
-             Composer.get_application_information!(application_information.id)
+             application_information
 
-    assert Documents.get_architecture!(architecture.id) ==
-             Composer.get_architecture!(architecture.id)
+    assert Documents.get_architecture!(architecture.id) == architecture
 
     assert ReferencePacks.get_reference_pack_item!(reference_pack_item.id) == reference_pack_item
     assert Controls.get_control!(control.id) == control
@@ -140,26 +114,45 @@ defmodule Valentine.ComposerContextBoundariesTest do
     api_key = api_key_fixture()
     brainstorm_item = brainstorm_item_fixture()
 
-    assert Users.get_user(user.email) == Composer.get_user(user.email)
-    assert ApiKeys.get_api_key(api_key.id) == Composer.get_api_key(api_key.id)
+    assert Users.get_user(user.email) == user
+    assert ApiKeys.get_api_key(api_key.id).id == api_key.id
 
-    assert Brainstorm.get_brainstorm_item(brainstorm_item.workspace_id, brainstorm_item.id) ==
-             Composer.get_brainstorm_item(brainstorm_item.workspace_id, brainstorm_item.id)
+    assert Brainstorm.get_brainstorm_item(brainstorm_item.workspace_id, brainstorm_item.id).id ==
+             brainstorm_item.id
   end
 
-  test "facade contains delegation only and capabilities do not call back through it" do
-    facade_source = File.read!(Path.expand("../../lib/valentine/composer.ex", __DIR__))
-
-    assert facade_source =~ "defdelegate"
-    refute facade_source =~ "Valentine.Repo"
-    refute facade_source =~ "import Ecto.Query"
-    refute facade_source =~ ~r/^\s+def\s/m
+  test "the broad facade is absent and capabilities remain directly loadable" do
+    refute File.exists?(Path.expand("../../lib/valentine/composer.ex", __DIR__))
 
     for module <- @capability_modules do
+      assert Code.ensure_loaded?(module)
+
       source = module_source(module)
       refute source =~ ~r/^\s+alias Valentine\.Composer\s*$/m
       refute source =~ ~r/(?<!Valentine\.)\bComposer\./
     end
+  end
+
+  test "application and test source contain no facade aliases or calls" do
+    project_root = Path.expand("../..", __DIR__)
+
+    facade_references =
+      project_root
+      |> Path.join("{lib,test}/**/*.{ex,exs}")
+      |> Path.wildcard()
+      |> Enum.flat_map(fn path ->
+        source = File.read!(path)
+
+        if source =~ ~r/^\s*defmodule Valentine\.Composer\s+do/m or
+             source =~ ~r/^\s*alias Valentine\.Composer\s*$/m or
+             source =~ ~r/\b(?:Valentine\.)?Composer\.[a-z_][a-zA-Z0-9_!?]*/ do
+          [Path.relative_to(path, project_root)]
+        else
+          []
+        end
+      end)
+
+    assert facade_references == []
   end
 
   defp module_source(module) do

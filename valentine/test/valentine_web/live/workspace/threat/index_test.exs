@@ -1,8 +1,8 @@
 defmodule ValentineWeb.WorkspaceLive.Threat.IndexTest do
   use ValentineWeb.ConnCase
+  alias Valentine.Composer.Threats
   import Valentine.ComposerFixtures
 
-  alias Valentine.Composer
   import Mock
 
   setup do
@@ -70,7 +70,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.IndexTest do
     end
 
     test "handles not found threat", %{socket: socket} do
-      with_mock Composer,
+      with_mock Threats,
         get_threat_for_workspace: fn _workspace_id, _id -> nil end do
         {:noreply, updated_socket} =
           ValentineWeb.WorkspaceLive.Threat.Index.handle_event(
@@ -84,7 +84,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.IndexTest do
     end
 
     test "handles delete error", %{socket: socket, threat: threat} do
-      with_mock Composer,
+      with_mock Threats,
         get_threat_for_workspace: fn _workspace_id, _id -> threat end,
         delete_threat: fn _threat -> {:error, "some error"} end do
         {:noreply, updated_socket} =

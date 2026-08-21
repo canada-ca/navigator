@@ -2,14 +2,15 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Threats
 
+  alias Valentine.Composer.Workspaces
   @impl true
   def mount(%{"workspace_id" => workspace_id} = _params, _session, socket) do
-    workspace = Composer.get_workspace!(workspace_id, [:assumptions, :mitigations])
+    workspace = Workspaces.get_workspace!(workspace_id, [:assumptions, :mitigations])
     ValentineWeb.Endpoint.subscribe("workspace_" <> workspace.id)
 
-    threats = Composer.list_threats_by_workspace(workspace.id, %{})
+    threats = Threats.list_threats_by_workspace(workspace.id, %{})
 
     {:ok,
      socket
@@ -27,7 +28,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
 
   defp apply_action(socket, :assumptions, %{"id" => id}) do
     threat =
-      Composer.get_threat_for_workspace!(socket.assigns.workspace_id, id, [:assumptions])
+      Threats.get_threat_for_workspace!(socket.assigns.workspace_id, id, [:assumptions])
 
     socket
     |> assign(:page_title, gettext("Link assumptions to threat"))
@@ -43,7 +44,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
 
   defp apply_action(socket, :mitigations, %{"id" => id}) do
     threat =
-      Composer.get_threat_for_workspace!(socket.assigns.workspace_id, id, [:mitigations])
+      Threats.get_threat_for_workspace!(socket.assigns.workspace_id, id, [:mitigations])
 
     socket
     |> assign(:page_title, gettext("Link mitigations to threat"))
@@ -53,15 +54,15 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    case Composer.get_threat_for_workspace(socket.assigns.workspace_id, id) do
+    case Threats.get_threat_for_workspace(socket.assigns.workspace_id, id) do
       nil ->
         {:noreply, socket |> put_flash(:error, gettext("Threat not found"))}
 
       threat ->
-        case Composer.delete_threat(threat) do
+        case Threats.delete_threat(threat) do
           {:ok, _} ->
             threats =
-              Composer.list_threats_by_workspace(
+              Threats.list_threats_by_workspace(
                 socket.assigns.workspace_id,
                 socket.assigns.filters
               )
@@ -94,7 +95,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
 
   @impl true
   def handle_event("clear_filters", _params, socket) do
-    threats = Composer.list_threats_by_workspace(socket.assigns.workspace_id, %{})
+    threats = Threats.list_threats_by_workspace(socket.assigns.workspace_id, %{})
 
     {:noreply,
      socket
@@ -105,7 +106,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
 
   @impl true
   def handle_info({:update_filter, filters}, socket) do
-    threats = Composer.list_threats_by_workspace(socket.assigns.workspace_id, filters)
+    threats = Threats.list_threats_by_workspace(socket.assigns.workspace_id, filters)
 
     {
       :noreply,
@@ -122,7 +123,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
         socket
       ) do
     threats =
-      Composer.list_threats_by_workspace(socket.assigns.workspace_id, socket.assigns.filters)
+      Threats.list_threats_by_workspace(socket.assigns.workspace_id, socket.assigns.filters)
 
     {:noreply,
      socket
@@ -132,7 +133,7 @@ defmodule ValentineWeb.WorkspaceLive.Threat.Index do
 
   @impl true
   def handle_info(%{topic: "workspace_" <> workspace_id}, socket) do
-    threats = Composer.list_threats_by_workspace(workspace_id, socket.assigns.filters)
+    threats = Threats.list_threats_by_workspace(workspace_id, socket.assigns.filters)
 
     {:noreply,
      socket

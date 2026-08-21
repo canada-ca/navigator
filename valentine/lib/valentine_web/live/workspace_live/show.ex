@@ -3,7 +3,8 @@ defmodule ValentineWeb.WorkspaceLive.Show do
   use PrimerLive
 
   alias Phoenix.PubSub
-  alias Valentine.Composer
+  alias Valentine.Composer.AnalysisJobs
+  alias Valentine.Composer.Workspaces
   alias Valentine.RepoAnalysis
 
   @impl true
@@ -78,7 +79,7 @@ defmodule ValentineWeb.WorkspaceLive.Show do
   defp assign_workspace(socket, workspace_id) do
     repo_analysis_history =
       workspace_id
-      |> Composer.list_repo_analysis_agents_by_workspace()
+      |> AnalysisJobs.list_repo_analysis_agents_by_workspace()
       |> Enum.take(5)
 
     latest_repo_analysis_agent = List.first(repo_analysis_history)
@@ -86,7 +87,7 @@ defmodule ValentineWeb.WorkspaceLive.Show do
     socket
     |> assign(
       :workspace,
-      Composer.get_workspace!(workspace_id, [:assumptions, :threats, :mitigations])
+      Workspaces.get_workspace!(workspace_id, [:assumptions, :threats, :mitigations])
     )
     |> assign(:workspace_id, workspace_id)
     |> assign(:repo_analysis_history, repo_analysis_history)

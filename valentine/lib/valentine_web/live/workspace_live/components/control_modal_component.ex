@@ -2,14 +2,14 @@ defmodule ValentineWeb.WorkspaceLive.Components.ControlModalComponent do
   use ValentineWeb, :live_component
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Controls
 
   def mount(socket) do
     {:ok, assign(socket, nist_id: nil)}
   end
 
   def render(assigns) do
-    assigns = Map.put(assigns, :control, Composer.get_control_by_nist_id(assigns.nist_id))
+    assigns = Map.put(assigns, :control, Controls.get_control_by_nist_id(assigns.nist_id))
 
     ~H"""
     <div>

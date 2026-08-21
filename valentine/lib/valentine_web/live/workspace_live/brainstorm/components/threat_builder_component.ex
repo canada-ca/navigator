@@ -2,7 +2,9 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
   use ValentineWeb, :live_component
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Brainstorm
+
+  alias Valentine.Composer.Threats
   alias Valentine.Composer.Threat
 
   @required_types [:threat, :attack_vector, :impact, :asset]
@@ -324,7 +326,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
     filters = if cluster_key, do: %{cluster_key: cluster_key}, else: %{}
 
     workspace_id
-    |> Composer.list_brainstorm_items(filters)
+    |> Brainstorm.list_brainstorm_items(filters)
     |> Enum.filter(&eligible_card?/1)
     |> Enum.group_by(& &1.type)
   end
@@ -500,7 +502,7 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
       |> Map.from_struct()
       |> Map.put(:workspace_id, socket.assigns.workspace_id)
 
-    case Composer.create_threat(threat_attrs) do
+    case Threats.create_threat(threat_attrs) do
       {:ok, threat} ->
         update_card_usage(socket.assigns.workspace_id, selected_card_ids, threat.numeric_id)
         {:ok, [threat]}
@@ -512,12 +514,12 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
 
   defp update_card_usage(workspace_id, card_ids, threat_numeric_id) do
     Enum.each(card_ids, fn card_id ->
-      case Composer.get_brainstorm_item(workspace_id, card_id) do
+      case Brainstorm.get_brainstorm_item(workspace_id, card_id) do
         nil ->
           :skip
 
         item ->
-          Composer.mark_used_in_threat(item, threat_numeric_id)
+          Brainstorm.mark_used_in_threat(item, threat_numeric_id)
       end
     end)
   end

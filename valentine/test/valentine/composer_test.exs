@@ -1,7 +1,31 @@
 defmodule Valentine.ComposerTest do
   use Valentine.DataCase
 
-  alias Valentine.Composer
+  alias Valentine.Composer.AnalysisJobs
+
+  alias Valentine.Composer.ApiKeys
+
+  alias Valentine.Composer.Assumptions
+
+  alias Valentine.Composer.Brainstorm
+
+  alias Valentine.Composer.Controls
+
+  alias Valentine.Composer.Documents
+
+  alias Valentine.Composer.EvidenceManagement
+
+  alias Valentine.Composer.Mitigations
+
+  alias Valentine.Composer.ReferencePacks
+
+  alias Valentine.Composer.Relationships
+
+  alias Valentine.Composer.Threats
+
+  alias Valentine.Composer.Users
+
+  alias Valentine.Composer.Workspaces
 
   describe "workspaces" do
     alias Valentine.Composer.Workspace
@@ -12,13 +36,13 @@ defmodule Valentine.ComposerTest do
 
     test "list_workspaces/0 returns all workspaces" do
       workspace = workspace_fixture()
-      assert Composer.list_workspaces() == [workspace]
+      assert Workspaces.list_workspaces() == [workspace]
     end
 
     test "list_workspaces_by_identity/1 returns all workspaces for a owner" do
       workspace = workspace_fixture()
       workspace_fixture(%{owner: "another owner"})
-      assert Composer.list_workspaces_by_identity(workspace.owner) == [workspace]
+      assert Workspaces.list_workspaces_by_identity(workspace.owner) == [workspace]
     end
 
     test "list_workspaces_by_identity/1 returns all workspaces for a collaborator" do
@@ -26,12 +50,12 @@ defmodule Valentine.ComposerTest do
         workspace_fixture(%{owner: "another owner", permissions: %{"collaborator" => "read"}})
 
       workspace_fixture(%{owner: "another owner"})
-      assert Composer.list_workspaces_by_identity("collaborator") == [workspace]
+      assert Workspaces.list_workspaces_by_identity("collaborator") == [workspace]
     end
 
     test "get_workspace!/1 returns the workspace with given id" do
       workspace = workspace_fixture()
-      assert Composer.get_workspace!(workspace.id) == workspace
+      assert Workspaces.get_workspace!(workspace.id) == workspace
     end
 
     test "create_workspace/1 with valid data creates a workspace" do
@@ -46,7 +70,7 @@ defmodule Valentine.ComposerTest do
         permissions: %{}
       }
 
-      assert {:ok, %Workspace{} = workspace} = Composer.create_workspace(valid_attrs)
+      assert {:ok, %Workspace{} = workspace} = Workspaces.create_workspace(valid_attrs)
       assert workspace.name == "some name"
       assert workspace.cloud_profile == "some cloud_profile"
       assert workspace.cloud_profile_type == "some cloud_profile_type"
@@ -58,7 +82,7 @@ defmodule Valentine.ComposerTest do
     end
 
     test "create_workspace/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Composer.create_workspace(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} = Workspaces.create_workspace(@invalid_attrs)
     end
 
     test "update_workspace/2 with valid data updates the workspace" do
@@ -75,7 +99,9 @@ defmodule Valentine.ComposerTest do
         permissions: %{some: "permissions"}
       }
 
-      assert {:ok, %Workspace{} = workspace} = Composer.update_workspace(workspace, update_attrs)
+      assert {:ok, %Workspace{} = workspace} =
+               Workspaces.update_workspace(workspace, update_attrs)
+
       assert workspace.name == "some updated name"
       assert workspace.cloud_profile == "some updated cloud_profile"
       assert workspace.cloud_profile_type == "some updated cloud_profile_type"
@@ -90,7 +116,7 @@ defmodule Valentine.ComposerTest do
       workspace = workspace_fixture()
 
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Composer.update_workspace(workspace, %{max_threat_level: :td10})
+               Workspaces.update_workspace(workspace, %{max_threat_level: :td10})
 
       assert "is invalid" in errors_on(changeset).max_threat_level
     end
@@ -99,15 +125,15 @@ defmodule Valentine.ComposerTest do
       workspace = workspace_fixture()
 
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Composer.update_workspace(workspace, %{cloud_vendors: ["digital_ocean"]})
+               Workspaces.update_workspace(workspace, %{cloud_vendors: ["digital_ocean"]})
 
       assert "has an invalid entry" in errors_on(changeset).cloud_vendors
     end
 
     test "update_workspace/2 with invalid data returns error changeset" do
       workspace = workspace_fixture()
-      assert {:error, %Ecto.Changeset{}} = Composer.update_workspace(workspace, @invalid_attrs)
-      assert workspace == Composer.get_workspace!(workspace.id)
+      assert {:error, %Ecto.Changeset{}} = Workspaces.update_workspace(workspace, @invalid_attrs)
+      assert workspace == Workspaces.get_workspace!(workspace.id)
     end
 
     test "update_workspace_permissions/2 with none permission removes an identity and updates the workspace permissions" do
@@ -117,7 +143,7 @@ defmodule Valentine.ComposerTest do
         })
 
       assert {:ok, %Workspace{} = workspace} =
-               Composer.update_workspace_permissions(workspace, "identity", "none")
+               Workspaces.update_workspace_permissions(workspace, "identity", "none")
 
       assert workspace.permissions == %{"another" => "permission"}
     end
@@ -126,7 +152,7 @@ defmodule Valentine.ComposerTest do
       workspace = workspace_fixture()
 
       assert {:ok, %Workspace{} = workspace} =
-               Composer.update_workspace_permissions(workspace, "identity", "permission")
+               Workspaces.update_workspace_permissions(workspace, "identity", "permission")
 
       assert workspace.permissions == %{"identity" => "permission"}
     end
@@ -138,15 +164,19 @@ defmodule Valentine.ComposerTest do
         })
 
       assert {:ok, %Workspace{} = workspace} =
-               Composer.update_workspace_permissions(workspace, "identity", "another_permission")
+               Workspaces.update_workspace_permissions(
+                 workspace,
+                 "identity",
+                 "another_permission"
+               )
 
       assert workspace.permissions == %{"identity" => "another_permission"}
     end
 
     test "delete_workspace/1 deletes the workspace" do
       workspace = workspace_fixture()
-      assert {:ok, %Workspace{}} = Composer.delete_workspace(workspace)
-      assert_raise Ecto.NoResultsError, fn -> Composer.get_workspace!(workspace.id) end
+      assert {:ok, %Workspace{}} = Workspaces.delete_workspace(workspace)
+      assert_raise Ecto.NoResultsError, fn -> Workspaces.get_workspace!(workspace.id) end
     end
 
     test "delete_workspace/1 also deletes associated threat agents" do
@@ -155,18 +185,18 @@ defmodule Valentine.ComposerTest do
       threat_agent =
         threat_agent_fixture(%{workspace_id: workspace.id, name: "Contractor Insider"})
 
-      assert {:ok, %Workspace{}} = Composer.delete_workspace(workspace)
-      assert_raise Ecto.NoResultsError, fn -> Composer.get_threat_agent!(threat_agent.id) end
+      assert {:ok, %Workspace{}} = Workspaces.delete_workspace(workspace)
+      assert_raise Ecto.NoResultsError, fn -> Threats.get_threat_agent!(threat_agent.id) end
     end
 
     test "change_workspace/1 returns a workspace changeset" do
       workspace = workspace_fixture()
-      assert %Ecto.Changeset{} = Composer.change_workspace(workspace)
+      assert %Ecto.Changeset{} = Workspaces.change_workspace(workspace)
     end
 
     test "check_workspace_permissions/2 returns the permission for the identity" do
       workspace = workspace_fixture(%{owner: "some owner"})
-      assert Composer.check_workspace_permissions(workspace.id, "some owner") == "owner"
+      assert Workspaces.check_workspace_permissions(workspace.id, "some owner") == "owner"
     end
   end
 
@@ -180,7 +210,7 @@ defmodule Valentine.ComposerTest do
       _other_repo_analysis_agent = repo_analysis_agent_fixture(%{owner: "owner-2"})
 
       assert [fetched_repo_analysis_agent] =
-               Composer.list_repo_analysis_agents_by_owner("owner-1")
+               AnalysisJobs.list_repo_analysis_agents_by_owner("owner-1")
 
       assert fetched_repo_analysis_agent.id == repo_analysis_agent.id
     end
@@ -202,7 +232,7 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %RepoAnalysisAgent{} = repo_analysis_agent} =
-               Composer.create_repo_analysis_agent(valid_attrs)
+               AnalysisJobs.create_repo_analysis_agent(valid_attrs)
 
       assert repo_analysis_agent.workspace_id == workspace.id
       assert repo_analysis_agent.owner == workspace.owner
@@ -214,7 +244,7 @@ defmodule Valentine.ComposerTest do
       repo_analysis_agent = repo_analysis_agent_fixture()
 
       assert {:ok, %RepoAnalysisAgent{} = repo_analysis_agent} =
-               Composer.request_repo_analysis_agent_cancel(repo_analysis_agent)
+               AnalysisJobs.request_repo_analysis_agent_cancel(repo_analysis_agent)
 
       assert %DateTime{} = repo_analysis_agent.cancel_requested_at
     end
@@ -242,16 +272,16 @@ defmodule Valentine.ComposerTest do
 
     test "list_threats/0 returns all threats" do
       threat = threat_fixture()
-      assert Composer.list_threats() == [threat]
+      assert Threats.list_threats() == [threat]
     end
 
     test "list_threats_by_workspace/2 returns all threats for a workspace" do
       threat = threat_fixture()
-      assert hd(Composer.list_threats_by_workspace(threat.workspace_id)).id == threat.id
+      assert hd(Threats.list_threats_by_workspace(threat.workspace_id)).id == threat.id
     end
 
     test "list_threats_by_workspace/2 returns all threats for a workspace and not other workspaces" do
-      assert Composer.list_threats_by_workspace("00000000-0000-0000-0000-000000000000") == []
+      assert Threats.list_threats_by_workspace("00000000-0000-0000-0000-000000000000") == []
     end
 
     test "list_threats_by_workspace/2 returns all threats for a workspace based on a filter" do
@@ -259,7 +289,7 @@ defmodule Valentine.ComposerTest do
       threat = threat_fixture(%{status: :identified})
 
       assert hd(
-               Composer.list_threats_by_workspace(threat.workspace_id, %{
+               Threats.list_threats_by_workspace(threat.workspace_id, %{
                  status: ["identified"]
                })
              ).id == threat.id
@@ -267,7 +297,7 @@ defmodule Valentine.ComposerTest do
 
     test "get_threat!/1 returns the threat with given id" do
       threat = threat_fixture()
-      assert Composer.get_threat!(threat.id) == threat
+      assert Threats.get_threat!(threat.id) == threat
     end
 
     test "create_threat/1 with valid data creates a threat" do
@@ -291,7 +321,7 @@ defmodule Valentine.ComposerTest do
         tags: ["tag1", "tag2"]
       }
 
-      assert {:ok, %Threat{} = threat} = Composer.create_threat(valid_attrs)
+      assert {:ok, %Threat{} = threat} = Threats.create_threat(valid_attrs)
       assert threat.status == :identified
       assert threat.priority == :high
       assert threat.stride == [:spoofing]
@@ -308,7 +338,7 @@ defmodule Valentine.ComposerTest do
     end
 
     test "create_threat/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Composer.create_threat(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} = Threats.create_threat(@invalid_attrs)
     end
 
     test "update_threat/2 with valid data updates the threat" do
@@ -331,7 +361,7 @@ defmodule Valentine.ComposerTest do
         tags: ["tag1", "tag2"]
       }
 
-      assert {:ok, %Threat{} = threat} = Composer.update_threat(threat, update_attrs)
+      assert {:ok, %Threat{} = threat} = Threats.update_threat(threat, update_attrs)
       assert threat.status == :resolved
       assert threat.priority == :low
       assert threat.stride == [:tampering]
@@ -349,19 +379,19 @@ defmodule Valentine.ComposerTest do
 
     test "update_threat/2 with invalid data returns error changeset" do
       threat = threat_fixture()
-      assert {:error, %Ecto.Changeset{}} = Composer.update_threat(threat, @invalid_attrs)
-      assert threat == Composer.get_threat!(threat.id)
+      assert {:error, %Ecto.Changeset{}} = Threats.update_threat(threat, @invalid_attrs)
+      assert threat == Threats.get_threat!(threat.id)
     end
 
     test "delete_threat/1 deletes the threat" do
       threat = threat_fixture()
-      assert {:ok, %Threat{}} = Composer.delete_threat(threat)
-      assert_raise Ecto.NoResultsError, fn -> Composer.get_threat!(threat.id) end
+      assert {:ok, %Threat{}} = Threats.delete_threat(threat)
+      assert_raise Ecto.NoResultsError, fn -> Threats.get_threat!(threat.id) end
     end
 
     test "change_threat/1 returns a threat changeset" do
       threat = threat_fixture()
-      assert %Ecto.Changeset{} = Composer.change_threat(threat)
+      assert %Ecto.Changeset{} = Threats.change_threat(threat)
     end
 
     test "list_threats_by_workspace/2 filters by threat level" do
@@ -369,7 +399,7 @@ defmodule Valentine.ComposerTest do
       _other_threat = threat_fixture(%{workspace_id: threat.workspace_id, threat_level: :td2})
 
       assert [filtered] =
-               Composer.list_threats_by_workspace(threat.workspace_id, %{
+               Threats.list_threats_by_workspace(threat.workspace_id, %{
                  threat_level: [:td4]
                })
 
@@ -380,7 +410,7 @@ defmodule Valentine.ComposerTest do
       threat = threat_fixture()
 
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Composer.update_threat(threat, %{threat_level: :td10})
+               Threats.update_threat(threat, %{threat_level: :td10})
 
       assert "is invalid" in errors_on(changeset).threat_level
     end
@@ -389,7 +419,9 @@ defmodule Valentine.ComposerTest do
       threat = threat_fixture()
       assumption = assumption_fixture()
 
-      assert {:ok, %Threat{} = threat} = Composer.add_assumption_to_threat(threat, assumption)
+      assert {:ok, %Threat{} = threat} =
+               Relationships.add_assumption_to_threat(threat, assumption)
+
       assert threat.assumptions == [assumption]
     end
 
@@ -397,11 +429,13 @@ defmodule Valentine.ComposerTest do
       threat = threat_fixture()
       assumption = assumption_fixture()
 
-      Composer.add_assumption_to_threat(threat, assumption)
+      Relationships.add_assumption_to_threat(threat, assumption)
 
       assumption2 = assumption_fixture()
 
-      assert {:ok, %Threat{} = threat} = Composer.add_assumption_to_threat(threat, assumption2)
+      assert {:ok, %Threat{} = threat} =
+               Relationships.add_assumption_to_threat(threat, assumption2)
+
       assert threat.assumptions == [assumption, assumption2]
     end
 
@@ -409,11 +443,11 @@ defmodule Valentine.ComposerTest do
       threat = threat_fixture()
       assumption = assumption_fixture()
 
-      {:ok, %Threat{} = threat} = Composer.add_assumption_to_threat(threat, assumption)
+      {:ok, %Threat{} = threat} = Relationships.add_assumption_to_threat(threat, assumption)
 
       assert threat.assumptions == [assumption]
 
-      {:ok, %Threat{} = threat} = Composer.remove_assumption_from_threat(threat, assumption)
+      {:ok, %Threat{} = threat} = Relationships.remove_assumption_from_threat(threat, assumption)
 
       assert threat.assumptions == []
     end
@@ -422,7 +456,9 @@ defmodule Valentine.ComposerTest do
       threat = threat_fixture()
       mitigation = mitigation_fixture()
 
-      assert {:ok, %Threat{} = threat} = Composer.add_mitigation_to_threat(threat, mitigation)
+      assert {:ok, %Threat{} = threat} =
+               Relationships.add_mitigation_to_threat(threat, mitigation)
+
       assert threat.mitigations == [mitigation]
     end
 
@@ -430,11 +466,13 @@ defmodule Valentine.ComposerTest do
       threat = threat_fixture()
       mitigation = mitigation_fixture()
 
-      Composer.add_mitigation_to_threat(threat, mitigation)
+      Relationships.add_mitigation_to_threat(threat, mitigation)
 
       mitigation2 = mitigation_fixture()
 
-      assert {:ok, %Threat{} = threat} = Composer.add_mitigation_to_threat(threat, mitigation2)
+      assert {:ok, %Threat{} = threat} =
+               Relationships.add_mitigation_to_threat(threat, mitigation2)
+
       assert threat.mitigations == [mitigation, mitigation2]
     end
 
@@ -442,11 +480,11 @@ defmodule Valentine.ComposerTest do
       threat = threat_fixture()
       mitigation = mitigation_fixture()
 
-      {:ok, %Threat{} = threat} = Composer.add_mitigation_to_threat(threat, mitigation)
+      {:ok, %Threat{} = threat} = Relationships.add_mitigation_to_threat(threat, mitigation)
 
       assert threat.mitigations == [mitigation]
 
-      {:ok, %Threat{} = threat} = Composer.remove_mitigation_from_threat(threat, mitigation)
+      {:ok, %Threat{} = threat} = Relationships.remove_mitigation_from_threat(threat, mitigation)
 
       assert threat.mitigations == []
     end
@@ -461,13 +499,13 @@ defmodule Valentine.ComposerTest do
       threat_agent = threat_agent_fixture()
       _other_threat_agent = threat_agent_fixture()
 
-      assert [fetched | _] = Composer.list_threat_agents(threat_agent.workspace_id)
+      assert [fetched | _] = Threats.list_threat_agents(threat_agent.workspace_id)
       assert fetched.workspace_id == threat_agent.workspace_id
     end
 
     test "get_threat_agent!/1 returns the threat agent with given id" do
       threat_agent = threat_agent_fixture()
-      assert Composer.get_threat_agent!(threat_agent.id).id == threat_agent.id
+      assert Threats.get_threat_agent!(threat_agent.id).id == threat_agent.id
     end
 
     test "create_threat_agent/1 with valid data creates a threat agent" do
@@ -482,7 +520,7 @@ defmodule Valentine.ComposerTest do
         td_level: :td3
       }
 
-      assert {:ok, %ThreatAgent{} = threat_agent} = Composer.create_threat_agent(valid_attrs)
+      assert {:ok, %ThreatAgent{} = threat_agent} = Threats.create_threat_agent(valid_attrs)
       assert threat_agent.name == "Contractor Insider"
       assert threat_agent.agent_class == "insider"
       assert threat_agent.capability == "moderate"
@@ -492,7 +530,7 @@ defmodule Valentine.ComposerTest do
 
     test "create_threat_agent/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Composer.create_threat_agent(%{name: nil, workspace_id: nil})
+               Threats.create_threat_agent(%{name: nil, workspace_id: nil})
 
       assert "can't be blank" in errors_on(changeset).name
       assert "can't be blank" in errors_on(changeset).workspace_id
@@ -502,7 +540,7 @@ defmodule Valentine.ComposerTest do
       threat_agent = threat_agent_fixture()
 
       assert {:ok, %ThreatAgent{} = updated} =
-               Composer.update_threat_agent(threat_agent, %{
+               Threats.update_threat_agent(threat_agent, %{
                  name: "Nation-State Operator",
                  td_level: :td6
                })
@@ -513,13 +551,13 @@ defmodule Valentine.ComposerTest do
 
     test "delete_threat_agent/1 deletes the threat agent" do
       threat_agent = threat_agent_fixture()
-      assert {:ok, %ThreatAgent{}} = Composer.delete_threat_agent(threat_agent)
-      assert_raise Ecto.NoResultsError, fn -> Composer.get_threat_agent!(threat_agent.id) end
+      assert {:ok, %ThreatAgent{}} = Threats.delete_threat_agent(threat_agent)
+      assert_raise Ecto.NoResultsError, fn -> Threats.get_threat_agent!(threat_agent.id) end
     end
 
     test "change_threat_agent/1 returns a threat agent changeset" do
       threat_agent = threat_agent_fixture()
-      assert %Ecto.Changeset{} = Composer.change_threat_agent(threat_agent)
+      assert %Ecto.Changeset{} = Threats.change_threat_agent(threat_agent)
     end
   end
 
@@ -532,30 +570,31 @@ defmodule Valentine.ComposerTest do
 
     test "list_assumptions/0 returns all assumptions" do
       assumption = assumption_fixture()
-      assert Composer.list_assumptions() == [assumption]
+      assert Assumptions.list_assumptions() == [assumption]
     end
 
     test "list_assumptions_by_workspace/2 returns all assumptions for a workspace" do
       assumption = assumption_fixture()
-      assert Composer.list_assumptions_by_workspace(assumption.workspace_id) == [assumption]
+      assert Assumptions.list_assumptions_by_workspace(assumption.workspace_id) == [assumption]
     end
 
     test "list_assumptions_by_workspace/2 returns all assumptions for a workspace based on a filter" do
       assumption_fixture()
       assumption = assumption_fixture(%{status: :confirmed})
 
-      assert Composer.list_assumptions_by_workspace(assumption.workspace_id, %{
+      assert Assumptions.list_assumptions_by_workspace(assumption.workspace_id, %{
                status: ["confirmed"]
              }) == [assumption]
     end
 
     test "list_assumptions_by_workspace/2 returns all assumptions for a workspace and not other workspaces" do
-      assert Composer.list_assumptions_by_workspace("00000000-0000-0000-0000-000000000000") == []
+      assert Assumptions.list_assumptions_by_workspace("00000000-0000-0000-0000-000000000000") ==
+               []
     end
 
     test "get_assumption!/1 returns the assumption with given id" do
       assumption = assumption_fixture()
-      assert Composer.get_assumption!(assumption.id) == assumption
+      assert Assumptions.get_assumption!(assumption.id) == assumption
     end
 
     test "create_assumption/1 with valid data creates a assumption" do
@@ -568,14 +607,14 @@ defmodule Valentine.ComposerTest do
         workspace_id: workspace.id
       }
 
-      assert {:ok, %Assumption{} = assumption} = Composer.create_assumption(valid_attrs)
+      assert {:ok, %Assumption{} = assumption} = Assumptions.create_assumption(valid_attrs)
       assert assumption.comments == "some comments"
       assert assumption.content == "some content"
       assert assumption.tags == ["option1", "option2"]
     end
 
     test "create_assumption/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Composer.create_assumption(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} = Assumptions.create_assumption(@invalid_attrs)
     end
 
     test "update_assumption/2 with valid data updates the assumption" do
@@ -588,7 +627,7 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %Assumption{} = assumption} =
-               Composer.update_assumption(assumption, update_attrs)
+               Assumptions.update_assumption(assumption, update_attrs)
 
       assert assumption.comments == "some updated comments"
       assert assumption.content == "some updated content"
@@ -597,19 +636,22 @@ defmodule Valentine.ComposerTest do
 
     test "update_assumption/2 with invalid data returns error changeset" do
       assumption = assumption_fixture()
-      assert {:error, %Ecto.Changeset{}} = Composer.update_assumption(assumption, @invalid_attrs)
-      assert assumption == Composer.get_assumption!(assumption.id)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Assumptions.update_assumption(assumption, @invalid_attrs)
+
+      assert assumption == Assumptions.get_assumption!(assumption.id)
     end
 
     test "delete_assumption/1 deletes the assumption" do
       assumption = assumption_fixture()
-      assert {:ok, %Assumption{}} = Composer.delete_assumption(assumption)
-      assert_raise Ecto.NoResultsError, fn -> Composer.get_assumption!(assumption.id) end
+      assert {:ok, %Assumption{}} = Assumptions.delete_assumption(assumption)
+      assert_raise Ecto.NoResultsError, fn -> Assumptions.get_assumption!(assumption.id) end
     end
 
     test "change_assumption/1 returns a assumption changeset" do
       assumption = assumption_fixture()
-      assert %Ecto.Changeset{} = Composer.change_assumption(assumption)
+      assert %Ecto.Changeset{} = Assumptions.change_assumption(assumption)
     end
 
     test "add_mitigation_to_assumption/2 adds an mitigation to a assumption" do
@@ -617,7 +659,7 @@ defmodule Valentine.ComposerTest do
       mitigation = mitigation_fixture()
 
       assert {:ok, %Assumption{} = assumption} =
-               Composer.add_mitigation_to_assumption(assumption, mitigation)
+               Relationships.add_mitigation_to_assumption(assumption, mitigation)
 
       assert assumption.mitigations == [mitigation]
     end
@@ -626,12 +668,12 @@ defmodule Valentine.ComposerTest do
       assumption = assumption_fixture()
       mitigation = mitigation_fixture()
 
-      Composer.add_mitigation_to_assumption(assumption, mitigation)
+      Relationships.add_mitigation_to_assumption(assumption, mitigation)
 
       mitigation2 = mitigation_fixture()
 
       assert {:ok, %Assumption{} = assumption} =
-               Composer.add_mitigation_to_assumption(assumption, mitigation2)
+               Relationships.add_mitigation_to_assumption(assumption, mitigation2)
 
       assert assumption.mitigations == [mitigation, mitigation2]
     end
@@ -641,12 +683,12 @@ defmodule Valentine.ComposerTest do
       mitigation = mitigation_fixture()
 
       {:ok, %Assumption{} = assumption} =
-        Composer.add_mitigation_to_assumption(assumption, mitigation)
+        Relationships.add_mitigation_to_assumption(assumption, mitigation)
 
       assert assumption.mitigations == [mitigation]
 
       {:ok, %Assumption{} = assumption} =
-        Composer.remove_mitigation_from_assumption(assumption, mitigation)
+        Relationships.remove_mitigation_from_assumption(assumption, mitigation)
 
       assert assumption.mitigations == []
     end
@@ -656,7 +698,7 @@ defmodule Valentine.ComposerTest do
       threat = threat_fixture()
 
       assert {:ok, %Assumption{} = assumption} =
-               Composer.add_threat_to_assumption(assumption, threat)
+               Relationships.add_threat_to_assumption(assumption, threat)
 
       assert assumption.threats == [threat]
     end
@@ -665,12 +707,12 @@ defmodule Valentine.ComposerTest do
       assumption = assumption_fixture()
       threat = threat_fixture()
 
-      Composer.add_threat_to_assumption(assumption, threat)
+      Relationships.add_threat_to_assumption(assumption, threat)
 
       threat2 = threat_fixture()
 
       assert {:ok, %Assumption{} = assumption} =
-               Composer.add_threat_to_assumption(assumption, threat2)
+               Relationships.add_threat_to_assumption(assumption, threat2)
 
       assert assumption.threats == [threat, threat2]
     end
@@ -680,12 +722,12 @@ defmodule Valentine.ComposerTest do
       threat = threat_fixture()
 
       {:ok, %Assumption{} = assumption} =
-        Composer.add_threat_to_assumption(assumption, threat)
+        Relationships.add_threat_to_assumption(assumption, threat)
 
       assert assumption.threats == [threat]
 
       {:ok, %Assumption{} = assumption} =
-        Composer.remove_threat_from_assumption(assumption, threat)
+        Relationships.remove_threat_from_assumption(assumption, threat)
 
       assert assumption.threats == []
     end
@@ -700,30 +742,31 @@ defmodule Valentine.ComposerTest do
 
     test "list_mitigations/0 returns all mitigations" do
       mitigation = mitigation_fixture()
-      assert Composer.list_mitigations() == [mitigation]
+      assert Mitigations.list_mitigations() == [mitigation]
     end
 
     test "list_mitigations_by_workspace/2 returns all mitigations for a workspace" do
       mitigation = mitigation_fixture()
-      assert Composer.list_mitigations_by_workspace(mitigation.workspace_id) == [mitigation]
+      assert Mitigations.list_mitigations_by_workspace(mitigation.workspace_id) == [mitigation]
     end
 
     test "list_mitigations_by_workspace/2 returns all mitigations for a workspace based on a filter" do
       mitigation_fixture()
       mitigation = mitigation_fixture(%{status: :identified})
 
-      assert Composer.list_mitigations_by_workspace(mitigation.workspace_id, %{
+      assert Mitigations.list_mitigations_by_workspace(mitigation.workspace_id, %{
                status: ["identified"]
              }) == [mitigation]
     end
 
     test "list_mitigations_by_workspace/2 returns all mitigations for a workspace and not other workspaces" do
-      assert Composer.list_mitigations_by_workspace("00000000-0000-0000-0000-000000000000") == []
+      assert Mitigations.list_mitigations_by_workspace("00000000-0000-0000-0000-000000000000") ==
+               []
     end
 
     test "get_mitigation!/1 returns the mitigation with given id" do
       mitigation = mitigation_fixture()
-      assert Composer.get_mitigation!(mitigation.id) == mitigation
+      assert Mitigations.get_mitigation!(mitigation.id) == mitigation
     end
 
     test "create_mitigation/1 with valid data creates a mitigation" do
@@ -737,14 +780,14 @@ defmodule Valentine.ComposerTest do
         workspace_id: workspace.id
       }
 
-      assert {:ok, %Mitigation{} = mitigation} = Composer.create_mitigation(valid_attrs)
+      assert {:ok, %Mitigation{} = mitigation} = Mitigations.create_mitigation(valid_attrs)
       assert mitigation.comments == "some comments"
       assert mitigation.content == "some content"
       assert mitigation.tags == ["option1", "option2"]
     end
 
     test "create_mitigation/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Composer.create_mitigation(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} = Mitigations.create_mitigation(@invalid_attrs)
     end
 
     test "update_mitigation/2 with valid data updates the mitigation" do
@@ -758,7 +801,7 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %Mitigation{} = mitigation} =
-               Composer.update_mitigation(mitigation, update_attrs)
+               Mitigations.update_mitigation(mitigation, update_attrs)
 
       assert mitigation.comments == "some updated comments"
       assert mitigation.content == "some updated content"
@@ -768,19 +811,22 @@ defmodule Valentine.ComposerTest do
 
     test "update_mitigation/2 with invalid data returns error changeset" do
       mitigation = mitigation_fixture()
-      assert {:error, %Ecto.Changeset{}} = Composer.update_mitigation(mitigation, @invalid_attrs)
-      assert mitigation == Composer.get_mitigation!(mitigation.id)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Mitigations.update_mitigation(mitigation, @invalid_attrs)
+
+      assert mitigation == Mitigations.get_mitigation!(mitigation.id)
     end
 
     test "delete_mitigation/1 deletes the mitigation" do
       mitigation = mitigation_fixture()
-      assert {:ok, %Mitigation{}} = Composer.delete_mitigation(mitigation)
-      assert_raise Ecto.NoResultsError, fn -> Composer.get_mitigation!(mitigation.id) end
+      assert {:ok, %Mitigation{}} = Mitigations.delete_mitigation(mitigation)
+      assert_raise Ecto.NoResultsError, fn -> Mitigations.get_mitigation!(mitigation.id) end
     end
 
     test "change_mitigation/1 returns a mitigation changeset" do
       mitigation = mitigation_fixture()
-      assert %Ecto.Changeset{} = Composer.change_mitigation(mitigation)
+      assert %Ecto.Changeset{} = Mitigations.change_mitigation(mitigation)
     end
 
     test "add_assumption_to_mitigation/2 adds an assumption to a mitigation" do
@@ -788,7 +834,7 @@ defmodule Valentine.ComposerTest do
       assumption = assumption_fixture()
 
       assert {:ok, %Mitigation{} = mitigation} =
-               Composer.add_assumption_to_mitigation(mitigation, assumption)
+               Relationships.add_assumption_to_mitigation(mitigation, assumption)
 
       assert mitigation.assumptions == [assumption]
     end
@@ -797,12 +843,12 @@ defmodule Valentine.ComposerTest do
       mitigation = mitigation_fixture()
       assumption = assumption_fixture()
 
-      Composer.add_assumption_to_mitigation(mitigation, assumption)
+      Relationships.add_assumption_to_mitigation(mitigation, assumption)
 
       assumption2 = assumption_fixture()
 
       assert {:ok, %Mitigation{} = mitigation} =
-               Composer.add_assumption_to_mitigation(mitigation, assumption2)
+               Relationships.add_assumption_to_mitigation(mitigation, assumption2)
 
       assert mitigation.assumptions == [assumption, assumption2]
     end
@@ -812,12 +858,12 @@ defmodule Valentine.ComposerTest do
       assumption = assumption_fixture()
 
       {:ok, %Mitigation{} = mitigation} =
-        Composer.add_assumption_to_mitigation(mitigation, assumption)
+        Relationships.add_assumption_to_mitigation(mitigation, assumption)
 
       assert mitigation.assumptions == [assumption]
 
       {:ok, %Mitigation{} = mitigation} =
-        Composer.remove_assumption_from_mitigation(mitigation, assumption)
+        Relationships.remove_assumption_from_mitigation(mitigation, assumption)
 
       assert mitigation.assumptions == []
     end
@@ -827,7 +873,7 @@ defmodule Valentine.ComposerTest do
       threat = threat_fixture()
 
       assert {:ok, %Mitigation{} = mitigation} =
-               Composer.add_threat_to_mitigation(mitigation, threat)
+               Relationships.add_threat_to_mitigation(mitigation, threat)
 
       assert mitigation.threats == [threat]
     end
@@ -836,12 +882,12 @@ defmodule Valentine.ComposerTest do
       mitigation = mitigation_fixture()
       threat = threat_fixture()
 
-      Composer.add_threat_to_mitigation(mitigation, threat)
+      Relationships.add_threat_to_mitigation(mitigation, threat)
 
       threat2 = threat_fixture()
 
       assert {:ok, %Mitigation{} = mitigation} =
-               Composer.add_threat_to_mitigation(mitigation, threat2)
+               Relationships.add_threat_to_mitigation(mitigation, threat2)
 
       assert mitigation.threats == [threat, threat2]
     end
@@ -851,12 +897,12 @@ defmodule Valentine.ComposerTest do
       threat = threat_fixture()
 
       {:ok, %Mitigation{} = mitigation} =
-        Composer.add_threat_to_mitigation(mitigation, threat)
+        Relationships.add_threat_to_mitigation(mitigation, threat)
 
       assert mitigation.threats == [threat]
 
       {:ok, %Mitigation{} = mitigation} =
-        Composer.remove_threat_from_mitigation(mitigation, threat)
+        Relationships.remove_threat_from_mitigation(mitigation, threat)
 
       assert mitigation.threats == []
     end
@@ -871,13 +917,13 @@ defmodule Valentine.ComposerTest do
 
     test "list_application_informations/0 returns all application_informations" do
       application_information = application_information_fixture()
-      assert Composer.list_application_informations() == [application_information]
+      assert Documents.list_application_informations() == [application_information]
     end
 
     test "get_application_information!/1 returns the application_information with given id" do
       application_information = application_information_fixture()
 
-      assert Composer.get_application_information!(application_information.id) ==
+      assert Documents.get_application_information!(application_information.id) ==
                application_information
     end
 
@@ -890,13 +936,14 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %ApplicationInformation{} = application_information} =
-               Composer.create_application_information(valid_attrs)
+               Documents.create_application_information(valid_attrs)
 
       assert application_information.content == "some content"
     end
 
     test "create_application_information/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Composer.create_application_information(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} =
+               Documents.create_application_information(@invalid_attrs)
     end
 
     test "update_application_information/2 with valid data updates the application_information" do
@@ -907,7 +954,7 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %ApplicationInformation{} = application_information} =
-               Composer.update_application_information(application_information, update_attrs)
+               Documents.update_application_information(application_information, update_attrs)
 
       assert application_information.content == "some updated content"
     end
@@ -916,26 +963,26 @@ defmodule Valentine.ComposerTest do
       application_information = application_information_fixture()
 
       assert {:error, %Ecto.Changeset{}} =
-               Composer.update_application_information(application_information, @invalid_attrs)
+               Documents.update_application_information(application_information, @invalid_attrs)
 
       assert application_information ==
-               Composer.get_application_information!(application_information.id)
+               Documents.get_application_information!(application_information.id)
     end
 
     test "delete_application_information/1 deletes the application_information" do
       application_information = application_information_fixture()
 
       assert {:ok, %ApplicationInformation{}} =
-               Composer.delete_application_information(application_information)
+               Documents.delete_application_information(application_information)
 
       assert_raise Ecto.NoResultsError, fn ->
-        Composer.get_application_information!(application_information.id)
+        Documents.get_application_information!(application_information.id)
       end
     end
 
     test "change_application_information/1 returns a application_information changeset" do
       application_information = application_information_fixture()
-      assert %Ecto.Changeset{} = Composer.change_application_information(application_information)
+      assert %Ecto.Changeset{} = Documents.change_application_information(application_information)
     end
   end
 
@@ -949,20 +996,20 @@ defmodule Valentine.ComposerTest do
     test "list_data_flow_diagrams/0 returns all data_flow_diagrams" do
       data_flow_diagram = data_flow_diagram_fixture()
 
-      assert hd(Composer.list_data_flow_diagrams()).id == data_flow_diagram.id
+      assert hd(Documents.list_data_flow_diagrams()).id == data_flow_diagram.id
     end
 
     test "get_data_flow_diagram_by_workspace_id/1 returns the data_flow_diagram with given workspace_id" do
       data_flow_diagram = data_flow_diagram_fixture()
 
-      assert Composer.get_data_flow_diagram_by_workspace_id(data_flow_diagram.workspace_id).id ==
+      assert Documents.get_data_flow_diagram_by_workspace_id(data_flow_diagram.workspace_id).id ==
                data_flow_diagram.id
     end
 
     test "get_data_flow_diagram!/1 returns the data_flow_diagram with given id" do
       data_flow_diagram = data_flow_diagram_fixture()
 
-      assert Composer.get_data_flow_diagram!(data_flow_diagram.id).id ==
+      assert Documents.get_data_flow_diagram!(data_flow_diagram.id).id ==
                data_flow_diagram.id
     end
 
@@ -976,14 +1023,14 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %DataFlowDiagram{} = data_flow_diagram} =
-               Composer.create_data_flow_diagram(valid_attrs)
+               Documents.create_data_flow_diagram(valid_attrs)
 
       assert data_flow_diagram.edges == %{}
       assert data_flow_diagram.nodes == %{}
     end
 
     test "create_data_flow_diagram/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Composer.create_data_flow_diagram(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} = Documents.create_data_flow_diagram(@invalid_attrs)
     end
 
     test "update_data_flow_diagram/2 with valid data updates the data_flow_diagram" do
@@ -994,7 +1041,7 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %DataFlowDiagram{} = data_flow_diagram} =
-               Composer.update_data_flow_diagram(data_flow_diagram, update_attrs)
+               Documents.update_data_flow_diagram(data_flow_diagram, update_attrs)
 
       assert data_flow_diagram.edges == %{"foo" => "bar"}
     end
@@ -1003,26 +1050,26 @@ defmodule Valentine.ComposerTest do
       data_flow_diagram = data_flow_diagram_fixture()
 
       assert {:error, %Ecto.Changeset{}} =
-               Composer.update_data_flow_diagram(data_flow_diagram, %{edges: nil})
+               Documents.update_data_flow_diagram(data_flow_diagram, %{edges: nil})
 
       assert data_flow_diagram ==
-               Composer.get_data_flow_diagram!(data_flow_diagram.id)
+               Documents.get_data_flow_diagram!(data_flow_diagram.id)
     end
 
     test "delete_data_flow_diagram/1 deletes the data_flow_diagram" do
       data_flow_diagram = data_flow_diagram_fixture()
 
       assert {:ok, %DataFlowDiagram{}} =
-               Composer.delete_data_flow_diagram(data_flow_diagram)
+               Documents.delete_data_flow_diagram(data_flow_diagram)
 
       assert_raise Ecto.NoResultsError, fn ->
-        Composer.get_data_flow_diagram!(data_flow_diagram.id)
+        Documents.get_data_flow_diagram!(data_flow_diagram.id)
       end
     end
 
     test "change_data_flow_diagram/1 returns a data_flow_diagram changeset" do
       data_flow_diagram = data_flow_diagram_fixture()
-      assert %Ecto.Changeset{} = Composer.change_data_flow_diagram(data_flow_diagram)
+      assert %Ecto.Changeset{} = Documents.change_data_flow_diagram(data_flow_diagram)
     end
   end
 
@@ -1035,13 +1082,13 @@ defmodule Valentine.ComposerTest do
 
     test "list_architectures/0 returns all architectures" do
       architecture = architecture_fixture()
-      assert Composer.list_architectures() == [architecture]
+      assert Documents.list_architectures() == [architecture]
     end
 
     test "get_architecture!/1 returns the architecture with given id" do
       architecture = architecture_fixture()
 
-      assert Composer.get_architecture!(architecture.id) ==
+      assert Documents.get_architecture!(architecture.id) ==
                architecture
     end
 
@@ -1054,13 +1101,13 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %Architecture{} = architecture} =
-               Composer.create_architecture(valid_attrs)
+               Documents.create_architecture(valid_attrs)
 
       assert architecture.content == "some content"
     end
 
     test "create_architecture/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Composer.create_architecture(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} = Documents.create_architecture(@invalid_attrs)
     end
 
     test "update_architecture/2 with valid data updates the architecture" do
@@ -1071,7 +1118,7 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %Architecture{} = architecture} =
-               Composer.update_architecture(architecture, update_attrs)
+               Documents.update_architecture(architecture, update_attrs)
 
       assert architecture.content == "some updated content"
     end
@@ -1080,26 +1127,26 @@ defmodule Valentine.ComposerTest do
       architecture = architecture_fixture()
 
       assert {:error, %Ecto.Changeset{}} =
-               Composer.update_architecture(architecture, @invalid_attrs)
+               Documents.update_architecture(architecture, @invalid_attrs)
 
       assert architecture ==
-               Composer.get_architecture!(architecture.id)
+               Documents.get_architecture!(architecture.id)
     end
 
     test "delete_architecture/1 deletes the architecture" do
       architecture = architecture_fixture()
 
       assert {:ok, %Architecture{}} =
-               Composer.delete_architecture(architecture)
+               Documents.delete_architecture(architecture)
 
       assert_raise Ecto.NoResultsError, fn ->
-        Composer.get_architecture!(architecture.id)
+        Documents.get_architecture!(architecture.id)
       end
     end
 
     test "change_architecture/1 returns a architecture changeset" do
       architecture = architecture_fixture()
-      assert %Ecto.Changeset{} = Composer.change_architecture(architecture)
+      assert %Ecto.Changeset{} = Documents.change_architecture(architecture)
     end
   end
 
@@ -1121,13 +1168,13 @@ defmodule Valentine.ComposerTest do
 
     test "list_reference_pack_items/0 returns all reference_pack_items" do
       reference_pack_item = reference_pack_item_fixture()
-      assert Composer.list_reference_pack_items() == [reference_pack_item]
+      assert ReferencePacks.list_reference_pack_items() == [reference_pack_item]
     end
 
     test "list_reference_pack_items_by_collection/2 returns all reference_pack_items for a collection_id and collection_type" do
       reference_pack_item = reference_pack_item_fixture()
 
-      assert Composer.list_reference_pack_items_by_collection(
+      assert ReferencePacks.list_reference_pack_items_by_collection(
                reference_pack_item.collection_id,
                reference_pack_item.collection_type
              ) == [reference_pack_item]
@@ -1136,7 +1183,7 @@ defmodule Valentine.ComposerTest do
     test "list_reference_packs/1 returns all the reference packs by type, collection, and name count" do
       reference_pack_item = reference_pack_item_fixture()
 
-      assert Composer.list_reference_packs() == [
+      assert ReferencePacks.list_reference_packs() == [
                %{
                  collection_id: reference_pack_item.collection_id,
                  collection_name: reference_pack_item.collection_name,
@@ -1149,7 +1196,7 @@ defmodule Valentine.ComposerTest do
     test "get_reference_pack_item!/1 returns the reference_pack_item with given id" do
       reference_pack_item = reference_pack_item_fixture()
 
-      assert Composer.get_reference_pack_item!(reference_pack_item.id) ==
+      assert ReferencePacks.get_reference_pack_item!(reference_pack_item.id) ==
                reference_pack_item
     end
 
@@ -1164,13 +1211,14 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %ReferencePackItem{} = reference_pack_item} =
-               Composer.create_reference_pack_item(valid_attrs)
+               ReferencePacks.create_reference_pack_item(valid_attrs)
 
       assert reference_pack_item.name == "some name"
     end
 
     test "create_reference_pack_item/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Composer.create_reference_pack_item(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} =
+               ReferencePacks.create_reference_pack_item(@invalid_attrs)
     end
 
     test "update_reference_pack_item/2 with valid data updates the reference_pack_item" do
@@ -1181,7 +1229,7 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %ReferencePackItem{} = reference_pack_item} =
-               Composer.update_reference_pack_item(reference_pack_item, update_attrs)
+               ReferencePacks.update_reference_pack_item(reference_pack_item, update_attrs)
 
       assert reference_pack_item.name == "some updated name"
     end
@@ -1190,20 +1238,20 @@ defmodule Valentine.ComposerTest do
       reference_pack_item = reference_pack_item_fixture()
 
       assert {:error, %Ecto.Changeset{}} =
-               Composer.update_reference_pack_item(reference_pack_item, @invalid_attrs)
+               ReferencePacks.update_reference_pack_item(reference_pack_item, @invalid_attrs)
 
       assert reference_pack_item ==
-               Composer.get_reference_pack_item!(reference_pack_item.id)
+               ReferencePacks.get_reference_pack_item!(reference_pack_item.id)
     end
 
     test "delete_reference_pack_item/1 deletes the reference_pack_item" do
       reference_pack_item = reference_pack_item_fixture()
 
       assert {:ok, %ReferencePackItem{}} =
-               Composer.delete_reference_pack_item(reference_pack_item)
+               ReferencePacks.delete_reference_pack_item(reference_pack_item)
 
       assert_raise Ecto.NoResultsError, fn ->
-        Composer.get_reference_pack_item!(reference_pack_item.id)
+        ReferencePacks.get_reference_pack_item!(reference_pack_item.id)
       end
     end
 
@@ -1211,19 +1259,19 @@ defmodule Valentine.ComposerTest do
       reference_pack_item = reference_pack_item_fixture()
 
       assert {1, nil} =
-               Composer.delete_reference_pack_collection(
+               ReferencePacks.delete_reference_pack_collection(
                  reference_pack_item.collection_id,
                  reference_pack_item.collection_type
                )
 
       assert_raise Ecto.NoResultsError, fn ->
-        Composer.get_reference_pack_item!(reference_pack_item.id)
+        ReferencePacks.get_reference_pack_item!(reference_pack_item.id)
       end
     end
 
     test "change_reference_pack_item/1 returns a reference_pack_item changeset" do
       reference_pack_item = reference_pack_item_fixture()
-      assert %Ecto.Changeset{} = Composer.change_reference_pack_item(reference_pack_item)
+      assert %Ecto.Changeset{} = ReferencePacks.change_reference_pack_item(reference_pack_item)
     end
 
     test "add_reference_pack_item_to_workspace/2 adds a assumption item to a workspace" do
@@ -1231,9 +1279,12 @@ defmodule Valentine.ComposerTest do
       workspace = workspace_fixture()
 
       assert {:ok, %Assumption{} = assumption} =
-               Composer.add_reference_pack_item_to_workspace(workspace.id, reference_pack_item)
+               ReferencePacks.add_reference_pack_item_to_workspace(
+                 workspace.id,
+                 reference_pack_item
+               )
 
-      workspace = Composer.get_workspace!(workspace.id, [:assumptions])
+      workspace = Workspaces.get_workspace!(workspace.id, [:assumptions])
 
       assert workspace.assumptions == [assumption]
     end
@@ -1243,9 +1294,12 @@ defmodule Valentine.ComposerTest do
       workspace = workspace_fixture()
 
       assert {:ok, %Mitigation{} = mitigation} =
-               Composer.add_reference_pack_item_to_workspace(workspace.id, reference_pack_item)
+               ReferencePacks.add_reference_pack_item_to_workspace(
+                 workspace.id,
+                 reference_pack_item
+               )
 
-      workspace = Composer.get_workspace!(workspace.id, [:mitigations])
+      workspace = Workspaces.get_workspace!(workspace.id, [:mitigations])
 
       assert workspace.mitigations == [mitigation]
     end
@@ -1267,24 +1321,24 @@ defmodule Valentine.ComposerTest do
 
     test "list_controls/0 returns all controls" do
       control = control_fixture()
-      assert Composer.list_controls() == [control]
+      assert Controls.list_controls() == [control]
     end
 
     test "list_controls_by_filters/0 returns all controls with given tags" do
       control = control_fixture(tags: ["tag1", "tag2"])
-      assert Composer.list_controls_by_filters(%{tags: control.tags}) == [control]
+      assert Controls.list_controls_by_filters(%{tags: control.tags}) == [control]
     end
 
     test "list_controls_by_filters/0 returns all controls with given tags and not other controls" do
       control_fixture(tags: ["tag1", "tag2"])
-      assert Composer.list_controls_by_filters(%{tags: ["tag3"]}) == []
+      assert Controls.list_controls_by_filters(%{tags: ["tag3"]}) == []
     end
 
     test "list_controls_by_filters/0, will filter by class" do
       control = control_fixture(tags: ["tag1", "tag2"], class: "some class")
       control_fixture(tags: ["tag1", "tag2"], class: "other class")
 
-      assert Composer.list_controls_by_filters(%{classes: ["some class"]}) ==
+      assert Controls.list_controls_by_filters(%{classes: ["some class"]}) ==
                [control]
     end
 
@@ -1292,7 +1346,7 @@ defmodule Valentine.ComposerTest do
       control = control_fixture(tags: ["tag1", "tag2"], class: "some class", nist_id: "AC-1")
       control_fixture(tags: ["tag1", "tag2"], class: "other class", nist_id: "AC-2")
 
-      assert Composer.list_controls_by_filters(%{
+      assert Controls.list_controls_by_filters(%{
                tags: control.tags,
                classes: ["some class"],
                nist_families: ["AC"]
@@ -1301,19 +1355,19 @@ defmodule Valentine.ComposerTest do
 
     test "list_control_families/0 returns all control families" do
       control_fixture(%{nist_id: "AC-1"})
-      assert Composer.list_control_families() == ["AC"]
+      assert Controls.list_control_families() == ["AC"]
     end
 
     test "list_controls_in_families/1 returns all controls for a list of families" do
       control = control_fixture(%{nist_id: "AC-1"})
       family = control.nist_id |> String.split("-") |> hd
-      assert Composer.list_controls_in_families([family]) == [control]
+      assert Controls.list_controls_in_families([family]) == [control]
     end
 
     test "get_control!/1 returns the control with given id" do
       control = control_fixture()
 
-      assert Composer.get_control!(control.id) ==
+      assert Controls.get_control!(control.id) ==
                control
     end
 
@@ -1329,13 +1383,13 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %Control{} = control} =
-               Composer.create_control(valid_attrs)
+               Controls.create_control(valid_attrs)
 
       assert control.name == "some name"
     end
 
     test "create_control/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Composer.create_control(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} = Controls.create_control(@invalid_attrs)
     end
 
     test "update_control/2 with valid data updates the control" do
@@ -1346,7 +1400,7 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %Control{} = control} =
-               Composer.update_control(control, update_attrs)
+               Controls.update_control(control, update_attrs)
 
       assert control.name == "some updated name"
     end
@@ -1355,26 +1409,26 @@ defmodule Valentine.ComposerTest do
       control = control_fixture()
 
       assert {:error, %Ecto.Changeset{}} =
-               Composer.update_control(control, @invalid_attrs)
+               Controls.update_control(control, @invalid_attrs)
 
       assert control ==
-               Composer.get_control!(control.id)
+               Controls.get_control!(control.id)
     end
 
     test "delete_control/1 deletes the control" do
       control = control_fixture()
 
       assert {:ok, %Control{}} =
-               Composer.delete_control(control)
+               Controls.delete_control(control)
 
       assert_raise Ecto.NoResultsError, fn ->
-        Composer.get_control!(control.id)
+        Controls.get_control!(control.id)
       end
     end
 
     test "change_control/1 returns a control changeset" do
       control = control_fixture()
-      assert %Ecto.Changeset{} = Composer.change_control(control)
+      assert %Ecto.Changeset{} = Controls.change_control(control)
     end
   end
 
@@ -1392,13 +1446,13 @@ defmodule Valentine.ComposerTest do
         user_fixture(%{email: "m.user@localhost"})
       ]
 
-      assert Composer.list_users() == Enum.sort_by(users, & &1.email)
+      assert Users.list_users() == Enum.sort_by(users, & &1.email)
     end
 
     test "get_user/1 returns the user with given id" do
       user = user_fixture()
 
-      assert Composer.get_user(user.email) ==
+      assert Users.get_user(user.email) ==
                user
     end
 
@@ -1408,13 +1462,13 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %User{} = user} =
-               Composer.create_user(valid_attrs)
+               Users.create_user(valid_attrs)
 
       assert user.email == "some.user@localhost"
     end
 
     test "create_user/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Composer.create_user(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} = Users.create_user(@invalid_attrs)
     end
 
     test "update_user/2 with valid data updates the user" do
@@ -1427,7 +1481,7 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %User{} = user} =
-               Composer.update_user(user, update_attrs)
+               Users.update_user(user, update_attrs)
 
       assert user.email == user.email
       assert user.updated_at != updated_at
@@ -1437,24 +1491,24 @@ defmodule Valentine.ComposerTest do
       user = user_fixture()
 
       assert {:error, %Ecto.Changeset{}} =
-               Composer.update_user(user, @invalid_attrs)
+               Users.update_user(user, @invalid_attrs)
 
       assert user ==
-               Composer.get_user(user.email)
+               Users.get_user(user.email)
     end
 
     test "delete_user/1 deletes the user" do
       user = user_fixture()
 
       assert {:ok, %User{}} =
-               Composer.delete_user(user)
+               Users.delete_user(user)
 
-      assert Composer.get_user(user.email) == nil
+      assert Users.get_user(user.email) == nil
     end
 
     test "change_user/1 returns a user changeset" do
       user = user_fixture()
-      assert %Ecto.Changeset{} = Composer.change_user(user)
+      assert %Ecto.Changeset{} = Users.change_user(user)
     end
   end
 
@@ -1467,22 +1521,22 @@ defmodule Valentine.ComposerTest do
 
     test "list_api_keys/0 returns all api_keys" do
       api_key_fixture()
-      assert length(Composer.list_api_keys()) > 0
+      assert length(ApiKeys.list_api_keys()) > 0
     end
 
     test "list_api_keys_by_workspace/1 returns all api_keys for a workspace" do
       api_key = api_key_fixture()
-      assert length(Composer.list_api_keys_by_workspace(api_key.workspace_id)) > 0
+      assert length(ApiKeys.list_api_keys_by_workspace(api_key.workspace_id)) > 0
     end
 
     test "list_api_keys_by_workspace/1 returns all api_keys for a workspace and not other workspaces" do
-      assert Composer.list_api_keys_by_workspace("00000000-0000-0000-0000-000000000000") == []
+      assert ApiKeys.list_api_keys_by_workspace("00000000-0000-0000-0000-000000000000") == []
     end
 
     test "get_api_key/1 returns the api_key with given id" do
       api_key = api_key_fixture()
 
-      assert Composer.get_api_key(api_key.id).id ==
+      assert ApiKeys.get_api_key(api_key.id).id ==
                api_key.id
     end
 
@@ -1498,7 +1552,7 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %ApiKey{} = api_key} =
-               Composer.create_api_key(valid_attrs)
+               ApiKeys.create_api_key(valid_attrs)
 
       assert api_key.owner == "some owner"
     end
@@ -1515,13 +1569,13 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %ApiKey{} = api_key} =
-               Composer.create_api_key(valid_attrs)
+               ApiKeys.create_api_key(valid_attrs)
 
       assert api_key.key != nil
     end
 
     test "create_api_key/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Composer.create_api_key(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} = ApiKeys.create_api_key(@invalid_attrs)
     end
 
     test "create_api_key_for_workspace/3 derives protected fields from trusted values" do
@@ -1536,7 +1590,7 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %ApiKey{} = api_key} =
-               Composer.create_api_key_for_workspace(
+               ApiKeys.create_api_key_for_workspace(
                  workspace,
                  workspace.owner,
                  untrusted_attrs
@@ -1546,20 +1600,20 @@ defmodule Valentine.ComposerTest do
       assert api_key.owner == workspace.owner
       assert api_key.status == :active
       assert api_key.workspace_id == workspace.id
-      assert Composer.list_api_keys_by_workspace(other_workspace.id) == []
+      assert ApiKeys.list_api_keys_by_workspace(other_workspace.id) == []
     end
 
     test "create_api_key_for_workspace/3 rejects non-owners" do
       workspace = workspace_fixture(%{owner: "workspace.owner@localhost"})
 
       assert {:error, :unauthorized} =
-               Composer.create_api_key_for_workspace(
+               ApiKeys.create_api_key_for_workspace(
                  workspace,
                  "collaborator@localhost",
                  %{"label" => "Unauthorized key"}
                )
 
-      assert Composer.list_api_keys_by_workspace(workspace.id) == []
+      assert ApiKeys.list_api_keys_by_workspace(workspace.id) == []
     end
 
     test "update_api_key/2 with valid data updates the api_key" do
@@ -1570,7 +1624,7 @@ defmodule Valentine.ComposerTest do
       }
 
       assert {:ok, %ApiKey{} = api_key} =
-               Composer.update_api_key(api_key, update_attrs)
+               ApiKeys.update_api_key(api_key, update_attrs)
 
       assert api_key.id == api_key.id
       assert api_key.owner == "some updated owner"
@@ -1580,24 +1634,24 @@ defmodule Valentine.ComposerTest do
       api_key = api_key_fixture()
 
       assert {:error, %Ecto.Changeset{}} =
-               Composer.update_api_key(api_key, @invalid_attrs)
+               ApiKeys.update_api_key(api_key, @invalid_attrs)
 
       assert api_key.id ==
-               Composer.get_api_key(api_key.id).id
+               ApiKeys.get_api_key(api_key.id).id
     end
 
     test "delete_api_key/1 deletes the api_key" do
       api_key = api_key_fixture()
 
       assert {:ok, %ApiKey{}} =
-               Composer.delete_api_key(api_key)
+               ApiKeys.delete_api_key(api_key)
 
-      assert Composer.get_api_key(api_key.id) == nil
+      assert ApiKeys.get_api_key(api_key.id) == nil
     end
 
     test "change_api_key/1 returns a api_key changeset" do
       api_key = api_key_fixture()
-      assert %Ecto.Changeset{} = Composer.change_api_key(api_key)
+      assert %Ecto.Changeset{} = ApiKeys.change_api_key(api_key)
     end
   end
 
@@ -1624,7 +1678,9 @@ defmodule Valentine.ComposerTest do
       evidence: evidence,
       assumption: assumption
     } do
-      assert {:ok, updated_evidence} = Composer.add_assumption_to_evidence(evidence, assumption)
+      assert {:ok, updated_evidence} =
+               Relationships.add_assumption_to_evidence(evidence, assumption)
+
       assert Enum.any?(updated_evidence.assumptions, &(&1.id == assumption.id))
     end
 
@@ -1632,7 +1688,7 @@ defmodule Valentine.ComposerTest do
       evidence: evidence,
       assumption: assumption
     } do
-      {:ok, updated_evidence} = Composer.add_assumption_to_evidence(evidence, assumption)
+      {:ok, updated_evidence} = Relationships.add_assumption_to_evidence(evidence, assumption)
       assert is_list(updated_evidence.assumptions)
       assert Enum.count(updated_evidence.assumptions) == 1
     end
@@ -1642,9 +1698,9 @@ defmodule Valentine.ComposerTest do
       assumption: assumption
     } do
       # Add once
-      {:ok, _} = Composer.add_assumption_to_evidence(evidence, assumption)
+      {:ok, _} = Relationships.add_assumption_to_evidence(evidence, assumption)
       # Add again - should not error
-      {:ok, updated_evidence} = Composer.add_assumption_to_evidence(evidence, assumption)
+      {:ok, updated_evidence} = Relationships.add_assumption_to_evidence(evidence, assumption)
       # Should still only have one
       assert Enum.count(updated_evidence.assumptions) == 1
     end
@@ -1654,9 +1710,11 @@ defmodule Valentine.ComposerTest do
       assumption: assumption
     } do
       # First link
-      {:ok, _} = Composer.add_assumption_to_evidence(evidence, assumption)
+      {:ok, _} = Relationships.add_assumption_to_evidence(evidence, assumption)
       # Then unlink
-      {:ok, updated_evidence} = Composer.remove_assumption_from_evidence(evidence, assumption)
+      {:ok, updated_evidence} =
+        Relationships.remove_assumption_from_evidence(evidence, assumption)
+
       refute Enum.any?(updated_evidence.assumptions, &(&1.id == assumption.id))
     end
 
@@ -1664,8 +1722,11 @@ defmodule Valentine.ComposerTest do
       evidence: evidence,
       assumption: assumption
     } do
-      {:ok, _} = Composer.add_assumption_to_evidence(evidence, assumption)
-      {:ok, updated_evidence} = Composer.remove_assumption_from_evidence(evidence, assumption)
+      {:ok, _} = Relationships.add_assumption_to_evidence(evidence, assumption)
+
+      {:ok, updated_evidence} =
+        Relationships.remove_assumption_from_evidence(evidence, assumption)
+
       assert is_list(updated_evidence.assumptions)
       assert Enum.empty?(updated_evidence.assumptions)
     end
@@ -1675,12 +1736,14 @@ defmodule Valentine.ComposerTest do
       assumption: assumption
     } do
       # Try to remove a link that doesn't exist - should not error
-      {:ok, updated_evidence} = Composer.remove_assumption_from_evidence(evidence, assumption)
+      {:ok, updated_evidence} =
+        Relationships.remove_assumption_from_evidence(evidence, assumption)
+
       assert Enum.empty?(updated_evidence.assumptions)
     end
 
     test "add_threat_to_evidence/2 successfully links", %{evidence: evidence, threat: threat} do
-      assert {:ok, updated_evidence} = Composer.add_threat_to_evidence(evidence, threat)
+      assert {:ok, updated_evidence} = Relationships.add_threat_to_evidence(evidence, threat)
       assert Enum.any?(updated_evidence.threats, &(&1.id == threat.id))
     end
 
@@ -1688,7 +1751,7 @@ defmodule Valentine.ComposerTest do
       evidence: evidence,
       threat: threat
     } do
-      {:ok, updated_evidence} = Composer.add_threat_to_evidence(evidence, threat)
+      {:ok, updated_evidence} = Relationships.add_threat_to_evidence(evidence, threat)
       assert is_list(updated_evidence.threats)
       assert Enum.count(updated_evidence.threats) == 1
     end
@@ -1697,14 +1760,14 @@ defmodule Valentine.ComposerTest do
       evidence: evidence,
       threat: threat
     } do
-      {:ok, _} = Composer.add_threat_to_evidence(evidence, threat)
-      {:ok, updated_evidence} = Composer.add_threat_to_evidence(evidence, threat)
+      {:ok, _} = Relationships.add_threat_to_evidence(evidence, threat)
+      {:ok, updated_evidence} = Relationships.add_threat_to_evidence(evidence, threat)
       assert Enum.count(updated_evidence.threats) == 1
     end
 
     test "remove_threat_from_evidence/2 unlinks threat", %{evidence: evidence, threat: threat} do
-      {:ok, _} = Composer.add_threat_to_evidence(evidence, threat)
-      {:ok, updated_evidence} = Composer.remove_threat_from_evidence(evidence, threat)
+      {:ok, _} = Relationships.add_threat_to_evidence(evidence, threat)
+      {:ok, updated_evidence} = Relationships.remove_threat_from_evidence(evidence, threat)
       refute Enum.any?(updated_evidence.threats, &(&1.id == threat.id))
     end
 
@@ -1712,8 +1775,8 @@ defmodule Valentine.ComposerTest do
       evidence: evidence,
       threat: threat
     } do
-      {:ok, _} = Composer.add_threat_to_evidence(evidence, threat)
-      {:ok, updated_evidence} = Composer.remove_threat_from_evidence(evidence, threat)
+      {:ok, _} = Relationships.add_threat_to_evidence(evidence, threat)
+      {:ok, updated_evidence} = Relationships.remove_threat_from_evidence(evidence, threat)
       assert is_list(updated_evidence.threats)
       assert Enum.empty?(updated_evidence.threats)
     end
@@ -1722,7 +1785,7 @@ defmodule Valentine.ComposerTest do
       evidence: evidence,
       threat: threat
     } do
-      {:ok, updated_evidence} = Composer.remove_threat_from_evidence(evidence, threat)
+      {:ok, updated_evidence} = Relationships.remove_threat_from_evidence(evidence, threat)
       assert Enum.empty?(updated_evidence.threats)
     end
 
@@ -1730,7 +1793,9 @@ defmodule Valentine.ComposerTest do
       evidence: evidence,
       mitigation: mitigation
     } do
-      assert {:ok, updated_evidence} = Composer.add_mitigation_to_evidence(evidence, mitigation)
+      assert {:ok, updated_evidence} =
+               Relationships.add_mitigation_to_evidence(evidence, mitigation)
+
       assert Enum.any?(updated_evidence.mitigations, &(&1.id == mitigation.id))
     end
 
@@ -1738,7 +1803,7 @@ defmodule Valentine.ComposerTest do
       evidence: evidence,
       mitigation: mitigation
     } do
-      {:ok, updated_evidence} = Composer.add_mitigation_to_evidence(evidence, mitigation)
+      {:ok, updated_evidence} = Relationships.add_mitigation_to_evidence(evidence, mitigation)
       assert is_list(updated_evidence.mitigations)
       assert Enum.count(updated_evidence.mitigations) == 1
     end
@@ -1747,8 +1812,8 @@ defmodule Valentine.ComposerTest do
       evidence: evidence,
       mitigation: mitigation
     } do
-      {:ok, _} = Composer.add_mitigation_to_evidence(evidence, mitigation)
-      {:ok, updated_evidence} = Composer.add_mitigation_to_evidence(evidence, mitigation)
+      {:ok, _} = Relationships.add_mitigation_to_evidence(evidence, mitigation)
+      {:ok, updated_evidence} = Relationships.add_mitigation_to_evidence(evidence, mitigation)
       assert Enum.count(updated_evidence.mitigations) == 1
     end
 
@@ -1756,8 +1821,11 @@ defmodule Valentine.ComposerTest do
       evidence: evidence,
       mitigation: mitigation
     } do
-      {:ok, _} = Composer.add_mitigation_to_evidence(evidence, mitigation)
-      {:ok, updated_evidence} = Composer.remove_mitigation_from_evidence(evidence, mitigation)
+      {:ok, _} = Relationships.add_mitigation_to_evidence(evidence, mitigation)
+
+      {:ok, updated_evidence} =
+        Relationships.remove_mitigation_from_evidence(evidence, mitigation)
+
       refute Enum.any?(updated_evidence.mitigations, &(&1.id == mitigation.id))
     end
 
@@ -1765,8 +1833,11 @@ defmodule Valentine.ComposerTest do
       evidence: evidence,
       mitigation: mitigation
     } do
-      {:ok, _} = Composer.add_mitigation_to_evidence(evidence, mitigation)
-      {:ok, updated_evidence} = Composer.remove_mitigation_from_evidence(evidence, mitigation)
+      {:ok, _} = Relationships.add_mitigation_to_evidence(evidence, mitigation)
+
+      {:ok, updated_evidence} =
+        Relationships.remove_mitigation_from_evidence(evidence, mitigation)
+
       assert is_list(updated_evidence.mitigations)
       assert Enum.empty?(updated_evidence.mitigations)
     end
@@ -1775,13 +1846,15 @@ defmodule Valentine.ComposerTest do
       evidence: evidence,
       mitigation: mitigation
     } do
-      {:ok, updated_evidence} = Composer.remove_mitigation_from_evidence(evidence, mitigation)
+      {:ok, updated_evidence} =
+        Relationships.remove_mitigation_from_evidence(evidence, mitigation)
+
       assert Enum.empty?(updated_evidence.mitigations)
     end
 
     test "get_evidence!/2 with preload list loads associations", %{evidence: evidence} do
       loaded_evidence =
-        Composer.get_evidence!(evidence.id, [:assumptions, :threats, :mitigations])
+        EvidenceManagement.get_evidence!(evidence.id, [:assumptions, :threats, :mitigations])
 
       assert is_list(loaded_evidence.assumptions)
       assert is_list(loaded_evidence.threats)
@@ -1789,7 +1862,7 @@ defmodule Valentine.ComposerTest do
     end
 
     test "get_evidence!/2 with nil preload returns basic evidence", %{evidence: evidence} do
-      loaded_evidence = Composer.get_evidence!(evidence.id, nil)
+      loaded_evidence = EvidenceManagement.get_evidence!(evidence.id, nil)
       assert loaded_evidence.id == evidence.id
       # Associations should not be loaded
       assert %Ecto.Association.NotLoaded{} = loaded_evidence.assumptions
@@ -1817,40 +1890,40 @@ defmodule Valentine.ComposerTest do
           owner: other_workspace.owner
         })
 
-      assert Composer.get_threat_for_workspace(workspace.id, threat.id) == nil
-      assert Composer.get_assumption_for_workspace(workspace.id, assumption.id) == nil
-      assert Composer.get_mitigation_for_workspace(workspace.id, mitigation.id) == nil
-      assert Composer.get_evidence_for_workspace(workspace.id, evidence.id) == nil
-      assert Composer.get_threat_agent_for_workspace(workspace.id, threat_agent.id) == nil
-      assert Composer.get_api_key_for_workspace(workspace.id, api_key.id) == nil
-      assert Composer.get_brainstorm_item(workspace.id, brainstorm_item.id) == nil
+      assert Threats.get_threat_for_workspace(workspace.id, threat.id) == nil
+      assert Assumptions.get_assumption_for_workspace(workspace.id, assumption.id) == nil
+      assert Mitigations.get_mitigation_for_workspace(workspace.id, mitigation.id) == nil
+      assert EvidenceManagement.get_evidence_for_workspace(workspace.id, evidence.id) == nil
+      assert Threats.get_threat_agent_for_workspace(workspace.id, threat_agent.id) == nil
+      assert ApiKeys.get_api_key_for_workspace(workspace.id, api_key.id) == nil
+      assert Brainstorm.get_brainstorm_item(workspace.id, brainstorm_item.id) == nil
 
       assert_raise Ecto.NoResultsError, fn ->
-        Composer.get_threat_for_workspace!(workspace.id, threat.id)
+        Threats.get_threat_for_workspace!(workspace.id, threat.id)
       end
 
       assert_raise Ecto.NoResultsError, fn ->
-        Composer.get_assumption_for_workspace!(workspace.id, assumption.id)
+        Assumptions.get_assumption_for_workspace!(workspace.id, assumption.id)
       end
 
       assert_raise Ecto.NoResultsError, fn ->
-        Composer.get_mitigation_for_workspace!(workspace.id, mitigation.id)
+        Mitigations.get_mitigation_for_workspace!(workspace.id, mitigation.id)
       end
 
       assert_raise Ecto.NoResultsError, fn ->
-        Composer.get_evidence_for_workspace!(workspace.id, evidence.id)
+        EvidenceManagement.get_evidence_for_workspace!(workspace.id, evidence.id)
       end
 
       assert_raise Ecto.NoResultsError, fn ->
-        Composer.get_threat_agent_for_workspace!(workspace.id, threat_agent.id)
+        Threats.get_threat_agent_for_workspace!(workspace.id, threat_agent.id)
       end
 
       assert_raise Ecto.NoResultsError, fn ->
-        Composer.get_brainstorm_item!(workspace.id, brainstorm_item.id)
+        Brainstorm.get_brainstorm_item!(workspace.id, brainstorm_item.id)
       end
 
       assert_raise Ecto.NoResultsError, fn ->
-        Composer.get_threat_model_quality_review_run_for_workspace!(
+        AnalysisJobs.get_threat_model_quality_review_run_for_workspace!(
           workspace.id,
           review_run.id
         )

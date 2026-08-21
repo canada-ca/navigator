@@ -5,8 +5,8 @@ defmodule Valentine.ControlCategorizer do
 
   alias Valentine.AIProvider
   alias Valentine.AIResponseNormalizer
-  alias Valentine.Composer
-
+  alias Valentine.Composer.Assumptions
+  alias Valentine.Composer.Mitigations
   import ReqLLM.Context
 
   @type entity_type :: :assumption | :mitigation
@@ -51,11 +51,11 @@ defmodule Valentine.ControlCategorizer do
   end
 
   def save_tags(:assumption, assumption, tags) do
-    Composer.update_assumption(assumption, %{tags: (assumption.tags || []) ++ tags})
+    Assumptions.update_assumption(assumption, %{tags: (assumption.tags || []) ++ tags})
   end
 
   def save_tags(:mitigation, mitigation, tags) do
-    Composer.update_mitigation(mitigation, %{tags: (mitigation.tags || []) ++ tags})
+    Mitigations.update_mitigation(mitigation, %{tags: (mitigation.tags || []) ++ tags})
   end
 
   def prompts(:assumption, assumption) do
@@ -150,7 +150,7 @@ defmodule Valentine.ControlCategorizer do
     threats
     |> List.wrap()
     |> Enum.map_join("\n", fn threat ->
-      "START:#{Composer.Threat.show_statement(threat)}END"
+      "START:#{Valentine.Composer.Threat.show_statement(threat)}END"
     end)
     |> optional_text()
   end

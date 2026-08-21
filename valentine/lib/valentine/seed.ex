@@ -3,7 +3,7 @@ defmodule Valentine.Seed do
   Module for seeding control data from CSV files into the database.
   """
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Controls
 
   @common_profile_tags [
     "CSP Full Stack",
@@ -25,7 +25,7 @@ defmodule Valentine.Seed do
     end
   end
 
-  defp controls_empty?, do: length(Composer.list_controls()) == 0
+  defp controls_empty?, do: length(Controls.list_controls()) == 0
 
   defp seed_medium_profile do
     get_csv_path("cccs-cloud-medium-profile.csv")
@@ -51,7 +51,7 @@ defmodule Valentine.Seed do
   defp process_row(row, profile_tag: tag, update_existing: true) do
     nist_id = row["ID"] |> nist_id() |> String.trim()
 
-    case Composer.get_control_by_nist_id(nist_id) do
+    case Controls.get_control_by_nist_id(nist_id) do
       nil -> create_control(row, [tag])
       control -> update_existing_control(control, tag)
     end
@@ -72,11 +72,11 @@ defmodule Valentine.Seed do
       stride: [],
       tags: extract_tags(row) ++ additional_tags
     }
-    |> Composer.create_control()
+    |> Controls.create_control()
   end
 
   defp update_existing_control(control, new_tag) do
-    Composer.update_control(control, %{
+    Controls.update_control(control, %{
       tags: control.tags ++ [new_tag]
     })
   end

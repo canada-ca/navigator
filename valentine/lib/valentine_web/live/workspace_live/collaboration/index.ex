@@ -2,12 +2,13 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.Index do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Users
 
+  alias Valentine.Composer.Workspaces
   @impl true
   def mount(%{"workspace_id" => workspace_id} = _params, _session, socket) do
-    workspace = Composer.get_workspace!(workspace_id)
-    users = Composer.list_users()
+    workspace = Workspaces.get_workspace!(workspace_id)
+    users = Users.list_users()
 
     {:ok,
      socket
@@ -39,7 +40,7 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.Index do
       )
 
       {:ok, workspace} =
-        Composer.update_workspace_permissions(socket.assigns.workspace, email, permission)
+        Workspaces.update_workspace_permissions(socket.assigns.workspace, email, permission)
 
       {:noreply,
        socket

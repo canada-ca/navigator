@@ -2,14 +2,14 @@ defmodule ValentineWeb.WorkspaceLive.Index do
   use ValentineWeb, :live_view
   use PrimerLive
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.Workspace
 
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:workspaces, Composer.list_workspaces_by_identity(socket.assigns.current_user))}
+     |> assign(:workspaces, Workspaces.list_workspaces_by_identity(socket.assigns.current_user))}
   end
 
   @impl true
@@ -20,7 +20,7 @@ defmodule ValentineWeb.WorkspaceLive.Index do
   defp apply_action(socket, :edit, %{"workspace_id" => workspace_id}) do
     socket
     |> assign(:page_title, gettext("Edit Workspace"))
-    |> assign(:workspace, Composer.get_workspace!(workspace_id))
+    |> assign(:workspace, Workspaces.get_workspace!(workspace_id))
   end
 
   defp apply_action(socket, :import, _params) do
@@ -49,10 +49,10 @@ defmodule ValentineWeb.WorkspaceLive.Index do
 
   @impl true
   def handle_event("delete", %{"workspace_id" => workspace_id}, socket) do
-    workspace = Composer.get_workspace!(workspace_id)
+    workspace = Workspaces.get_workspace!(workspace_id)
 
     if workspace.owner == socket.assigns.current_user do
-      case Composer.delete_workspace(workspace) do
+      case Workspaces.delete_workspace(workspace) do
         {:ok, _} ->
           log(:info, socket.assigns.current_user, "deleted", workspace.id, "workspace")
 
@@ -61,7 +61,7 @@ defmodule ValentineWeb.WorkspaceLive.Index do
            |> put_flash(:info, gettext("Workspace deleted successfully"))
            |> assign(
              :workspaces,
-             Composer.list_workspaces_by_identity(socket.assigns.current_user)
+             Workspaces.list_workspaces_by_identity(socket.assigns.current_user)
            )}
 
         {:error, _} ->
@@ -78,7 +78,7 @@ defmodule ValentineWeb.WorkspaceLive.Index do
      assign(
        socket,
        :workspaces,
-       Composer.list_workspaces_by_identity(socket.assigns.current_user)
+       Workspaces.list_workspaces_by_identity(socket.assigns.current_user)
      )}
   end
 
@@ -91,7 +91,7 @@ defmodule ValentineWeb.WorkspaceLive.Index do
      assign(
        socket,
        :workspaces,
-       Composer.list_workspaces_by_identity(socket.assigns.current_user)
+       Workspaces.list_workspaces_by_identity(socket.assigns.current_user)
      )}
   end
 end

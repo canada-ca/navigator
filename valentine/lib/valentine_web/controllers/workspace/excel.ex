@@ -2,14 +2,14 @@ defmodule ValentineWeb.Workspace.Excel do
   alias Elixlsx.Workbook
   alias Elixlsx.Sheet
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Controls
 
   def generate(workspace) do
     controls =
       if workspace.cloud_profile == nil && workspace.cloud_profile_type == nil do
-        Composer.list_controls()
+        Controls.list_controls()
       else
-        Composer.list_controls_by_filters(%{
+        Controls.list_controls_by_filters(%{
           tags: [workspace.cloud_profile, workspace.cloud_profile_type]
         })
       end
@@ -23,9 +23,9 @@ defmodule ValentineWeb.Workspace.Excel do
   end
 
   defp append_tagged_entities(controls, workspace) do
-    assumptions = Composer.Workspace.get_tagged_with_controls(workspace.assumptions)
-    mitigations = Composer.Workspace.get_tagged_with_controls(workspace.mitigations)
-    threats = Composer.Workspace.get_tagged_with_controls(workspace.threats)
+    assumptions = Valentine.Composer.Workspace.get_tagged_with_controls(workspace.assumptions)
+    mitigations = Valentine.Composer.Workspace.get_tagged_with_controls(workspace.mitigations)
+    threats = Valentine.Composer.Workspace.get_tagged_with_controls(workspace.threats)
 
     controls
     |> Enum.map(fn {k, v} ->
@@ -66,7 +66,8 @@ defmodule ValentineWeb.Workspace.Excel do
             ),
             if(c.threats != nil,
               do: [
-                Enum.map(c.threats, &Composer.Threat.show_statement/1) |> Enum.join("\n"),
+                Enum.map(c.threats, &Valentine.Composer.Threat.show_statement/1)
+                |> Enum.join("\n"),
                 wrap_text: true
               ],
               else: ""

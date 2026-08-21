@@ -1,6 +1,8 @@
 defmodule ValentineWeb.WorkspaceLive.ApiKey.IndexTest do
   use ValentineWeb.ConnCase
-  alias Valentine.Composer
+
+  alias Valentine.Composer.ApiKeys
+
   import Mock
 
   import Valentine.ComposerFixtures
@@ -86,7 +88,7 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.IndexTest do
     end
 
     test "handles not found api_key", %{socket: socket, api_key: api_key} do
-      with_mock Composer,
+      with_mock ApiKeys,
         get_api_key_for_workspace: fn _workspace_id, _id -> nil end do
         {:noreply, updated_socket} =
           ValentineWeb.WorkspaceLive.ApiKey.Index.handle_event(
@@ -100,7 +102,7 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.IndexTest do
     end
 
     test "handles delete error", %{socket: socket, api_key: api_key} do
-      with_mock Composer,
+      with_mock ApiKeys,
         get_api_key_for_workspace: fn _workspace_id, _id -> api_key end,
         delete_api_key: fn _api_key -> {:error, "some error"} end do
         {:noreply, updated_socket} =

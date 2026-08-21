@@ -4,7 +4,7 @@ defmodule Valentine.RepoAnalysis.Runner do
   require Logger
 
   alias Valentine.AIProvider
-  alias Valentine.Composer
+  alias Valentine.Composer.AnalysisJobs
   alias Valentine.RepoAnalysis
   alias Valentine.RepoAnalysis.GitHub
   alias Valentine.RepoAnalysis.Generator
@@ -44,7 +44,7 @@ defmodule Valentine.RepoAnalysis.Runner do
   end
 
   def cleanup(repo_analysis_agent_id) do
-    repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent_id)
+    repo_analysis_agent = AnalysisJobs.get_repo_analysis_agent!(repo_analysis_agent_id)
 
     case get_in(repo_analysis_agent.metadata, ["clone_dir"]) do
       clone_dir when is_binary(clone_dir) -> File.rm_rf(clone_dir)
@@ -53,7 +53,7 @@ defmodule Valentine.RepoAnalysis.Runner do
   end
 
   defp do_run(repo_analysis_agent_id) do
-    repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent_id)
+    repo_analysis_agent = AnalysisJobs.get_repo_analysis_agent!(repo_analysis_agent_id)
     ensure_not_cancelled!(repo_analysis_agent)
 
     RepoAnalysis.update_status(repo_analysis_agent_id, %{
@@ -71,7 +71,7 @@ defmodule Valentine.RepoAnalysis.Runner do
       metadata: Map.merge(repo_analysis_agent.metadata, clone_metadata)
     })
 
-    ensure_not_cancelled!(Composer.get_repo_analysis_agent!(repo_analysis_agent_id))
+    ensure_not_cancelled!(AnalysisJobs.get_repo_analysis_agent!(repo_analysis_agent_id))
 
     RepoAnalysis.update_status(repo_analysis_agent_id, %{
       status: :indexing,
@@ -92,7 +92,7 @@ defmodule Valentine.RepoAnalysis.Runner do
       progress_message: "Generating architecture and threat model"
     })
 
-    ensure_not_cancelled!(Composer.get_repo_analysis_agent!(repo_analysis_agent_id))
+    ensure_not_cancelled!(AnalysisJobs.get_repo_analysis_agent!(repo_analysis_agent_id))
 
     RepoAnalysis.update_status(repo_analysis_agent_id, %{
       status: :summarizing,
@@ -141,7 +141,7 @@ defmodule Valentine.RepoAnalysis.Runner do
   end
 
   defp stop_runtime(repo_analysis_agent_id) do
-    repo_analysis_agent = Composer.get_repo_analysis_agent!(repo_analysis_agent_id)
+    repo_analysis_agent = AnalysisJobs.get_repo_analysis_agent!(repo_analysis_agent_id)
 
     if is_binary(repo_analysis_agent.runtime_agent_id) do
       _ = Valentine.Jido.stop_agent(repo_analysis_agent.runtime_agent_id)

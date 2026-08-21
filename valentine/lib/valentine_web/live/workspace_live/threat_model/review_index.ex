@@ -3,7 +3,8 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.ReviewIndex do
   use PrimerLive
 
   alias Phoenix.PubSub
-  alias Valentine.Composer
+  alias Valentine.Composer.AnalysisJobs
+  alias Valentine.Composer.Workspaces
   alias Valentine.ThreatModelQualityReview
 
   @impl true
@@ -90,12 +91,12 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.ReviewIndex do
   defp assign_workspace(socket, workspace_id) do
     review_history =
       workspace_id
-      |> Composer.list_threat_model_quality_review_runs_by_workspace()
+      |> AnalysisJobs.list_threat_model_quality_review_runs_by_workspace()
       |> Enum.take(10)
 
     socket
     |> assign(:workspace_id, workspace_id)
-    |> assign(:workspace, Composer.get_workspace!(workspace_id))
+    |> assign(:workspace, Workspaces.get_workspace!(workspace_id))
     |> assign(:review_history, review_history)
   end
 

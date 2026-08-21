@@ -2,8 +2,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponent do
   use ValentineWeb, :live_component
   use PrimerLive
 
-  alias Valentine.Composer
-
+  alias Valentine.Composer.Assumptions
   @impl true
   def render(assigns) do
     ~H"""
@@ -63,14 +62,14 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponent do
      socket
      |> assign(assigns)
      |> assign_new(:changeset, fn ->
-       Composer.change_assumption(assumption)
+       Assumptions.change_assumption(assumption)
      end)}
   end
 
   @impl true
   def handle_event("validate", %{"assumption" => assumption_params}, socket) do
     changeset =
-      Composer.change_assumption(
+      Assumptions.change_assumption(
         socket.assigns.assumption,
         trusted_params(socket, assumption_params)
       )
@@ -83,7 +82,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponent do
   end
 
   defp save_assumption(socket, :edit, assumption_params) do
-    case Composer.update_assumption(socket.assigns.assumption, assumption_params) do
+    case Assumptions.update_assumption(socket.assigns.assumption, assumption_params) do
       {:ok, assumption} ->
         notify_parent({:saved, assumption})
 
@@ -109,7 +108,7 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponent do
   end
 
   defp save_assumption(socket, :new, assumption_params) do
-    case Composer.create_assumption(assumption_params) do
+    case Assumptions.create_assumption(assumption_params) do
       {:ok, assumption} ->
         notify_parent({:saved, assumption})
 

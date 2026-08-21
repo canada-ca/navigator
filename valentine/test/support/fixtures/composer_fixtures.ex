@@ -28,7 +28,7 @@ defmodule Valentine.ComposerFixtures do
         owner: "some owner",
         permissions: %{}
       })
-      |> Valentine.Composer.create_workspace()
+      |> Valentine.Composer.Workspaces.create_workspace()
 
     workspace
   end
@@ -60,7 +60,7 @@ defmodule Valentine.ComposerFixtures do
         tags: ["tag1", "tag2"],
         workspace_id: workspace.id
       })
-      |> Valentine.Composer.create_threat()
+      |> Valentine.Composer.Threats.create_threat()
 
     threat
     |> Ecto.reset_fields([:assumptions, :mitigations])
@@ -82,7 +82,7 @@ defmodule Valentine.ComposerFixtures do
         motivation: "opportunistic",
         td_level: :td2
       })
-      |> Valentine.Composer.create_threat_agent()
+      |> Valentine.Composer.Threats.create_threat_agent()
 
     threat_agent
   end
@@ -103,7 +103,7 @@ defmodule Valentine.ComposerFixtures do
         numeric_id: 42,
         workspace_id: workspace.id
       })
-      |> Valentine.Composer.create_assumption()
+      |> Valentine.Composer.Assumptions.create_assumption()
 
     assumption
   end
@@ -124,7 +124,7 @@ defmodule Valentine.ComposerFixtures do
         numeric_id: 42,
         workspace_id: workspace.id
       })
-      |> Valentine.Composer.create_mitigation()
+      |> Valentine.Composer.Mitigations.create_mitigation()
 
     mitigation
   end
@@ -132,7 +132,7 @@ defmodule Valentine.ComposerFixtures do
   def data_flow_diagram_fixture(attr \\ %{}) do
     workspace =
       if attr[:workspace_id] do
-        Valentine.Composer.get_workspace!(attr[:workspace_id])
+        Valentine.Composer.Workspaces.get_workspace!(attr[:workspace_id])
       else
         workspace_fixture()
       end
@@ -152,7 +152,7 @@ defmodule Valentine.ComposerFixtures do
         content: "some content",
         workspace_id: workspace.id
       })
-      |> Valentine.Composer.create_application_information()
+      |> Valentine.Composer.Documents.create_application_information()
 
     application_information
   end
@@ -170,7 +170,7 @@ defmodule Valentine.ComposerFixtures do
         image: "some image",
         workspace_id: workspace.id
       })
-      |> Valentine.Composer.create_architecture()
+      |> Valentine.Composer.Documents.create_architecture()
 
     architecture
   end
@@ -189,7 +189,7 @@ defmodule Valentine.ComposerFixtures do
         collection_name: "some collection_name",
         data: %{"content" => "some content"}
       })
-      |> Valentine.Composer.create_reference_pack_item()
+      |> Valentine.Composer.ReferencePacks.create_reference_pack_item()
 
     reference_pack_item
   end
@@ -210,7 +210,7 @@ defmodule Valentine.ComposerFixtures do
         stride: [:spoofing],
         tags: ["tag1", "tag2"]
       })
-      |> Valentine.Composer.create_control()
+      |> Valentine.Composer.Controls.create_control()
 
     control
   end
@@ -224,7 +224,7 @@ defmodule Valentine.ComposerFixtures do
       |> Enum.into(%{
         email: "some.user@localhost"
       })
-      |> Valentine.Composer.create_user()
+      |> Valentine.Composer.Users.create_user()
 
     user
   end
@@ -244,7 +244,7 @@ defmodule Valentine.ComposerFixtures do
         last_used: DateTime.utc_now(),
         workspace_id: workspace.id
       })
-      |> Valentine.Composer.create_api_key()
+      |> Valentine.Composer.ApiKeys.create_api_key()
 
     api_key
   end
@@ -269,7 +269,7 @@ defmodule Valentine.ComposerFixtures do
         result_summary: %{},
         requested_at: DateTime.utc_now()
       })
-      |> Valentine.Composer.create_repo_analysis_agent()
+      |> Valentine.Composer.AnalysisJobs.create_repo_analysis_agent()
 
     repo_analysis_agent
   end
@@ -292,7 +292,7 @@ defmodule Valentine.ComposerFixtures do
         result_summary: %{},
         requested_at: DateTime.utc_now()
       })
-      |> Valentine.Composer.create_threat_model_quality_review_run()
+      |> Valentine.Composer.AnalysisJobs.create_threat_model_quality_review_run()
 
     run
   end
@@ -315,7 +315,7 @@ defmodule Valentine.ComposerFixtures do
         metadata: %{},
         display_order: 0
       })
-      |> Valentine.Composer.create_threat_model_quality_review_finding()
+      |> Valentine.Composer.AnalysisJobs.create_threat_model_quality_review_finding()
 
     finding
   end
@@ -337,7 +337,7 @@ defmodule Valentine.ComposerFixtures do
         tags: ["security", "compliance"],
         workspace_id: workspace.id
       })
-      |> Valentine.Composer.create_evidence()
+      |> Valentine.Composer.EvidenceManagement.create_evidence()
 
     evidence
   end
@@ -359,7 +359,7 @@ defmodule Valentine.ComposerFixtures do
         tags: ["external", "document"],
         workspace_id: workspace.id
       })
-      |> Valentine.Composer.create_evidence()
+      |> Valentine.Composer.EvidenceManagement.create_evidence()
 
     evidence
   end
@@ -377,7 +377,7 @@ defmodule Valentine.ComposerFixtures do
         type: :threat,
         raw_text: "some brainstorm item text"
       })
-      |> Valentine.Composer.create_brainstorm_item()
+      |> Valentine.Composer.Brainstorm.create_brainstorm_item()
 
     brainstorm_item
   end

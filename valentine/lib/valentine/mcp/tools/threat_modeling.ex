@@ -1,18 +1,24 @@
 defmodule Valentine.MCP.Tools.ThreatModeling do
   import Valentine.MCP.ToolHelpers
 
-  alias Valentine.Composer
+  alias Valentine.Composer.Assumptions
+
+  alias Valentine.Composer.Mitigations
+
+  alias Valentine.Composer.Relationships
+
+  alias Valentine.Composer.Threats
 
   def list_threats(_args, api_key) do
     api_key.workspace_id
-    |> Composer.list_threats_by_workspace()
+    |> Threats.list_threats_by_workspace()
     |> ok_json()
   end
 
   def create_threat(args, api_key) do
     args
     |> attrs_for_create(api_key.workspace_id)
-    |> Composer.create_threat()
+    |> Threats.create_threat()
     |> result_json()
   end
 
@@ -20,7 +26,7 @@ defmodule Valentine.MCP.Tools.ThreatModeling do
     with {:ok, threat} <- fetch_threat(id, api_key.workspace_id) do
       args
       |> attrs_for_update()
-      |> then(&Composer.update_threat(threat, &1))
+      |> then(&Threats.update_threat(threat, &1))
       |> result_json()
     else
       {:error, message} -> tool_error(message)
@@ -30,7 +36,7 @@ defmodule Valentine.MCP.Tools.ThreatModeling do
   def delete_threat(%{"id" => id}, api_key) do
     with {:ok, threat} <- fetch_threat(id, api_key.workspace_id) do
       threat
-      |> Composer.delete_threat()
+      |> Threats.delete_threat()
       |> result_json()
     else
       {:error, message} -> tool_error(message)
@@ -39,14 +45,14 @@ defmodule Valentine.MCP.Tools.ThreatModeling do
 
   def list_assumptions(_args, api_key) do
     api_key.workspace_id
-    |> Composer.list_assumptions_by_workspace()
+    |> Assumptions.list_assumptions_by_workspace()
     |> ok_json()
   end
 
   def create_assumption(args, api_key) do
     args
     |> attrs_for_create(api_key.workspace_id)
-    |> Composer.create_assumption()
+    |> Assumptions.create_assumption()
     |> result_json()
   end
 
@@ -54,7 +60,7 @@ defmodule Valentine.MCP.Tools.ThreatModeling do
     with {:ok, assumption} <- fetch_assumption(id, api_key.workspace_id) do
       args
       |> attrs_for_update()
-      |> then(&Composer.update_assumption(assumption, &1))
+      |> then(&Assumptions.update_assumption(assumption, &1))
       |> result_json()
     else
       {:error, message} -> tool_error(message)
@@ -64,7 +70,7 @@ defmodule Valentine.MCP.Tools.ThreatModeling do
   def delete_assumption(%{"id" => id}, api_key) do
     with {:ok, assumption} <- fetch_assumption(id, api_key.workspace_id) do
       assumption
-      |> Composer.delete_assumption()
+      |> Assumptions.delete_assumption()
       |> result_json()
     else
       {:error, message} -> tool_error(message)
@@ -73,14 +79,14 @@ defmodule Valentine.MCP.Tools.ThreatModeling do
 
   def list_mitigations(_args, api_key) do
     api_key.workspace_id
-    |> Composer.list_mitigations_by_workspace()
+    |> Mitigations.list_mitigations_by_workspace()
     |> ok_json()
   end
 
   def create_mitigation(args, api_key) do
     args
     |> attrs_for_create(api_key.workspace_id)
-    |> Composer.create_mitigation()
+    |> Mitigations.create_mitigation()
     |> result_json()
   end
 
@@ -88,7 +94,7 @@ defmodule Valentine.MCP.Tools.ThreatModeling do
     with {:ok, mitigation} <- fetch_mitigation(id, api_key.workspace_id) do
       args
       |> attrs_for_update()
-      |> then(&Composer.update_mitigation(mitigation, &1))
+      |> then(&Mitigations.update_mitigation(mitigation, &1))
       |> result_json()
     else
       {:error, message} -> tool_error(message)
@@ -98,7 +104,7 @@ defmodule Valentine.MCP.Tools.ThreatModeling do
   def delete_mitigation(%{"id" => id}, api_key) do
     with {:ok, mitigation} <- fetch_mitigation(id, api_key.workspace_id) do
       mitigation
-      |> Composer.delete_mitigation()
+      |> Mitigations.delete_mitigation()
       |> result_json()
     else
       {:error, message} -> tool_error(message)
@@ -153,7 +159,7 @@ defmodule Valentine.MCP.Tools.ThreatModeling do
 
   defp fetch_threat(id, workspace_id) do
     fetch_workspace_entity(
-      &Composer.get_threat!(&1, [:assumptions, :mitigations]),
+      &Threats.get_threat!(&1, [:assumptions, :mitigations]),
       id,
       workspace_id
     )
@@ -161,7 +167,7 @@ defmodule Valentine.MCP.Tools.ThreatModeling do
 
   defp fetch_assumption(id, workspace_id) do
     fetch_workspace_entity(
-      &Composer.get_assumption!(&1, [:threats, :mitigations]),
+      &Assumptions.get_assumption!(&1, [:threats, :mitigations]),
       id,
       workspace_id
     )
@@ -169,47 +175,47 @@ defmodule Valentine.MCP.Tools.ThreatModeling do
 
   defp fetch_mitigation(id, workspace_id) do
     fetch_workspace_entity(
-      &Composer.get_mitigation!(&1, [:threats, :assumptions]),
+      &Mitigations.get_mitigation!(&1, [:threats, :assumptions]),
       id,
       workspace_id
     )
   end
 
   defp call_relationship(:link, "threat", threat, "assumption", assumption),
-    do: Composer.add_assumption_to_threat(threat, assumption)
+    do: Relationships.add_assumption_to_threat(threat, assumption)
 
   defp call_relationship(:unlink, "threat", threat, "assumption", assumption),
-    do: Composer.remove_assumption_from_threat(threat, assumption)
+    do: Relationships.remove_assumption_from_threat(threat, assumption)
 
   defp call_relationship(:link, "threat", threat, "mitigation", mitigation),
-    do: Composer.add_mitigation_to_threat(threat, mitigation)
+    do: Relationships.add_mitigation_to_threat(threat, mitigation)
 
   defp call_relationship(:unlink, "threat", threat, "mitigation", mitigation),
-    do: Composer.remove_mitigation_from_threat(threat, mitigation)
+    do: Relationships.remove_mitigation_from_threat(threat, mitigation)
 
   defp call_relationship(:link, "assumption", assumption, "threat", threat),
-    do: Composer.add_threat_to_assumption(assumption, threat)
+    do: Relationships.add_threat_to_assumption(assumption, threat)
 
   defp call_relationship(:unlink, "assumption", assumption, "threat", threat),
-    do: Composer.remove_threat_from_assumption(assumption, threat)
+    do: Relationships.remove_threat_from_assumption(assumption, threat)
 
   defp call_relationship(:link, "assumption", assumption, "mitigation", mitigation),
-    do: Composer.add_mitigation_to_assumption(assumption, mitigation)
+    do: Relationships.add_mitigation_to_assumption(assumption, mitigation)
 
   defp call_relationship(:unlink, "assumption", assumption, "mitigation", mitigation),
-    do: Composer.remove_mitigation_from_assumption(assumption, mitigation)
+    do: Relationships.remove_mitigation_from_assumption(assumption, mitigation)
 
   defp call_relationship(:link, "mitigation", mitigation, "threat", threat),
-    do: Composer.add_threat_to_mitigation(mitigation, threat)
+    do: Relationships.add_threat_to_mitigation(mitigation, threat)
 
   defp call_relationship(:unlink, "mitigation", mitigation, "threat", threat),
-    do: Composer.remove_threat_from_mitigation(mitigation, threat)
+    do: Relationships.remove_threat_from_mitigation(mitigation, threat)
 
   defp call_relationship(:link, "mitigation", mitigation, "assumption", assumption),
-    do: Composer.add_assumption_to_mitigation(mitigation, assumption)
+    do: Relationships.add_assumption_to_mitigation(mitigation, assumption)
 
   defp call_relationship(:unlink, "mitigation", mitigation, "assumption", assumption),
-    do: Composer.remove_assumption_from_mitigation(mitigation, assumption)
+    do: Relationships.remove_assumption_from_mitigation(mitigation, assumption)
 
   defp call_relationship(_action, from_type, _from, to_type, _to),
     do: {:error, "Unsupported relationship: #{from_type} -> #{to_type}"}
