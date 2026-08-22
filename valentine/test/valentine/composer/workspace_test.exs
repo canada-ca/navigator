@@ -28,6 +28,41 @@ defmodule Valentine.Composer.WorkspaceTest do
       workspace = %Workspace{owner: "user1"}
       assert Workspace.check_workspace_permissions(workspace, "user2") == nil
     end
+
+    test "returns nil for unsupported stored permissions" do
+      workspace = %Workspace{owner: "user1", permissions: %{"user2" => "member"}}
+      assert Workspace.check_workspace_permissions(workspace, "user2") == nil
+    end
+  end
+
+  describe "workspace capabilities" do
+    test "maps the effective roles to read, write, and manage capabilities" do
+      assert Workspace.can_read?("owner")
+      assert Workspace.can_read?("write")
+      assert Workspace.can_read?("read")
+      refute Workspace.can_read?(nil)
+      refute Workspace.can_read?("member")
+
+      assert Workspace.can_write?("owner")
+      assert Workspace.can_write?("write")
+      refute Workspace.can_write?("read")
+
+      assert Workspace.can_manage?("owner")
+      refute Workspace.can_manage?("write")
+      refute Workspace.can_manage?("read")
+    end
+
+    test "derives capabilities from a workspace and identity" do
+      workspace = %Workspace{
+        owner: "owner",
+        permissions: %{"writer" => "write", "reader" => "read"}
+      }
+
+      assert Workspace.can_manage?(workspace, "owner")
+      assert Workspace.can_write?(workspace, "writer")
+      refute Workspace.can_write?(workspace, "reader")
+      assert Workspace.can_read?(workspace, "reader")
+    end
   end
 
   describe "get_tagged_with_controls/1" do

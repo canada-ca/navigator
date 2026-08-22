@@ -1,7 +1,7 @@
 <.subhead>
   {gettext("Listing Threats")}
   <:actions>
-    <.link navigate={~p"/workspaces/#{@workspace_id}/threats/new"}>
+    <.link :if={@workspace_can_write} navigate={~p"/workspaces/#{@workspace_id}/threats/new"}>
       <.button is_primary>{gettext("New Threat Statement")}</.button>
     </.link>
   </:actions>
@@ -73,7 +73,10 @@
         <.blankslate class="color-bg-default">
           <:octicon name="squirrel-24" />
           <:action>
-            <.link navigate={~p"/workspaces/#{@workspace_id}/threats/new"}>
+            <.link
+              :if={@workspace_can_write}
+              navigate={~p"/workspaces/#{@workspace_id}/threats/new"}
+            >
               <.button is_primary>{gettext("Get started")}</.button>
             </.link>
           </:action>
@@ -88,6 +91,8 @@
       module={ValentineWeb.WorkspaceLive.Components.ThreatComponent}
       id={"threat-statement-#{threat.id}"}
       threat={threat}
+      current_user={@current_user}
+      can_write={@workspace_can_write}
     />
   </:row>
 </.box>
@@ -102,6 +107,7 @@
   linkable_entities={@assumptions}
   linked_entities={@threat.assumptions}
   workspace_id={@workspace_id}
+  current_user={@current_user}
   patch={~p"/workspaces/#{@workspace_id}/threats"}
 />
 
@@ -115,5 +121,6 @@
   linkable_entities={@mitigations}
   linked_entities={@threat.mitigations}
   workspace_id={@workspace_id}
+  current_user={@current_user}
   patch={~p"/workspaces/#{@workspace_id}/threats"}
 />

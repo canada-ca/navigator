@@ -69,6 +69,7 @@ function buildHook(dataset = {}) {
     el.dataset.edges = JSON.stringify(dataset.edges || []);
     el.dataset.selectedtheme = dataset.selectedtheme || "light";
     el.dataset.user = dataset.user || "test-user";
+    el.dataset.readOnly = String(dataset.readOnly || false);
     document.body.appendChild(el);
 
     const eventHandlers = {};
@@ -175,5 +176,30 @@ describe("CytoscapeHook", () => {
         hook.destroyed();
 
         expect(cytoscapeState.mockCy.destroy).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps reader diagrams selectable but non-mutating and applies remote refreshes", () => {
+        const hook = buildHook({ readOnly: true });
+
+        hook.mounted();
+        hook.save();
+
+        const registeredEvents = cytoscapeState.mockCy.on.mock.calls.map(([name]) => name);
+        expect(cytoscapeState.lastOptions.autoungrabify).toBe(true);
+        expect(cytoscapeState.mockCy.edgehandles).not.toHaveBeenCalled();
+        expect(registeredEvents).toContain("select");
+        expect(registeredEvents).not.toContain("grab");
+        expect(registeredEvents).not.toContain("free");
+        expect(registeredEvents).not.toContain("ehcomplete");
+        expect(hook.pushEventTo).not.toHaveBeenCalledWith(hook.el, "export", expect.anything());
+
+        hook.eventHandlers.updateGraph({
+            event: "refresh_graph",
+            payload: { nodes: [{ data: { id: "remote" } }], edges: [] }
+        });
+
+        expect(cytoscapeState.mockCy.add).toHaveBeenCalledWith([
+            { data: { id: "remote" } }
+        ]);
     });
 });

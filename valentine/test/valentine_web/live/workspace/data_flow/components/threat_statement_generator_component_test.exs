@@ -8,6 +8,7 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementGenerato
 
   defp create_component(_) do
     dfd = data_flow_diagram_fixture()
+    workspace = Valentine.Composer.Workspaces.get_workspace!(dfd.workspace_id)
     node = Valentine.Composer.DataFlowDiagram.add_node(dfd.workspace_id, %{"type" => "test"})
 
     assigns = %{
@@ -18,7 +19,8 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementGenerato
       error: nil,
       threat: nil,
       usage: nil,
-      workspace_id: dfd.workspace_id
+      workspace_id: dfd.workspace_id,
+      current_user: workspace.owner
     }
 
     socket = %Phoenix.LiveView.Socket{

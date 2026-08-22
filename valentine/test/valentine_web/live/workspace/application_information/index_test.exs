@@ -21,7 +21,8 @@ defmodule ValentineWeb.WorkspaceLive.ApplicationInformation.IndexTest do
     %{
       application_information: application_information,
       socket: socket,
-      workspace_id: workspace.id
+      workspace_id: workspace.id,
+      workspace: workspace
     }
   end
 
@@ -150,6 +151,52 @@ defmodule ValentineWeb.WorkspaceLive.ApplicationInformation.IndexTest do
       assert Valentine.Composer.ApplicationInformation.get_cache(
                application_information.workspace_id
              ) == []
+    end
+
+    test "reader changes, saves, and assistant insertions do not alter cache or content", %{
+      application_information: application_information,
+      socket: socket,
+      workspace: workspace
+    } do
+      {:ok, _workspace} =
+        Valentine.Composer.Workspaces.update_workspace_permissions(
+          workspace,
+          workspace.owner,
+          "reader@localhost",
+          "read"
+        )
+
+      Valentine.Composer.ApplicationInformation.flush_cache(workspace.id)
+      socket = put_in(socket.assigns.current_user, "reader@localhost")
+
+      assert {:noreply, _socket} =
+               ValentineWeb.WorkspaceLive.ApplicationInformation.Index.handle_info(
+                 {:quill_change, %{"ops" => [%{"insert" => "forged"}]}},
+                 socket
+               )
+
+      assert {:noreply, _socket} =
+               ValentineWeb.WorkspaceLive.ApplicationInformation.Index.handle_info(
+                 {:execute_skill,
+                  %{
+                    "type" => "insert",
+                    "data" => Jason.encode!(%{"ops" => [%{"insert" => "assistant"}]})
+                  }},
+                 socket
+               )
+
+      assert {:noreply, _socket} =
+               ValentineWeb.WorkspaceLive.ApplicationInformation.Index.handle_info(
+                 {:quill_save, "forged content"},
+                 socket
+               )
+
+      assert Valentine.Composer.ApplicationInformation.get_cache(workspace.id) == []
+
+      reloaded =
+        Valentine.Composer.Workspaces.get_workspace!(workspace.id, [:application_information])
+
+      assert reloaded.application_information.content == application_information.content
     end
   end
 end

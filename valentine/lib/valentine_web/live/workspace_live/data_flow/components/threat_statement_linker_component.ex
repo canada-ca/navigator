@@ -64,49 +64,55 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementLinkerCo
 
   @impl true
   def handle_event("remove_threat", %{"id" => id}, socket) do
-    send(
-      self(),
-      {:update_metadata,
-       %{
-         "id" => socket.assigns.element_id,
-         "field" => "linked_threats",
-         "checked" => id,
-         "value" => 0
-       }}
-    )
+    with_write(socket, fn socket ->
+      send(
+        self(),
+        {:update_metadata,
+         %{
+           "id" => socket.assigns.element_id,
+           "field" => "linked_threats",
+           "checked" => id,
+           "value" => 0
+         }}
+      )
 
-    linked_threats =
-      Threats.list_threats_by_ids(socket.assigns.element["data"]["linked_threats"] -- [id])
+      linked_threats =
+        Threats.list_threats_by_ids(socket.assigns.element["data"]["linked_threats"] -- [id])
 
-    {:noreply,
-     socket
-     |> assign(:linked_threats, linked_threats)}
+      {:noreply, assign(socket, :linked_threats, linked_threats)}
+    end)
   end
 
   @impl true
   def update(%{selected_item: %{id: id}}, socket) do
-    %{element_id: element_id, element: element} = socket.assigns
+    case authorize_write(socket) do
+      {:ok, _workspace} ->
+        %{element_id: element_id, element: element} = socket.assigns
 
-    send(
-      self(),
-      {:update_metadata,
-       %{
-         "id" => element_id,
-         "field" => "linked_threats",
-         "checked" => id,
-         "value" => 0
-       }}
-    )
+        send(
+          self(),
+          {:update_metadata,
+           %{
+             "id" => element_id,
+             "field" => "linked_threats",
+             "checked" => id,
+             "value" => 0
+           }}
+        )
 
-    linked_threats =
-      Threats.list_threats_by_ids(element["data"]["linked_threats"] ++ [id])
+        linked_threats =
+          Threats.list_threats_by_ids(element["data"]["linked_threats"] ++ [id])
 
-    element = put_in(element["data"]["linked_threats"], Enum.map(linked_threats, & &1.id))
+        element = put_in(element["data"]["linked_threats"], Enum.map(linked_threats, & &1.id))
 
-    {:ok,
-     socket
-     |> assign(:element, element)
-     |> assign(:linked_threats, linked_threats)}
+        {:ok,
+         socket
+         |> assign(:element, element)
+         |> assign(:linked_threats, linked_threats)}
+
+      {:error, socket} ->
+        {:ok, socket}
+    end
   end
 
   @impl true
@@ -138,5 +144,20 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementLinkerCo
       Map.has_key?(dfd.edges, element_id) -> dfd.edges[element_id]
       true -> nil
     end
+  end
+
+  defp with_write(socket, fun) do
+    case authorize_write(socket) do
+      {:ok, _workspace} -> fun.(socket)
+      {:error, socket} -> {:noreply, socket}
+    end
+  end
+
+  defp authorize_write(socket) do
+    ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize_component(
+      socket,
+      socket.assigns.workspace_id,
+      :write
+    )
   end
 end

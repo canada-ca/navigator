@@ -17,7 +17,7 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.IndexViewTest do
   describe "Index" do
     setup [:create_api_key]
 
-    test "states that a collaborator is not the owner and shares the owner", %{
+    test "redirects a collaborator before loading API keys", %{
       conn: conn
     } do
       user = user_fixture()
@@ -31,13 +31,13 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.IndexViewTest do
 
       conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: some_user.email})
 
-      {:ok, _index_live, html} =
-        live(
-          conn,
-          ~p"/workspaces/#{workspace.id}/api_keys"
-        )
+      assert {:error, {:redirect, %{to: path}}} =
+               live(
+                 conn,
+                 ~p"/workspaces/#{workspace.id}/api_keys"
+               )
 
-      assert html =~ "You are not the owner of this workspace."
+      assert path == ~p"/workspaces/#{workspace.id}"
     end
 
     test "lists all api_keys", %{

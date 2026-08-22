@@ -31,6 +31,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.ControlCategorizerComponentTest 
       id: "#{entity_type}-control-categorizer-component",
       entity: entity,
       entity_type: entity_type,
+      workspace_id: entity.workspace_id,
+      current_user: "some owner",
       error: nil,
       myself: %Phoenix.LiveComponent.CID{cid: 1},
       patch: "/workspaces/#{entity.workspace_id}/#{entity_type}s",
@@ -41,7 +43,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ControlCategorizerComponentTest 
   end
 
   defp external_assigns(assigns) do
-    Map.take(assigns, [:id, :entity, :entity_type, :patch])
+    Map.take(assigns, [:id, :entity, :entity_type, :workspace_id, :current_user, :patch])
   end
 
   defp socket_for(assigns), do: %Phoenix.LiveView.Socket{assigns: assigns}

@@ -90,6 +90,7 @@ defmodule ValentineWeb.Router do
       on_mount: [
         ValentineWeb.Helpers.AuthHelper,
         ValentineWeb.Helpers.RbacHelper,
+        ValentineWeb.Helpers.WorkspaceAuthorizationHelper,
         ValentineWeb.Helpers.ChatHelper,
         ValentineWeb.Helpers.ControlHelper,
         ValentineWeb.Helpers.FlashHelper,

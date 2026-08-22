@@ -52,12 +52,35 @@ defmodule Valentine.ThreatModelQualityReviewTest do
       assert {:error, :already_running} =
                ThreatModelQualityReview.start_review(workspace.id, workspace.owner)
     end
+
+    test "rejects readers without creating a run" do
+      workspace =
+        workspace_fixture(%{owner: "owner-1", permissions: %{"reader-1" => "read"}})
+
+      assert {:error, :unauthorized} =
+               ThreatModelQualityReview.start_review(workspace.id, "reader-1")
+
+      assert AnalysisJobs.list_threat_model_quality_review_runs_by_workspace(workspace.id) == []
+    end
+
+    test "allows a writer to create a run" do
+      workspace =
+        workspace_fixture(%{owner: "owner-1", permissions: %{"writer-1" => "write"}})
+
+      assert {:ok, run} = ThreatModelQualityReview.start_review(workspace.id, "writer-1")
+      assert run.owner == "writer-1"
+      assert run.workspace_id == workspace.id
+    end
   end
 
   describe "cancel_for_owner/2" do
     test "cancels a queued review with no live runtime" do
+      workspace =
+        workspace_fixture(%{owner: "workspace-owner", permissions: %{"owner-1" => "write"}})
+
       run =
         threat_model_quality_review_run_fixture(%{
+          workspace_id: workspace.id,
           owner: "owner-1",
           status: :queued,
           runtime_agent_id: nil,
@@ -69,6 +92,100 @@ defmodule Valentine.ThreatModelQualityReviewTest do
       assert cancelled.status == :cancelled
       assert %DateTime{} = cancelled.cancel_requested_at
       assert %DateTime{} = cancelled.completed_at
+    end
+
+    test "workspace owner can cancel a writer's run" do
+      workspace =
+        workspace_fixture(%{owner: "workspace-owner", permissions: %{"writer-1" => "write"}})
+
+      run =
+        threat_model_quality_review_run_fixture(%{
+          workspace_id: workspace.id,
+          owner: "writer-1",
+          status: :queued,
+          runtime_agent_id: nil
+        })
+
+      assert {:ok, cancelled} =
+               ThreatModelQualityReview.cancel_for_workspace(
+                 run.id,
+                 workspace.id,
+                 workspace.owner
+               )
+
+      assert cancelled.status == :cancelled
+    end
+
+    test "downgraded initiating writer cannot manage their run" do
+      workspace =
+        workspace_fixture(%{owner: "workspace-owner", permissions: %{"writer-1" => "read"}})
+
+      run =
+        threat_model_quality_review_run_fixture(%{
+          workspace_id: workspace.id,
+          owner: "writer-1",
+          status: :queued,
+          runtime_agent_id: nil
+        })
+
+      assert {:error, :unauthorized} =
+               ThreatModelQualityReview.cancel_for_workspace(
+                 run.id,
+                 workspace.id,
+                 "writer-1"
+               )
+
+      assert AnalysisJobs.get_threat_model_quality_review_run!(run.id).status == :queued
+    end
+
+    test "lifecycle actions reject cross-workspace run identifiers" do
+      workspace = workspace_fixture(%{owner: "workspace-owner"})
+      other_workspace = workspace_fixture(%{owner: "workspace-owner"})
+
+      run =
+        threat_model_quality_review_run_fixture(%{
+          workspace_id: other_workspace.id,
+          owner: other_workspace.owner,
+          status: :completed,
+          completed_at: DateTime.utc_now()
+        })
+
+      assert {:error, :not_found} =
+               ThreatModelQualityReview.retry_for_workspace(
+                 run.id,
+                 workspace.id,
+                 workspace.owner
+               )
+
+      assert {:error, :not_found} =
+               ThreatModelQualityReview.delete_for_workspace(
+                 run.id,
+                 workspace.id,
+                 workspace.owner
+               )
+
+      assert AnalysisJobs.get_threat_model_quality_review_run!(run.id)
+    end
+
+    test "downgraded writer cannot retry or delete a completed run" do
+      workspace =
+        workspace_fixture(%{owner: "workspace-owner", permissions: %{"writer-1" => "read"}})
+
+      run =
+        threat_model_quality_review_run_fixture(%{
+          workspace_id: workspace.id,
+          owner: "writer-1",
+          status: :completed,
+          completed_at: DateTime.utc_now()
+        })
+
+      assert {:error, :unauthorized} =
+               ThreatModelQualityReview.retry_for_workspace(run.id, workspace.id, "writer-1")
+
+      assert {:error, :unauthorized} =
+               ThreatModelQualityReview.delete_for_workspace(run.id, workspace.id, "writer-1")
+
+      assert AnalysisJobs.get_threat_model_quality_review_run!(run.id)
     end
   end
 

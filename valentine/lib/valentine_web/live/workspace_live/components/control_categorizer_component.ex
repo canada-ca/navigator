@@ -65,10 +65,15 @@ defmodule ValentineWeb.WorkspaceLive.Components.ControlCategorizerComponent do
 
     socket = assign(socket, assigns)
 
-    if socket.assigns.request_key == request_key do
-      {:ok, socket}
-    else
-      {:ok, start_suggestion(socket)}
+    cond do
+      socket.assigns.request_key == request_key ->
+        {:ok, socket}
+
+      write_authorized?(socket) ->
+        {:ok, start_suggestion(socket)}
+
+      true ->
+        {:ok, assign(socket, :error, gettext("This workspace is read only for your account."))}
     end
   end
 
@@ -93,10 +98,14 @@ defmodule ValentineWeb.WorkspaceLive.Components.ControlCategorizerComponent do
 
   @impl true
   def handle_event("generate_again", _params, socket) do
-    {:noreply, start_suggestion(socket)}
+    with_write(socket, fn socket -> {:noreply, start_suggestion(socket)} end)
   end
 
   def handle_event("save_tags", %{"controls" => controls}, socket) do
+    with_write(socket, fn socket -> save_tags(socket, controls) end)
+  end
+
+  defp save_tags(socket, controls) do
     tags = Categorizer.selected_tags(controls)
 
     case Categorizer.save_tags(socket.assigns.entity_type, socket.assigns.entity, tags) do
@@ -160,4 +169,26 @@ defmodule ValentineWeb.WorkspaceLive.Components.ControlCategorizerComponent do
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  defp write_authorized?(socket) do
+    match?(
+      {:ok, _workspace},
+      Valentine.Composer.Workspaces.authorize(
+        socket.assigns.workspace_id,
+        socket.assigns.current_user,
+        :write
+      )
+    )
+  end
+
+  defp with_write(socket, fun) do
+    case ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize_component(
+           socket,
+           socket.assigns.workspace_id,
+           :write
+         ) do
+      {:ok, _workspace} -> fun.(socket)
+      {:error, socket} -> {:noreply, socket}
+    end
+  end
 end

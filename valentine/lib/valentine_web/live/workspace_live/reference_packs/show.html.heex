@@ -4,7 +4,7 @@
     <.button phx-click={JS.patch(~p"/workspaces/#{@workspace_id}/reference_packs")}>
       {gettext("Back")}
     </.button>
-    <.button is_primary phx-click="add_references">
+    <.button :if={@workspace_can_write} is_primary phx-click="add_references">
       {gettext("Add selected")}
       <span :if={length(@selected_references) > 0}>
         {length(@selected_references)}
@@ -18,7 +18,7 @@
   id="paginated-list"
   title={gettext("References")}
   collection={@reference_pack}
-  selectable={true}
+  selectable={@workspace_can_write}
 >
   <:row :let={item}>
     <%= case item.collection_type do %>

@@ -28,11 +28,11 @@ vi.mock("quill/dist/quill.snow.css", () => ({}));
 import Quill from "quill";
 import QuillHook from "../vendor/quill-hook.js";
 
-function buildHook() {
+function buildHook({ readOnly = false, includeSaveButton = true } = {}) {
     document.body.innerHTML = `
     <div id="quill-editor"></div>
-    <button id="quill-save-btn" type="button">Save</button>
-    <div id="quill-hook"></div>
+    ${includeSaveButton ? '<button id="quill-save-btn" type="button">Save</button>' : ''}
+    <div id="quill-hook" data-read-only="${readOnly}"></div>
   `;
 
     const eventHandlers = {};
@@ -61,7 +61,8 @@ describe("QuillHook", () => {
         document.getElementById("quill-save-btn").click();
 
         expect(Quill).toHaveBeenCalledWith(document.getElementById("quill-editor"), {
-            theme: "snow"
+            theme: "snow",
+            readOnly: false
         });
         expect(hook.pushEventTo).toHaveBeenCalledWith(hook.el, "quill-save", {
             content: "<p>Saved</p>"
@@ -96,5 +97,21 @@ describe("QuillHook", () => {
         expect(quillState.instance.updateContents).toHaveBeenCalledWith({
             ops: [{ insert: "World" }]
         });
+    });
+
+    it("keeps readers non-editable without emitting local changes or saves", () => {
+        const hook = buildHook({ readOnly: true, includeSaveButton: false });
+        const delta = { ops: [{ insert: "remote" }] };
+
+        hook.mounted();
+        quillState.handlers["text-change"](delta, { ops: [] }, "user");
+        hook.eventHandlers.updateQuill({ event: "text_change", payload: delta });
+
+        expect(Quill).toHaveBeenCalledWith(document.getElementById("quill-editor"), {
+            theme: "snow",
+            readOnly: true
+        });
+        expect(hook.pushEventTo).not.toHaveBeenCalled();
+        expect(quillState.instance.updateContents).toHaveBeenCalledWith(delta);
     });
 });

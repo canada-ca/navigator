@@ -1,7 +1,11 @@
 <.subhead>
   {gettext("Listing Mitigations")}
   <:actions>
-    <.button is_primary phx-click={JS.patch(~p"/workspaces/#{@workspace_id}/mitigations/new")}>
+    <.button
+      :if={@workspace_can_write}
+      is_primary
+      phx-click={JS.patch(~p"/workspaces/#{@workspace_id}/mitigations/new")}
+    >
       {gettext("New Mitigation")}
     </.button>
   </:actions>
@@ -36,6 +40,7 @@
           <:octicon name="check-circle-24" />
           <:action>
             <.button
+              :if={@workspace_can_write}
               phx-click={JS.patch(~p"/workspaces/#{@workspace_id}/mitigations/new")}
               is_primary
             >
@@ -53,6 +58,8 @@
       module={ValentineWeb.WorkspaceLive.Components.MitigationComponent}
       id={"mitigation-#{mitigation.id}"}
       mitigation={mitigation}
+      current_user={@current_user}
+      can_write={@workspace_can_write}
     />
   </:row>
 </.box>
@@ -74,6 +81,8 @@
   id={@mitigation.id}
   entity={@mitigation}
   entity_type={:mitigation}
+  workspace_id={@workspace_id}
+  current_user={@current_user}
   patch={~p"/workspaces/#{@workspace_id}/mitigations"}
 />
 
@@ -87,6 +96,7 @@
   linkable_entities={@assumptions}
   linked_entities={@mitigation.assumptions}
   workspace_id={@workspace_id}
+  current_user={@current_user}
   patch={~p"/workspaces/#{@workspace_id}/mitigations"}
 />
 
@@ -100,5 +110,6 @@
   linkable_entities={@threats}
   linked_entities={@mitigation.threats}
   workspace_id={@workspace_id}
+  current_user={@current_user}
   patch={~p"/workspaces/#{@workspace_id}/mitigations"}
 />

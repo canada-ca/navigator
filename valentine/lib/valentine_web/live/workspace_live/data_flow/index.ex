@@ -21,7 +21,11 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
     end
 
     dfd =
-      DataFlowDiagram.get(workspace_id)
+      if socket.assigns.workspace_can_write do
+        DataFlowDiagram.get(workspace_id)
+      else
+        DataFlowDiagram.load(workspace_id)
+      end
 
     {:ok,
      socket
@@ -366,12 +370,12 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
   # Handle info from components
   @impl true
   def handle_info({:toggle_generate_threat_statement, nil}, socket) do
-    handle_event("toggle_generate_threat_statement", nil, socket)
+    with_write(socket, &handle_event("toggle_generate_threat_statement", nil, &1))
   end
 
   @impl true
   def handle_info({:update_metadata, params}, socket) do
-    handle_event("update_metadata", params, socket)
+    with_write(socket, &handle_event("update_metadata", params, &1))
   end
 
   defp broadcast(topic, payload) do
@@ -399,5 +403,12 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Index do
     |> assign(:mermaid_import_source, "")
     |> assign(:mermaid_import_preview, nil)
     |> assign(:mermaid_import_error, nil)
+  end
+
+  defp with_write(socket, fun) do
+    case ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize(socket, :write) do
+      {:ok, _workspace} -> fun.(socket)
+      {:error, socket} -> {:noreply, socket}
+    end
   end
 end

@@ -78,7 +78,17 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponent do
   end
 
   def handle_event("save", %{"mitigation" => mitigation_params}, socket) do
-    save_mitigation(socket, socket.assigns.action, trusted_params(socket, mitigation_params))
+    case ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize_component(
+           socket,
+           socket.assigns.mitigation.workspace_id,
+           :write
+         ) do
+      {:ok, _workspace} ->
+        save_mitigation(socket, socket.assigns.action, trusted_params(socket, mitigation_params))
+
+      {:error, socket} ->
+        {:noreply, socket}
+    end
   end
 
   defp save_mitigation(socket, :edit, mitigation_params) do

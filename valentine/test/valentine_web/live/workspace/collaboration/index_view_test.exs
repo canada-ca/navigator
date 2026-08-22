@@ -76,6 +76,8 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.IndexViewTest do
       assert html =~ "Collaboration"
       assert html =~ user.email
       assert html =~ some_user.email
+      assert html =~ "Read: Can view the threat model and download reports"
+      assert has_element?(index_live, ~s{input[type="radio"][value="read"]})
 
       assert index_live
              |> element(~s{[id="form-for-#{some_user.email}"]})

@@ -63,8 +63,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.ReviewIndexViewTest do
     assert html =~ "View"
     assert html =~ ~p"/workspaces/#{workspace.id}/threat_model/reviews/#{latest_run.id}"
     assert html =~ "Threat model quality review completed with 2 findings"
-    refute html =~ "Run review again"
-    refute html =~ "Retry review"
+    assert html =~ "Retry"
   end
 
   test "starts a threat model quality review from the landing page", %{conn: conn} do
@@ -123,5 +122,70 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.ReviewIndexViewTest do
 
     assert html =~ "No review runs yet"
     assert html =~ "Run quality review"
+  end
+
+  test "reader can inspect history but cannot forge lifecycle actions", %{conn: conn} do
+    workspace =
+      workspace_fixture(%{
+        owner: "workspace-owner",
+        permissions: %{"reader@localhost" => "read"}
+      })
+
+    run =
+      threat_model_quality_review_run_fixture(%{
+        workspace_id: workspace.id,
+        owner: workspace.owner,
+        status: :completed,
+        completed_at: DateTime.utc_now()
+      })
+
+    conn = Phoenix.ConnTest.init_test_session(conn, %{user_id: "reader@localhost"})
+    {:ok, view, html} = live(conn, ~p"/workspaces/#{workspace.id}/threat_model/reviews")
+
+    assert html =~ "Review runs"
+    refute html =~ "Run quality review"
+    refute html =~ "phx-click=\"retry_threat_model_quality_review\""
+    refute html =~ "phx-click=\"delete_threat_model_quality_review\""
+
+    render_hook(view, "delete_threat_model_quality_review", %{"id" => run.id})
+    assert Valentine.Composer.AnalysisJobs.get_threat_model_quality_review_run!(run.id)
+  end
+
+  test "writer can manage only their own run while retaining write access", %{conn: conn} do
+    workspace =
+      workspace_fixture(%{
+        owner: "workspace-owner",
+        permissions: %{"writer@localhost" => "write"}
+      })
+
+    writer_run =
+      threat_model_quality_review_run_fixture(%{
+        workspace_id: workspace.id,
+        owner: "writer@localhost",
+        status: :completed,
+        completed_at: DateTime.utc_now()
+      })
+
+    owner_run =
+      threat_model_quality_review_run_fixture(%{
+        workspace_id: workspace.id,
+        owner: workspace.owner,
+        status: :completed,
+        completed_at: DateTime.utc_now(),
+        requested_at: DateTime.add(DateTime.utc_now(), -60, :second)
+      })
+
+    conn = Phoenix.ConnTest.init_test_session(conn, %{user_id: "writer@localhost"})
+    {:ok, view, _html} = live(conn, ~p"/workspaces/#{workspace.id}/threat_model/reviews")
+
+    assert has_element?(
+             view,
+             "button[phx-click=\"delete_threat_model_quality_review\"][phx-value-id=\"#{writer_run.id}\"]"
+           )
+
+    refute has_element?(
+             view,
+             "button[phx-click=\"delete_threat_model_quality_review\"][phx-value-id=\"#{owner_run.id}\"]"
+           )
   end
 end

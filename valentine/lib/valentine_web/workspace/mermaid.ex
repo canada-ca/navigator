@@ -16,7 +16,7 @@ defmodule ValentineWeb.Workspace.Mermaid do
       "stateDiagram-v2\\n    [*] --> Actor\\n    Actor --> Process"
   """
   def generate_flowchart(workspace_id) do
-    dfd = DataFlowDiagram.get(workspace_id)
+    dfd = DataFlowDiagram.load(workspace_id)
 
     nodes_mermaid = generate_nodes(dfd.nodes)
     edges_mermaid = generate_edges(dfd.edges, dfd.nodes)

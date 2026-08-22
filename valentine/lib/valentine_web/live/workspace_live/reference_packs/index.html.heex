@@ -2,6 +2,7 @@
   {gettext("Reference packs")}
   <:actions>
     <.button
+      :if={@workspace_can_write}
       id="import-reference-pack"
       is_primary
       phx-click={JS.patch(~p"/workspaces/#{@workspace.id}/reference_packs/import")}
@@ -30,6 +31,7 @@
         </div>
         <div class="float-right">
           <.button
+            :if={@workspace_can_write}
             is_icon_button
             is_danger
             aria-label={gettext("Delete")}

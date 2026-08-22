@@ -46,30 +46,23 @@ defmodule ValentineWeb.WorkspaceLive.ApplicationInformation.Index do
 
   @impl true
   def handle_info({:execute_skill, %{"data" => data, "type" => type}}, socket) do
-    data = if data != "", do: Jason.decode!(data), else: %{}
+    with_write(socket, fn socket ->
+      data = if data != "", do: Jason.decode!(data), else: %{}
 
-    case {type, data} do
-      {"insert", %{"ops" => ops}} ->
-        handle_info({:quill_change, %{"ops" => ops}}, socket)
+      case {type, data} do
+        {"insert", %{"ops" => ops}} ->
+          apply_quill_change(%{"ops" => ops}, socket)
 
-      _ ->
-        {:noreply, socket}
-    end
+        _ ->
+          {:noreply, socket}
+      end
+    end)
   end
 
   # Local change
   @impl true
   def handle_info({:quill_change, delta}, socket) do
-    Valentine.Composer.ApplicationInformation.push_cache(socket.assigns.workspace_id, [
-      delta["ops"]
-    ])
-
-    broadcast("workspace_application_information:#{socket.assigns.workspace_id}", %{
-      event: :quill_change,
-      payload: delta
-    })
-
-    {:noreply, socket |> assign(:touched, true)}
+    with_write(socket, &apply_quill_change(delta, &1))
   end
 
   # Remote edit change
@@ -98,46 +91,60 @@ defmodule ValentineWeb.WorkspaceLive.ApplicationInformation.Index do
   # Save button clicked
   @impl true
   def handle_info({:quill_save, content}, socket) do
-    # Create or update new application information
-    workspace = get_workspace(socket.assigns.workspace_id)
+    with_write(socket, fn socket ->
+      # Create or update new application information
+      workspace = get_workspace(socket.assigns.workspace_id)
 
-    case workspace.application_information do
-      nil ->
-        log(
-          :info,
-          socket.assigns.current_user,
-          "created",
-          workspace.id,
-          "application information"
-        )
+      case workspace.application_information do
+        nil ->
+          log(
+            :info,
+            socket.assigns.current_user,
+            "created",
+            workspace.id,
+            "application information"
+          )
 
-        Documents.create_application_information(%{content: content, workspace_id: workspace.id})
+          Documents.create_application_information(%{
+            content: content,
+            workspace_id: workspace.id
+          })
 
-      _ ->
-        log(
-          :info,
-          socket.assigns.current_user,
-          "updated",
-          workspace.id,
-          "application information"
-        )
+        _ ->
+          log(
+            :info,
+            socket.assigns.current_user,
+            "updated",
+            workspace.id,
+            "application information"
+          )
 
-        Documents.update_application_information(workspace.application_information, %{
-          content: content
-        })
-    end
+          Documents.update_application_information(workspace.application_information, %{
+            content: content
+          })
+      end
 
-    # Flush the cache
-    Valentine.Composer.ApplicationInformation.flush_cache(workspace.id)
+      Valentine.Composer.ApplicationInformation.flush_cache(workspace.id)
 
-    # Broadcast the change
+      broadcast("workspace_application_information:#{socket.assigns.workspace_id}", %{
+        event: :quill_saved
+      })
+
+      {:noreply, assign(socket, :touched, false)}
+    end)
+  end
+
+  defp apply_quill_change(delta, socket) do
+    Valentine.Composer.ApplicationInformation.push_cache(socket.assigns.workspace_id, [
+      delta["ops"]
+    ])
+
     broadcast("workspace_application_information:#{socket.assigns.workspace_id}", %{
-      event: :quill_saved
+      event: :quill_change,
+      payload: delta
     })
 
-    {:noreply,
-     socket
-     |> assign(:touched, false)}
+    {:noreply, assign(socket, :touched, true)}
   end
 
   defp broadcast(topic, payload) do
@@ -146,5 +153,12 @@ defmodule ValentineWeb.WorkspaceLive.ApplicationInformation.Index do
 
   defp get_workspace(workspace_id) do
     Workspaces.get_workspace!(workspace_id, [:application_information])
+  end
+
+  defp with_write(socket, fun) do
+    case ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize(socket, :write) do
+      {:ok, _workspace} -> fun.(socket)
+      {:error, socket} -> {:noreply, socket}
+    end
   end
 end

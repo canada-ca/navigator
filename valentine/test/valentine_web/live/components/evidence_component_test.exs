@@ -10,7 +10,12 @@ defmodule ValentineWeb.WorkspaceLive.Components.EvidenceComponentTest do
     workspace = workspace_fixture()
     evidence = evidence_fixture(%{workspace_id: workspace.id})
 
-    assigns = %{__changed__: %{}, evidence: evidence, id: "evidence-component"}
+    assigns = %{
+      __changed__: %{},
+      evidence: evidence,
+      id: "evidence-component",
+      can_write: true
+    }
 
     %{assigns: assigns, evidence: evidence, workspace: workspace}
   end

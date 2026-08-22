@@ -10,7 +10,8 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.ShowViewTest do
 
     %{
       reference_pack_item: reference_pack_item,
-      workspace_id: workspace.id
+      workspace_id: workspace.id,
+      workspace: workspace
     }
   end
 
@@ -57,6 +58,33 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.ShowViewTest do
 
       assert html =~ "tag1"
       assert html =~ "tag2"
+    end
+
+    test "reader can inspect items but forged selection cannot add them", %{
+      conn: conn,
+      reference_pack_item: reference_pack_item,
+      workspace: workspace
+    } do
+      workspace
+      |> Ecto.Changeset.change(%{permissions: %{"reader@localhost" => "read"}})
+      |> Valentine.Repo.update!()
+
+      conn = Phoenix.ConnTest.init_test_session(conn, %{user_id: "reader@localhost"})
+
+      {:ok, view, html} =
+        live(
+          conn,
+          ~p"/workspaces/#{workspace.id}/reference_packs/#{reference_pack_item.collection_id}/#{reference_pack_item.collection_type}"
+        )
+
+      assert html =~ reference_pack_item.collection_name
+      refute html =~ "Add selected"
+
+      send(view.pid, {:selected, [reference_pack_item.id]})
+      render_hook(view, "add_references", %{})
+
+      assert Valentine.Composer.Workspaces.get_workspace!(workspace.id, [:assumptions]).assumptions ==
+               []
     end
   end
 end

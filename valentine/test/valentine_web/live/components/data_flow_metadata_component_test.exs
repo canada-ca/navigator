@@ -15,7 +15,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.DataFlowMetadataComponentTest do
       assigns: %{
         __changed__: %{},
         element_id: node["data"]["id"],
-        workspace_id: dfd.workspace_id
+        workspace_id: dfd.workspace_id,
+        editable: true
       }
     }
 

@@ -77,47 +77,52 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementGenerato
 
   @impl true
   def handle_event("generate_again", _, socket) do
-    send_update(self(), socket.assigns.myself, %{
-      id: socket.assigns.id,
-      element_id: socket.assigns.element_id,
-      error: nil,
-      threat: nil,
-      workspace_id: socket.assigns.workspace_id
-    })
+    with_write(socket, fn socket ->
+      send_update(self(), socket.assigns.myself, %{
+        id: socket.assigns.id,
+        element_id: socket.assigns.element_id,
+        error: nil,
+        threat: nil,
+        workspace_id: socket.assigns.workspace_id,
+        current_user: socket.assigns.current_user
+      })
 
-    {:noreply, socket |> assign(:threat, nil)}
+      {:noreply, assign(socket, :threat, nil)}
+    end)
   end
 
   @impl true
   def handle_event("save", _, socket) do
-    case socket.assigns.threat do
-      nil ->
-        {:noreply, socket |> assign(:error, gettext("No threat statement generated"))}
+    with_write(socket, fn socket ->
+      case socket.assigns.threat do
+        nil ->
+          {:noreply, assign(socket, :error, gettext("No threat statement generated"))}
 
-      _ ->
-        {:ok, threat} =
-          socket.assigns.threat
-          |> Threats.change_threat(%{
-            tags: [gettext("AI generated")],
-            workspace_id: socket.assigns.workspace_id
-          })
-          |> Valentine.Repo.insert()
+        _ ->
+          {:ok, threat} =
+            socket.assigns.threat
+            |> Threats.change_threat(%{
+              tags: [gettext("AI generated")],
+              workspace_id: socket.assigns.workspace_id
+            })
+            |> Valentine.Repo.insert()
 
-        send(
-          self(),
-          {:update_metadata,
-           %{
-             "id" => socket.assigns.element_id,
-             "field" => "linked_threats",
-             "checked" => threat.id,
-             "value" => 0
-           }}
-        )
+          send(
+            self(),
+            {:update_metadata,
+             %{
+               "id" => socket.assigns.element_id,
+               "field" => "linked_threats",
+               "checked" => threat.id,
+               "value" => 0
+             }}
+          )
 
-        send(self(), {:toggle_generate_threat_statement, nil})
+          send(self(), {:toggle_generate_threat_statement, nil})
 
-        {:noreply, socket |> assign(:threat, nil)}
-    end
+          {:noreply, assign(socket, :threat, nil)}
+      end
+    end)
   end
 
   @impl true
@@ -142,38 +147,58 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementGenerato
   def update(assigns, socket) do
     lc_pid = self()
     myself = socket.assigns.myself
+    socket = assign(socket, assigns)
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> start_async(:running_llm, fn ->
-       try do
-         model_spec = llm_model_spec()
+    case authorize_write(socket) do
+      {:ok, _workspace} ->
+        {:ok,
+         start_async(socket, :running_llm, fn ->
+           try do
+             model_spec = llm_model_spec()
 
-         context =
-           ReqLLM.Context.new([
-             system(system_prompt()),
-             user(user_prompt(assigns.element_id, assigns.workspace_id))
-           ])
+             context =
+               ReqLLM.Context.new([
+                 system(system_prompt()),
+                 user(user_prompt(assigns.element_id, assigns.workspace_id))
+               ])
 
-         opts = llm_opts()
+             opts = llm_opts()
 
-         obj = ReqLLM.generate_object!(model_spec, context, json_schema(), opts)
+             obj = ReqLLM.generate_object!(model_spec, context, json_schema(), opts)
 
-         content = Jason.encode!(obj)
-         send_update(lc_pid, myself, chat_complete: %{content: content})
-         :ok
-       rescue
-         e ->
-           Logger.error("[ThreatStatementGenerator] Error during threat generation", %{
-             error: inspect(e),
-             message: Exception.message(e),
-             stacktrace: __STACKTRACE__
-           })
+             content = Jason.encode!(obj)
+             send_update(lc_pid, myself, chat_complete: %{content: content})
+             :ok
+           rescue
+             e ->
+               Logger.error("[ThreatStatementGenerator] Error during threat generation", %{
+                 error: inspect(e),
+                 message: Exception.message(e),
+                 stacktrace: __STACKTRACE__
+               })
 
-           {:error, Exception.message(e)}
-       end
-     end)}
+               {:error, Exception.message(e)}
+           end
+         end)}
+
+      {:error, socket} ->
+        {:ok, assign(socket, :error, gettext("Write access is required"))}
+    end
+  end
+
+  defp with_write(socket, fun) do
+    case authorize_write(socket) do
+      {:ok, _workspace} -> fun.(socket)
+      {:error, socket} -> {:noreply, socket}
+    end
+  end
+
+  defp authorize_write(socket) do
+    ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize_component(
+      socket,
+      socket.assigns.workspace_id,
+      :write
+    )
   end
 
   defp json_schema() do

@@ -19,6 +19,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
           <h3>Mitigation {@mitigation.numeric_id}</h3>
         </div>
         <.live_component
+          :if={@can_write}
           module={ValentineWeb.WorkspaceLive.Components.LabelSelectComponent}
           id={"mitigations-status-#{@mitigation.id}"}
           parent_id={@myself}
@@ -26,6 +27,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
           default_value="Not set"
           value={@mitigation.status}
           field="status"
+          workspace_id={@mitigation.workspace_id}
+          current_user={@current_user}
           items={[
             {:identified, nil},
             {:in_progress, "State--merged"},
@@ -33,8 +36,12 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
             {:will_not_action, "State--closed"}
           ]}
         />
+        <span :if={!@can_write} class="State State--small State--open ml-2">
+          {@mitigation.status}
+        </span>
         <div class="float-right">
           <.button
+            :if={@can_write}
             is_icon_button
             aria-label="Linked assumptions"
             phx-click={
@@ -48,6 +55,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
             <.counter>{assoc_length(@mitigation.assumptions)}</.counter>
           </.button>
           <.button
+            :if={@can_write}
             is_icon_button
             aria-label="Linked threats"
             phx-click={
@@ -61,6 +69,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
             <.counter>{assoc_length(@mitigation.threats)}</.counter>
           </.button>
           <.button
+            :if={@can_write}
             is_icon_button
             aria-label="Categorize"
             phx-click={
@@ -73,6 +82,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
             <.octicon name="dependabot-16" />
           </.button>
           <.button
+            :if={@can_write}
             is_icon_button
             aria-label="Edit"
             phx-click={
@@ -83,6 +93,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
             <.octicon name="pencil-16" />
           </.button>
           <.button
+            :if={@can_write}
             is_icon_button
             is_danger
             aria-label="Delete"
@@ -102,6 +113,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
       <details class="mt-4" {if @summary_state, do: %{open: true}, else: %{}}>
         <summary phx-click="toggle_summary_state" phx-target={@myself}>{gettext("Comments")}</summary>
         <.live_component
+          :if={@can_write}
           module={ValentineWeb.WorkspaceLive.Components.TabNavComponent}
           id={"tabs-component-mitigation-#{@mitigation.id}"}
           tabs={[
@@ -138,10 +150,14 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
             </form>
           </:tab_content>
         </.live_component>
+        <ValentineWeb.WorkspaceLive.Components.MarkdownComponent.render
+          :if={!@can_write}
+          text={@mitigation.comments}
+        />
       </details>
       <hr />
       <div class="clearfix">
-        <div class="float-left col-2 mr-2 mt-1">
+        <div :if={@can_write} class="float-left col-2 mr-2 mt-1">
           <.text_input
             id={"#{@mitigation.id}-tag-field"}
             name={"#{@mitigation.id}-tag"}
@@ -161,7 +177,13 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
             <.button phx-click="view_control_modal" phx-value-nist_id={tag}>
               <span>{tag}</span>
             </.button>
-            <.button is_icon_button phx-click="remove_tag" phx-value-tag={tag} phx-target={@myself}>
+            <.button
+              :if={@can_write}
+              is_icon_button
+              phx-click="remove_tag"
+              phx-value-tag={tag}
+              phx-target={@myself}
+            >
               <.octicon name="x-16" />
             </.button>
           </.button_group>
@@ -173,16 +195,16 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
 
   @impl true
   def update(%{selected_label_dropdown: {_id, field, value}}, socket) do
-    {:ok, mitigation} =
-      Mitigations.update_mitigation(
-        socket.assigns.mitigation,
-        %{}
-        |> Map.put(field, value)
-      )
+    case authorize_write(socket) do
+      {:ok, _workspace} ->
+        {:ok, mitigation} =
+          Mitigations.update_mitigation(socket.assigns.mitigation, Map.put(%{}, field, value))
 
-    {:ok,
-     socket
-     |> assign(:mitigation, mitigation)}
+        {:ok, assign(socket, :mitigation, mitigation)}
+
+      {:error, socket} ->
+        {:ok, socket}
+    end
   end
 
   @impl true
@@ -196,61 +218,66 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
   @impl true
   def handle_event("add_tag", _params, %{assigns: %{tag: tag}} = socket)
       when byte_size(tag) > 0 do
-    current_tags = socket.assigns.mitigation.tags || []
+    with_write(socket, fn socket ->
+      current_tags = socket.assigns.mitigation.tags || []
 
-    if tag not in current_tags do
-      updated_tags = current_tags ++ [tag]
+      if tag not in current_tags do
+        updated_tags = current_tags ++ [tag]
 
-      case Mitigations.update_mitigation(socket.assigns.mitigation, %{tags: updated_tags}) do
-        {:ok, mitigation} ->
-          broadcast_mitigation_change(mitigation)
+        case Mitigations.update_mitigation(socket.assigns.mitigation, %{tags: updated_tags}) do
+          {:ok, mitigation} ->
+            broadcast_mitigation_change(mitigation)
 
-          {:noreply,
-           socket
-           |> assign(:tag, "")
-           |> assign(:mitigation, mitigation)}
+            {:noreply,
+             socket
+             |> assign(:tag, "")
+             |> assign(:mitigation, mitigation)}
 
-        {:error, _changeset} ->
-          {:noreply, socket}
+          {:error, _changeset} ->
+            {:noreply, socket}
+        end
+      else
+        {:noreply, socket}
       end
-    else
-      {:noreply, socket}
-    end
+    end)
   end
 
   def handle_event("add_tag", _, socket), do: {:noreply, socket}
 
   @impl true
   def handle_event("remove_tag", %{"tag" => tag}, socket) do
-    updated_tags = List.delete(socket.assigns.mitigation.tags, tag)
+    with_write(socket, fn socket ->
+      updated_tags = List.delete(socket.assigns.mitigation.tags, tag)
 
-    case Mitigations.update_mitigation(socket.assigns.mitigation, %{tags: updated_tags}) do
-      {:ok, mitigation} ->
-        broadcast_mitigation_change(mitigation)
-        {:noreply, assign(socket, :mitigation, mitigation)}
+      case Mitigations.update_mitigation(socket.assigns.mitigation, %{tags: updated_tags}) do
+        {:ok, mitigation} ->
+          broadcast_mitigation_change(mitigation)
+          {:noreply, assign(socket, :mitigation, mitigation)}
 
-      {:error, _changeset} ->
-        {:noreply, socket}
-    end
+        {:error, _changeset} ->
+          {:noreply, socket}
+      end
+    end)
   end
 
   @impl true
   def handle_event("save_comments", %{"comments" => comments}, socket) do
-    # Forces a changeset change
-    case Mitigations.update_mitigation(Map.put(socket.assigns.mitigation, :comments, nil), %{
-           :comments => comments
-         }) do
-      {:ok, mitigation} ->
-        broadcast_mitigation_change(mitigation)
+    with_write(socket, fn socket ->
+      case Mitigations.update_mitigation(Map.put(socket.assigns.mitigation, :comments, nil), %{
+             :comments => comments
+           }) do
+        {:ok, mitigation} ->
+          broadcast_mitigation_change(mitigation)
 
-        {:noreply,
-         socket
-         |> assign(:summary_state, nil)
-         |> assign(:mitigation, mitigation)}
+          {:noreply,
+           socket
+           |> assign(:summary_state, nil)
+           |> assign(:mitigation, mitigation)}
 
-      {:error, _changeset} ->
-        {:noreply, socket}
-    end
+        {:error, _changeset} ->
+          {:noreply, socket}
+      end
+    end)
   end
 
   @impl true
@@ -275,6 +302,21 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponent do
       "workspace_" <> mitigation.workspace_id,
       "mitigation_updated",
       %{}
+    )
+  end
+
+  defp with_write(socket, fun) do
+    case authorize_write(socket) do
+      {:ok, _workspace} -> fun.(socket)
+      {:error, socket} -> {:noreply, socket}
+    end
+  end
+
+  defp authorize_write(socket) do
+    ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize_component(
+      socket,
+      socket.assigns.mitigation.workspace_id,
+      :write
     )
   end
 end

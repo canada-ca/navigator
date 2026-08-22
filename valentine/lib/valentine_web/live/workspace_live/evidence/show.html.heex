@@ -1,9 +1,10 @@
 <.subhead class="mb-3">
   <%= if @evidence.id do %>
     <%= if @evidence.numeric_id do %>
-      {gettext("Edit Evidence")} <span class="color-fg-muted">#{@evidence.numeric_id}</span>
+      {if @workspace_can_write, do: gettext("Edit Evidence"), else: gettext("Evidence")}
+      <span class="color-fg-muted">#{@evidence.numeric_id}</span>
     <% else %>
-      {gettext("Edit Evidence")}
+      {if @workspace_can_write, do: gettext("Edit Evidence"), else: gettext("Evidence")}
     <% end %>
   <% else %>
     {gettext("New Evidence")}
@@ -12,11 +13,38 @@
     <.link navigate={~p"/workspaces/#{@workspace_id}/evidence"}>
       <.button>{gettext("Back")}</.button>
     </.link>
-    <.button phx-click="save" is_primary>{gettext("Save")}</.button>
+    <.button :if={@workspace_can_write} phx-click="save" is_primary>{gettext("Save")}</.button>
   </:actions>
 </.subhead>
 
-<div class="clearfix">
+<div :if={!@workspace_can_write} class="Box p-4">
+  <h3 class="mb-2">{@changes[:name]}</h3>
+  <div class="markdown-body mb-3">
+    <ValentineWeb.WorkspaceLive.Components.MarkdownComponent.render text={@changes[:description]} />
+  </div>
+  <p>
+    <strong>{gettext("Type")}:</strong> {EvidenceHelpers.format_evidence_type(
+      @changes[:evidence_type]
+    )}
+  </p>
+  <p :if={@changes[:blob_store_url]}>
+    <strong>{gettext("URL")}:</strong>
+    <.link href={@changes[:blob_store_url]} target="_blank">{@changes[:blob_store_url]}</.link>
+  </p>
+  <pre :if={@content_raw != ""} class="Box mt-3 p-3 text-mono">{@content_raw}</pre>
+  <div :if={(@changes[:nist_controls] || []) != []} class="mt-3">
+    <strong>{gettext("NIST Controls")}:</strong>
+    <.label :for={control <- @changes[:nist_controls]} is_secondary class="ml-1">
+      {control}
+    </.label>
+  </div>
+  <div :if={(@changes[:tags] || []) != []} class="mt-3">
+    <strong>{gettext("Tags")}:</strong>
+    <.label :for={tag <- @changes[:tags]} class="ml-1">{tag}</.label>
+  </div>
+</div>
+
+<div :if={@workspace_can_write} class="clearfix">
   <div class="float-left col-8">
     <form id="evidence-form" phx-change="update_field">
       <div class="mb-4">

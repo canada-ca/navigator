@@ -104,7 +104,9 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.IndexTest do
     test "handles delete error", %{socket: socket, api_key: api_key} do
       with_mock ApiKeys,
         get_api_key_for_workspace: fn _workspace_id, _id -> api_key end,
-        delete_api_key: fn _api_key -> {:error, "some error"} end do
+        delete_api_key_for_workspace: fn _workspace_id, _id, _identity ->
+          {:error, "some error"}
+        end do
         {:noreply, updated_socket} =
           ValentineWeb.WorkspaceLive.ApiKey.Index.handle_event(
             "delete",

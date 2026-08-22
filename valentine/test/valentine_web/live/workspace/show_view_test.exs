@@ -151,6 +151,33 @@ defmodule ValentineWeb.WorkspaceLive.ShowViewTest do
                "<details class=\"repo-analysis-collapsible repo-analysis-collapsible--embedded\" open"
     end
 
+    test "reader can inspect repository import status without lifecycle controls", %{conn: conn} do
+      workspace =
+        workspace_fixture(%{
+          owner: "workspace-owner",
+          permissions: %{"reader@localhost" => "read"}
+        })
+
+      job =
+        repo_analysis_agent_fixture(%{
+          workspace_id: workspace.id,
+          owner: workspace.owner,
+          status: :failed,
+          progress_message: "Repository analysis failed"
+        })
+
+      conn = Phoenix.ConnTest.init_test_session(conn, %{user_id: "reader@localhost"})
+      {:ok, view, html} = live(conn, ~p"/workspaces/#{workspace.id}")
+
+      assert html =~ "Repository analysis failed"
+      refute html =~ "Retry import"
+      refute html =~ "Terminate"
+
+      render_hook(view, "retry_repo_analysis", %{"id" => job.id})
+
+      assert Valentine.Composer.AnalysisJobs.get_repo_analysis_agent!(job.id).status == :failed
+    end
+
     test "renders the quality reviews submenu without embedding review controls", %{conn: conn} do
       workspace = workspace_fixture(%{owner: "some owner"})
       conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})

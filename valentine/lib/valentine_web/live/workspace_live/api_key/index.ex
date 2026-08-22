@@ -8,7 +8,9 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.Index do
   @impl true
   def mount(%{"workspace_id" => workspace_id} = _params, _session, socket) do
     workspace = Workspaces.get_workspace!(workspace_id)
-    api_keys = ApiKeys.list_api_keys_by_workspace(workspace.id)
+
+    {:ok, api_keys} =
+      ApiKeys.list_api_keys_by_workspace(workspace.id, socket.assigns.current_user)
 
     {:ok,
      socket
@@ -41,7 +43,11 @@ defmodule ValentineWeb.WorkspaceLive.ApiKey.Index do
         {:noreply, socket |> put_flash(:error, gettext("API key not found"))}
 
       api_key ->
-        case ApiKeys.delete_api_key(api_key) do
+        case ApiKeys.delete_api_key_for_workspace(
+               socket.assigns.workspace_id,
+               api_key.id,
+               socket.assigns.current_user
+             ) do
           {:ok, _} ->
             log(
               :info,

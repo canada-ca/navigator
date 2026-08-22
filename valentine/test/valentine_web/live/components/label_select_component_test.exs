@@ -51,12 +51,16 @@ defmodule ValentineWeb.WorkspaceLive.Components.LabelSelectComponentTest do
 
   describe "handle_event/3 selected item" do
     test "selects the item based on the id" do
+      workspace = Valentine.ComposerFixtures.workspace_fixture()
+
       socket = %Phoenix.LiveView.Socket{
         assigns: %{
           __changed__: %{},
           field: "some field",
           id: "label-select-component",
-          items: [{:item_1, nil}, {:item_2, nil}, {:item_3, nil}]
+          items: [{:item_1, nil}, {:item_2, nil}, {:item_3, nil}],
+          workspace_id: workspace.id,
+          current_user: workspace.owner
         }
       }
 
@@ -67,13 +71,17 @@ defmodule ValentineWeb.WorkspaceLive.Components.LabelSelectComponentTest do
     end
 
     test "selects the item based on the id when a parent_id is set" do
+      workspace = Valentine.ComposerFixtures.workspace_fixture()
+
       socket = %Phoenix.LiveView.Socket{
         assigns: %{
           __changed__: %{},
           field: "some field",
           id: "label-select-component",
           items: [{:item_1, nil}, {:item_2, nil}, {:item_3, nil}],
-          parent_id: %Phoenix.LiveComponent.CID{cid: 1}
+          parent_id: %Phoenix.LiveComponent.CID{cid: 1},
+          workspace_id: workspace.id,
+          current_user: workspace.owner
         }
       }
 

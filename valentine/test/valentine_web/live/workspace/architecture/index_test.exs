@@ -21,7 +21,8 @@ defmodule ValentineWeb.WorkspaceLive.Architecture.IndexTest do
     %{
       architecture: architecture,
       socket: socket,
-      workspace_id: workspace.id
+      workspace_id: workspace.id,
+      workspace: workspace
     }
   end
 
@@ -146,6 +147,40 @@ defmodule ValentineWeb.WorkspaceLive.Architecture.IndexTest do
       assert socket.assigns.touched == false
 
       assert Valentine.Composer.Architecture.get_cache(architecture.workspace_id) == []
+    end
+
+    test "reader changes and saves do not alter cache or content", %{
+      architecture: architecture,
+      socket: socket,
+      workspace: workspace
+    } do
+      {:ok, _workspace} =
+        Valentine.Composer.Workspaces.update_workspace_permissions(
+          workspace,
+          workspace.owner,
+          "reader@localhost",
+          "read"
+        )
+
+      Valentine.Composer.Architecture.flush_cache(workspace.id)
+      socket = put_in(socket.assigns.current_user, "reader@localhost")
+
+      assert {:noreply, _socket} =
+               ValentineWeb.WorkspaceLive.Architecture.Index.handle_info(
+                 {:quill_change, %{"ops" => [%{"insert" => "forged"}]}},
+                 socket
+               )
+
+      assert {:noreply, _socket} =
+               ValentineWeb.WorkspaceLive.Architecture.Index.handle_info(
+                 {:quill_save, "forged content"},
+                 socket
+               )
+
+      assert Valentine.Composer.Architecture.get_cache(workspace.id) == []
+
+      reloaded = Valentine.Composer.Workspaces.get_workspace!(workspace.id, [:architecture])
+      assert reloaded.architecture.content == architecture.content
     end
   end
 end

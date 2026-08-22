@@ -185,6 +185,17 @@ defmodule Valentine.Composer.DataFlowDiagram do
     end
   end
 
+  def load(workspace_id) do
+    case Cache.get({__MODULE__, :dfd, workspace_id}) do
+      nil ->
+        Documents.get_data_flow_diagram_by_workspace_id(workspace_id) ||
+          %__MODULE__{workspace_id: workspace_id, nodes: %{}, edges: %{}}
+
+      dfd ->
+        dfd
+    end
+  end
+
   def normalize_nodes(nodes) when is_map(nodes) do
     Map.new(nodes, fn {id, node} -> {id, normalize_node(node)} end)
   end

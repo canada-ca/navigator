@@ -104,7 +104,21 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Components.FormComponent do
   end
 
   def handle_event("save", %{"threat_agent" => threat_agent_params}, socket) do
-    save_threat_agent(socket, socket.assigns.action, trusted_params(socket, threat_agent_params))
+    case ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize_component(
+           socket,
+           socket.assigns.threat_agent.workspace_id,
+           :write
+         ) do
+      {:ok, _workspace} ->
+        save_threat_agent(
+          socket,
+          socket.assigns.action,
+          trusted_params(socket, threat_agent_params)
+        )
+
+      {:error, socket} ->
+        {:noreply, socket}
+    end
   end
 
   defp save_threat_agent(socket, :edit, threat_agent_params) do

@@ -52,7 +52,7 @@ defmodule ValentineWeb.WorkspaceLive.Index do
     workspace = Workspaces.get_workspace!(workspace_id)
 
     if workspace.owner == socket.assigns.current_user do
-      case Workspaces.delete_workspace(workspace) do
+      case Workspaces.delete_workspace(workspace, socket.assigns.current_user) do
         {:ok, _} ->
           log(:info, socket.assigns.current_user, "deleted", workspace.id, "workspace")
 

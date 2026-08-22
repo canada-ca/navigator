@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 
 import BrainstormDrag from "../vendor/drag-and-drop.js";
 
-function buildHook() {
+function buildHook({ readOnly = false } = {}) {
     document.body.innerHTML = `
-    <div id="brainstorm">
+    <div id="brainstorm" data-read-only="${readOnly}">
       <div data-type-column="idea" class="drag-over">
         <button class="type-drag-handle" type="button"></button>
         <article data-item-id="item-1"></article>
@@ -58,5 +58,13 @@ describe("BrainstormDrag", () => {
 
         expect(document.querySelectorAll(".drag-over")).toHaveLength(0);
         expect(document.querySelectorAll(".drag-over-type")).toHaveLength(0);
+    });
+
+    it("does not emit column reorders in read-only mode", () => {
+        const { hook } = buildHook({ readOnly: true });
+
+        hook.reorderColumns("idea", "mitigation");
+
+        expect(hook.pushEvent).not.toHaveBeenCalled();
     });
 });

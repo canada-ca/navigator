@@ -51,7 +51,11 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.ReviewIndex do
 
   @impl true
   def handle_event("cancel_threat_model_quality_review", %{"id" => id}, socket) do
-    case ThreatModelQualityReview.cancel_for_owner(id, socket.assigns.current_user) do
+    case ThreatModelQualityReview.cancel_for_workspace(
+           id,
+           socket.assigns.workspace_id,
+           socket.assigns.current_user
+         ) do
       {:ok, _run} ->
         {:noreply,
          socket
@@ -61,6 +65,36 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.ReviewIndex do
       {:error, :not_found} ->
         {:noreply, put_flash(socket, :error, gettext("Quality review not found"))}
 
+      {:error, :unauthorized} ->
+        {:noreply, put_flash(socket, :error, gettext("You cannot manage that quality review"))}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, inspect(reason))}
+    end
+  end
+
+  @impl true
+  def handle_event("retry_threat_model_quality_review", %{"id" => id}, socket) do
+    case ThreatModelQualityReview.retry_for_workspace(
+           id,
+           socket.assigns.workspace_id,
+           socket.assigns.current_user
+         ) do
+      {:ok, _run} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Threat model quality review queued"))
+         |> assign_workspace(socket.assigns.workspace_id)}
+
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, gettext("Quality review not found"))}
+
+      {:error, :unauthorized} ->
+        {:noreply, put_flash(socket, :error, gettext("You cannot manage that quality review"))}
+
+      {:error, :not_retryable} ->
+        {:noreply, put_flash(socket, :error, gettext("That review cannot be rerun right now"))}
+
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, inspect(reason))}
     end
@@ -68,7 +102,11 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.ReviewIndex do
 
   @impl true
   def handle_event("delete_threat_model_quality_review", %{"id" => id}, socket) do
-    case ThreatModelQualityReview.delete_for_owner(id, socket.assigns.current_user) do
+    case ThreatModelQualityReview.delete_for_workspace(
+           id,
+           socket.assigns.workspace_id,
+           socket.assigns.current_user
+         ) do
       {:ok, _run} ->
         {:noreply,
          socket
@@ -77,6 +115,9 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.ReviewIndex do
 
       {:error, :not_found} ->
         {:noreply, put_flash(socket, :error, gettext("Quality review not found"))}
+
+      {:error, :unauthorized} ->
+        {:noreply, put_flash(socket, :error, gettext("You cannot manage that quality review"))}
 
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, inspect(reason))}
@@ -196,5 +237,9 @@ defmodule ValentineWeb.WorkspaceLive.ThreatModel.ReviewIndex do
           Map.get(summary, :info_severity_count) || Map.get(summary, "info_severity_count") || 0
       )
     end
+  end
+
+  defp can_manage_review?(run, current_user) do
+    ThreatModelQualityReview.can_manage?(run, current_user)
   end
 end

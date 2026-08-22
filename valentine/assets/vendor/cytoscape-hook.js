@@ -294,6 +294,7 @@ const CytoscapeHook = {
         const nodes = JSON.parse(this.el.dataset.nodes || "[]");
         const edges = JSON.parse(this.el.dataset.edges || "[]");
         const theme = this.el.dataset.selectedtheme || "light";
+        this.readOnly = this.el.dataset.readOnly === "true";
 
         this.user = this.el.dataset.user || "user-" + Math.floor(Math.random() * 1000);
 
@@ -304,7 +305,8 @@ const CytoscapeHook = {
             layout: {
                 name: 'preset',
                 fit: false
-            }
+            },
+            autoungrabify: this.readOnly
         });
 
         let defaults = {
@@ -326,7 +328,7 @@ const CytoscapeHook = {
             disableBrowserGestures: true
         };
 
-        this.eh = this.cy.edgehandles(defaults);
+        this.eh = this.readOnly ? null : this.cy.edgehandles(defaults);
 
         this.bindEvents(this.cy);
         this.setupEventHandlers();
@@ -341,37 +343,39 @@ const CytoscapeHook = {
             cy.fit();
         });
 
-        cy.on("cxttapstart", "node", (evt) => {
-            this.eh.start(evt.target);
-        });
+        if (!this.readOnly) {
+            cy.on("cxttapstart", "node", (evt) => {
+                this.eh.start(evt.target);
+            });
 
-        cy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
-            this.pushEventTo(this.el, "ehcomplete", { localJs: true, edge: { id: addedEdge.id(), source: sourceNode.id(), target: targetNode.id() } });
-        });
+            cy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
+                this.pushEventTo(this.el, "ehcomplete", { localJs: true, edge: { id: addedEdge.id(), source: sourceNode.id(), target: targetNode.id() } });
+            });
 
-        cy.on("free", "node", (evt) => {
-            evt.target.data("active_user", null);
-            this.pushEventTo(this.el, "free", { localJs: true, node: { id: evt.target.id() } });
-        })
+            cy.on("free", "node", (evt) => {
+                evt.target.data("active_user", null);
+                this.pushEventTo(this.el, "free", { localJs: true, node: { id: evt.target.id() } });
+            })
 
-        cy.on("grab", "node", (evt) => {
-            evt.target.data("active_user", this.user);
-            this.pushEventTo(this.el, "grab", { localJs: true, node: { id: evt.target.id() }, user: this.user });
-        });
+            cy.on("grab", "node", (evt) => {
+                evt.target.data("active_user", this.user);
+                this.pushEventTo(this.el, "grab", { localJs: true, node: { id: evt.target.id() }, user: this.user });
+            });
 
-        cy.on("position", "node", (evt) => {
-            if (evt.target.data("active_user") !== this.user) {
-                return;
-            }
-            if (evt.target.data('type') === "trust_boundary") {
-                evt.target.descendants().forEach((node) => {
-                    this.pushEventTo(this.el, "position", { localJs: true, node: { id: node.id(), position: node.position() } });
-                });
-                return;
-            } else {
-                this.pushEventTo(this.el, "position", { localJs: true, node: { id: evt.target.id(), position: evt.target.position() } });
-            }
-        });
+            cy.on("position", "node", (evt) => {
+                if (evt.target.data("active_user") !== this.user) {
+                    return;
+                }
+                if (evt.target.data('type') === "trust_boundary") {
+                    evt.target.descendants().forEach((node) => {
+                        this.pushEventTo(this.el, "position", { localJs: true, node: { id: node.id(), position: node.position() } });
+                    });
+                    return;
+                } else {
+                    this.pushEventTo(this.el, "position", { localJs: true, node: { id: evt.target.id(), position: evt.target.position() } });
+                }
+            });
+        }
 
         cy.on("select", "node", (evt) => {
             this.pushEventTo(this.el, "select", { id: evt.target.id(), label: evt.target.data().label, group: evt.target.group() });
@@ -551,6 +555,7 @@ const CytoscapeHook = {
     },
 
     save() {
+        if (this.readOnly) return;
         let base64 = this.cy.png({ full: true });
         this.pushEventTo(this.el, "export", { base64: base64 });
     },

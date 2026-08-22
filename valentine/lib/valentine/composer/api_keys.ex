@@ -8,6 +8,7 @@ defmodule Valentine.Composer.ApiKeys do
 
   alias Valentine.Composer.ApiKey
   alias Valentine.Composer.Workspace
+  alias Valentine.Composer.Workspaces
   alias Valentine.Composer.QueryHelpers
 
   @doc """
@@ -40,6 +41,12 @@ defmodule Valentine.Composer.ApiKeys do
   def list_api_keys_by_workspace(workspace_id) do
     from(a in ApiKey, where: a.workspace_id == ^workspace_id)
     |> Repo.all()
+  end
+
+  def list_api_keys_by_workspace(workspace_id, identity) do
+    with {:ok, _workspace} <- Workspaces.authorize(workspace_id, identity, :manage) do
+      {:ok, list_api_keys_by_workspace(workspace_id)}
+    end
   end
 
   @doc """
@@ -97,21 +104,20 @@ defmodule Valentine.Composer.ApiKeys do
   status are derived from trusted server-side values.
   """
   def create_api_key_for_workspace(
-        %Workspace{owner: owner} = workspace,
-        owner,
+        %Workspace{} = workspace,
+        identity,
         attrs
       )
-      when is_binary(owner) and is_map(attrs) do
-    create_api_key(%{
-      label: Map.get(attrs, "label", Map.get(attrs, :label)),
-      owner: owner,
-      status: :active,
-      workspace_id: workspace.id
-    })
+      when is_binary(identity) and is_map(attrs) do
+    with {:ok, current_workspace} <- Workspaces.authorize(workspace.id, identity, :manage) do
+      create_api_key(%{
+        label: Map.get(attrs, "label", Map.get(attrs, :label)),
+        owner: current_workspace.owner,
+        status: :active,
+        workspace_id: current_workspace.id
+      })
+    end
   end
-
-  def create_api_key_for_workspace(%Workspace{}, _identity, _attrs),
-    do: {:error, :unauthorized}
 
   @doc """
   Updates a api_key.
@@ -145,6 +151,16 @@ defmodule Valentine.Composer.ApiKeys do
   """
   def delete_api_key(%ApiKey{} = api_key) do
     Repo.delete(api_key)
+  end
+
+  def delete_api_key_for_workspace(workspace_id, api_key_id, identity) do
+    with {:ok, _workspace} <- Workspaces.authorize(workspace_id, identity, :manage),
+         %ApiKey{} = api_key <- get_api_key_for_workspace(workspace_id, api_key_id) do
+      delete_api_key(api_key)
+    else
+      nil -> {:error, :not_found}
+      error -> error
+    end
   end
 
   @doc """

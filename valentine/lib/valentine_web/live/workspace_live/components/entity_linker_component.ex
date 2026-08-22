@@ -61,6 +61,10 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponent do
 
   @impl true
   def handle_event("save", _params, socket) do
+    with_write(socket, &save_links/1)
+  end
+
+  defp save_links(socket) do
     %{
       entity: entity,
       linked_entities: linked_entities,
@@ -69,6 +73,16 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponent do
     } =
       socket.assigns
 
+    if entity.workspace_id != socket.assigns.workspace_id or
+         Enum.any?(linked_entities, &(&1.workspace_id != entity.workspace_id)) do
+      {:noreply,
+       put_flash(socket, :error, gettext("Linked entities must belong to this workspace."))}
+    else
+      persist_links(socket, entity, linked_entities, source_entity_type, target_entity_type)
+    end
+  end
+
+  defp persist_links(socket, entity, linked_entities, source_entity_type, target_entity_type) do
     current = get_in(entity, [Access.key!(target_entity_type)])
 
     to_add = linked_entities -- current
@@ -164,4 +178,15 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponent do
   defp entity_content(%Valentine.Composer.Evidence{} = evidence), do: evidence.name
 
   defp entity_content(entity), do: entity.content
+
+  defp with_write(socket, fun) do
+    case ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize_component(
+           socket,
+           socket.assigns.workspace_id,
+           :write
+         ) do
+      {:ok, _workspace} -> fun.(socket)
+      {:error, socket} -> {:noreply, socket}
+    end
+  end
 end

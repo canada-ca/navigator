@@ -78,7 +78,17 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponent do
   end
 
   def handle_event("save", %{"assumption" => assumption_params}, socket) do
-    save_assumption(socket, socket.assigns.action, trusted_params(socket, assumption_params))
+    case ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize_component(
+           socket,
+           socket.assigns.assumption.workspace_id,
+           :write
+         ) do
+      {:ok, _workspace} ->
+        save_assumption(socket, socket.assigns.action, trusted_params(socket, assumption_params))
+
+      {:error, socket} ->
+        {:noreply, socket}
+    end
   end
 
   defp save_assumption(socket, :edit, assumption_params) do

@@ -1,7 +1,7 @@
 <.subhead>
   {gettext("Evidence Overview")}
   <:actions>
-    <.link navigate={~p"/workspaces/#{@workspace_id}/evidence/new"}>
+    <.link :if={@workspace_can_write} navigate={~p"/workspaces/#{@workspace_id}/evidence/new"}>
       <.button is_primary>{gettext("New Evidence")}</.button>
     </.link>
   </:actions>
@@ -74,6 +74,7 @@
         module={ValentineWeb.WorkspaceLive.Components.EvidenceComponent}
         id={"evidence-#{evidence.id}"}
         evidence={evidence}
+        can_write={@workspace_can_write}
       />
     </:row>
   </.live_component>
@@ -88,6 +89,8 @@
     target_entity_type={@target_entity_type}
     linkable_entities={@linkable_entities}
     linked_entities={@linked_entities}
+    workspace_id={@workspace_id}
+    current_user={@current_user}
     patch={~p"/workspaces/#{@workspace_id}/evidence"}
   />
 <% end %>
@@ -101,6 +104,8 @@
     target_entity_type={@target_entity_type}
     linkable_entities={@linkable_entities}
     linked_entities={@linked_entities}
+    workspace_id={@workspace_id}
+    current_user={@current_user}
     patch={~p"/workspaces/#{@workspace_id}/evidence"}
   />
 <% end %>
@@ -114,6 +119,8 @@
     target_entity_type={@target_entity_type}
     linkable_entities={@linkable_entities}
     linked_entities={@linked_entities}
+    workspace_id={@workspace_id}
+    current_user={@current_user}
     patch={~p"/workspaces/#{@workspace_id}/evidence"}
   />
 <% end %>

@@ -8,6 +8,8 @@ defmodule Valentine.Composer.Workspaces do
 
   alias Valentine.Composer.Workspace
 
+  def permission_topic(workspace_id), do: "workspace_permissions:#{workspace_id}"
+
   @doc """
   Returns the list of workspaces.
 
@@ -38,7 +40,9 @@ defmodule Valentine.Composer.Workspaces do
 
   def list_workspaces_by_identity(identity) do
     from(w in Workspace,
-      where: w.owner == ^identity or fragment("? \\? ?", w.permissions, ^identity)
+      where:
+        w.owner == ^identity or
+          fragment("? ->> ? IN ('read', 'write')", w.permissions, ^identity)
     )
     |> Repo.all()
   end
@@ -102,6 +106,12 @@ defmodule Valentine.Composer.Workspaces do
     |> Repo.update()
   end
 
+  def update_workspace(%Workspace{} = workspace, actor_identity, attrs) do
+    with {:ok, current_workspace} <- authorize(workspace.id, actor_identity, :manage) do
+      update_workspace(current_workspace, attrs)
+    end
+  end
+
   @doc """
     Updates workspace permissions.
 
@@ -115,17 +125,27 @@ defmodule Valentine.Composer.Workspaces do
         iex> update_workspace_permissions(workspace, "some.owner@localhost", "owner")
         %Workspace{permissions: %{"some.owner@localhost" => "owner"}}
   """
-  def update_workspace_permissions(%Workspace{} = workspace, identity, permission) do
-    case permission do
-      "none" ->
-        workspace
-        |> Workspace.changeset(%{permissions: Map.delete(workspace.permissions, identity)})
-        |> Repo.update()
+  def update_workspace_permissions(
+        %Workspace{} = workspace,
+        actor_identity,
+        collaborator_identity,
+        permission
+      ) do
+    workspace = get_workspace!(workspace.id)
 
-      p ->
-        workspace
-        |> Workspace.changeset(%{permissions: Map.put(workspace.permissions, identity, p)})
-        |> Repo.update()
+    with :ok <- authorize_permission_update(workspace, actor_identity, collaborator_identity),
+         {:ok, permissions} <- updated_permissions(workspace, collaborator_identity, permission),
+         {:ok, workspace} <-
+           workspace
+           |> Workspace.permission_changeset(permissions)
+           |> Repo.update() do
+      Phoenix.PubSub.broadcast(
+        Valentine.PubSub,
+        permission_topic(workspace.id),
+        {:workspace_permission_updated, workspace.id, collaborator_identity}
+      )
+
+      {:ok, workspace}
     end
   end
 
@@ -143,6 +163,12 @@ defmodule Valentine.Composer.Workspaces do
   """
   def delete_workspace(%Workspace{} = workspace) do
     Repo.delete(workspace)
+  end
+
+  def delete_workspace(%Workspace{} = workspace, actor_identity) do
+    with {:ok, current_workspace} <- authorize(workspace.id, actor_identity, :manage) do
+      delete_workspace(current_workspace)
+    end
   end
 
   @doc """
@@ -172,5 +198,52 @@ defmodule Valentine.Composer.Workspaces do
   def check_workspace_permissions(workspace_id, identity) do
     workspace = get_workspace!(workspace_id)
     Workspace.check_workspace_permissions(workspace, identity)
+  end
+
+  def authorize(workspace_id, identity, capability)
+      when capability in [:read, :write, :manage] do
+    case Repo.get(Workspace, workspace_id) do
+      nil ->
+        {:error, :not_found}
+
+      workspace ->
+        permission = Workspace.check_workspace_permissions(workspace, identity)
+
+        if permitted?(permission, capability) do
+          {:ok, workspace}
+        else
+          {:error, :unauthorized}
+        end
+    end
+  end
+
+  def authorized?(workspace_id, identity, capability) do
+    match?({:ok, %Workspace{}}, authorize(workspace_id, identity, capability))
+  end
+
+  defp permitted?(permission, :read), do: Workspace.can_read?(permission)
+  defp permitted?(permission, :write), do: Workspace.can_write?(permission)
+  defp permitted?(permission, :manage), do: Workspace.can_manage?(permission)
+
+  defp authorize_permission_update(%Workspace{owner: owner}, owner, collaborator_identity)
+       when owner != collaborator_identity,
+       do: :ok
+
+  defp authorize_permission_update(%Workspace{owner: owner}, owner, owner),
+    do: {:error, :cannot_change_owner_permission}
+
+  defp authorize_permission_update(%Workspace{}, _actor_identity, _collaborator_identity),
+    do: {:error, :unauthorized}
+
+  defp updated_permissions(workspace, collaborator_identity, "none") do
+    {:ok, Map.delete(workspace.permissions, collaborator_identity)}
+  end
+
+  defp updated_permissions(workspace, collaborator_identity, permission) do
+    if Workspace.valid_stored_permission?(permission) do
+      {:ok, Map.put(workspace.permissions, collaborator_identity, permission)}
+    else
+      {:error, :invalid_permission}
+    end
   end
 end

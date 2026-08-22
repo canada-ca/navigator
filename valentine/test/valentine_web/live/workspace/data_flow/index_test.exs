@@ -14,6 +14,7 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.IndexTest do
         live_action: nil,
         flash: %{},
         current_user: workspace.owner,
+        workspace_can_write: true,
         dfd: dfd,
         saved: true,
         selected_elements: %{"nodes" => %{}, "edges" => %{}},

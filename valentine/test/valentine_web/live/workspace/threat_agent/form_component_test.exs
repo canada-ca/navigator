@@ -13,6 +13,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.FormComponentTest do
     assigns = %{
       __changed__: %{},
       threat_agent: threat_agent,
+      current_user: "some owner",
       id: "form-component",
       action: :edit,
       on_cancel: "/workspaces/#{threat_agent.workspace_id}/threat_agents",
@@ -57,6 +58,7 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.FormComponentTest do
         id: "form-component",
         action: :edit,
         threat_agent: threat_agent,
+        current_user: "some owner",
         changeset: Threats.change_threat_agent(threat_agent),
         flash: %{},
         on_cancel: "/workspaces/#{threat_agent.workspace_id}/threat_agents",
