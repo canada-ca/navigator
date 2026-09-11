@@ -104,6 +104,16 @@ const BrainstormDrag = {
             if (target && !target.contains(e.relatedTarget)) target.classList.remove('drag-over-type')
         })
     },
+    updated() {
+        this.readOnly = this.el.dataset.readOnly === "true"
+        if (this.readOnly) {
+            this.draggedType = null
+            this.el.querySelectorAll('.dragging, .dragging-type').forEach(el => {
+                el.classList.remove('dragging', 'dragging-type')
+            })
+            this.clearDropHighlights()
+        }
+    },
     clearDropHighlights() {
         this.el.querySelectorAll(".drag-over").forEach(el => el.classList.remove("drag-over"))
         this.el.querySelectorAll('.drag-over-type').forEach(el => el.classList.remove('drag-over-type'))

@@ -41,10 +41,11 @@ function createMockCy() {
         boundingBox: vi.fn(() => ({ w: 200, h: 200 })),
         remove: vi.fn()
     };
-    const edgehandlesInstance = { start: vi.fn() };
+    const edgehandlesInstance = { start: vi.fn(), stop: vi.fn(), enable: vi.fn(), disable: vi.fn() };
     const zoom = vi.fn((value) => (typeof value === "undefined" ? 1 : value));
 
     return {
+        autoungrabify: vi.fn(),
         add: vi.fn(() => ({ unselect: vi.fn() })),
         container: vi.fn(() => ({ clientWidth: 400, clientHeight: 400 })),
         destroy: vi.fn(),
@@ -188,9 +189,12 @@ describe("CytoscapeHook", () => {
         expect(cytoscapeState.lastOptions.autoungrabify).toBe(true);
         expect(cytoscapeState.mockCy.edgehandles).not.toHaveBeenCalled();
         expect(registeredEvents).toContain("select");
-        expect(registeredEvents).not.toContain("grab");
-        expect(registeredEvents).not.toContain("free");
-        expect(registeredEvents).not.toContain("ehcomplete");
+        for (const [event, ...args] of cytoscapeState.mockCy.on.mock.calls) {
+            if (["grab", "free", "position", "ehcomplete", "cxttapstart"].includes(event)) {
+                args.at(-1)({});
+            }
+        }
+        expect(hook.pushEventTo).not.toHaveBeenCalled();
         expect(hook.pushEventTo).not.toHaveBeenCalledWith(hook.el, "export", expect.anything());
 
         hook.eventHandlers.updateGraph({
@@ -202,4 +206,29 @@ describe("CytoscapeHook", () => {
             { data: { id: "remote" } }
         ]);
     });
+    it("applies live permission changes without rebinding graph handlers", () => {
+        const hook = buildHook({ readOnly: true });
+        hook.mounted();
+        const bindings = hook.cy.on.mock.calls.length;
+        const grab = hook.cy.on.mock.calls.find(([name]) => name === "grab").at(-1);
+        const node = { id: () => "node-1", data: vi.fn() };
+        hook.el.dataset.readOnly = "false";
+        hook.updated();
+        grab({ target: node });
+        expect(hook.cy.autoungrabify).toHaveBeenLastCalledWith(false);
+        expect(hook.eh.enable).toHaveBeenCalled();
+        expect(hook.pushEventTo).toHaveBeenCalledWith(hook.el, "grab", expect.anything());
+
+        hook.pushEventTo.mockClear();
+        hook.el.dataset.readOnly = "true";
+        hook.updated();
+        grab({ target: node });
+        hook.save();
+        expect(hook.cy.autoungrabify).toHaveBeenLastCalledWith(true);
+        expect(hook.eh.stop).toHaveBeenCalled();
+        expect(hook.eh.disable).toHaveBeenCalled();
+        expect(hook.pushEventTo).not.toHaveBeenCalled();
+        expect(hook.cy.on).toHaveBeenCalledTimes(bindings);
+    });
+
 });

@@ -26,11 +26,32 @@ defmodule ValentineWeb.Helpers.RbacHelper do
     end
   end
 
-  def on_mount(:default, %{"workspace_id" => workspace_id}, _session, socket) do
-    check_permissions(workspace_id, socket)
+  def on_mount(:default, params, _session, socket) do
+    socket =
+      if connected?(socket) do
+        attach_hook(socket, :workspace_route_permissions, :handle_params, &authorize_params/3)
+      else
+        socket
+      end
+
+    case params do
+      %{"workspace_id" => workspace_id} -> check_permissions(workspace_id, socket)
+      _ -> {:cont, socket}
+    end
   end
 
-  def on_mount(:default, _params, _session, socket), do: {:cont, socket}
+  defp authorize_params(%{"workspace_id" => workspace_id}, _uri, socket) do
+    case Workspaces.authorize(workspace_id, socket.assigns.current_user, :read) do
+      {:ok, workspace} ->
+        permission = Workspace.check_workspace_permissions(workspace, socket.assigns.current_user)
+        enforce_route_capability(assign_permission(socket, permission), workspace_id)
+
+      {:error, _reason} ->
+        {:halt, redirect(socket, to: "/workspaces")}
+    end
+  end
+
+  defp authorize_params(_params, _uri, socket), do: {:cont, socket}
 
   defp check_permissions(workspace_id, socket) do
     case Workspaces.authorize(workspace_id, socket.assigns.current_user, :read) do
@@ -81,7 +102,11 @@ defmodule ValentineWeb.Helpers.RbacHelper do
     case Workspaces.authorize(workspace_id, socket.assigns.current_user, :read) do
       {:ok, workspace} ->
         permission = Workspace.check_workspace_permissions(workspace, socket.assigns.current_user)
-        enforce_route_capability(assign_permission(socket, permission), workspace_id)
+
+        {_status, socket} =
+          enforce_route_capability(assign_permission(socket, permission), workspace_id)
+
+        {:halt, socket}
 
       {:error, _reason} ->
         {:halt, redirect(socket, to: "/workspaces")}

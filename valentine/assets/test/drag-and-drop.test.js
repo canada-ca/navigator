@@ -67,4 +67,21 @@ describe("BrainstormDrag", () => {
 
         expect(hook.pushEvent).not.toHaveBeenCalled();
     });
+    it("applies live upgrades and clears an in-progress drag on downgrade", () => {
+        const { hook } = buildHook({ readOnly: true });
+        hook.el.dataset.readOnly = "false";
+        hook.updated();
+        hook.reorderColumns("idea", "mitigation");
+        expect(hook.pushEvent).toHaveBeenCalledTimes(1);
+
+        hook.pushEvent.mockClear();
+        hook.draggedType = "idea";
+        hook.el.dataset.readOnly = "true";
+        hook.updated();
+        hook.reorderColumns("idea", "mitigation");
+        expect(hook.draggedType).toBeNull();
+        expect(hook.pushEvent).not.toHaveBeenCalled();
+        expect(hook.el.querySelectorAll(".drag-over, .drag-over-type")).toHaveLength(0);
+    });
+
 });

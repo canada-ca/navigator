@@ -9,6 +9,7 @@ vi.mock("quill", () => ({
     default: vi.fn(function MockQuill() {
         quillState.handlers = {};
         quillState.instance = {
+            enable: vi.fn(),
             clipboard: {
                 dangerouslyPasteHTML: vi.fn()
             },
@@ -114,4 +115,29 @@ describe("QuillHook", () => {
         expect(hook.pushEventTo).not.toHaveBeenCalled();
         expect(quillState.instance.updateContents).toHaveBeenCalledWith(delta);
     });
+    it("applies live upgrades and downgrades and binds newly rendered Save buttons once", () => {
+        const hook = buildHook({ readOnly: true, includeSaveButton: false });
+        hook.mounted();
+        const button = document.createElement("button");
+        button.id = "quill-save-btn";
+        document.body.appendChild(button);
+        hook.el.dataset.readOnly = "false";
+        hook.updated();
+        hook.updated();
+        button.click();
+        expect(quillState.instance.enable).toHaveBeenCalledWith(true);
+        expect(hook.pushEventTo).toHaveBeenCalledTimes(1);
+
+        hook.pushEventTo.mockClear();
+        hook.el.dataset.readOnly = "true";
+        hook.updated();
+        button.click();
+        const delta = { ops: [{ insert: "hello" }] };
+        quillState.handlers["text-change"](delta, { ops: [] }, "user");
+        hook.eventHandlers.updateQuill({ event: "text_change", payload: delta });
+        expect(quillState.instance.enable).toHaveBeenLastCalledWith(false);
+        expect(hook.pushEventTo).not.toHaveBeenCalled();
+        expect(quillState.instance.updateContents).toHaveBeenCalledWith(delta);
+    });
+
 });

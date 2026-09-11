@@ -337,4 +337,65 @@ defmodule ValentineWeb.WorkspaceLive.WorkspaceAccessTest do
       end)
     end
   end
+
+  test "permission broadcasts are consumed on pages with application message handlers", %{
+    conn: conn,
+    workspace: workspace
+  } do
+    writer_conn = Phoenix.ConnTest.init_test_session(conn, %{user_id: "writer@localhost"})
+
+    views =
+      for path <- [
+            ~p"/workspaces/#{workspace.id}/assumptions",
+            ~p"/workspaces/#{workspace.id}/application_information",
+            ~p"/workspaces/#{workspace.id}/architecture",
+            ~p"/workspaces/#{workspace.id}/data_flow",
+            ~p"/workspaces/#{workspace.id}/brainstorm"
+          ] do
+        {:ok, view, _html} = live(writer_conn, path)
+        view
+      end
+
+    for permission <- ["read", "write"] do
+      assert {:ok, _} =
+               Workspaces.update_workspace_permissions(
+                 workspace,
+                 workspace.owner,
+                 "writer@localhost",
+                 permission
+               )
+
+      for view <- views do
+        assert has_element?(view, "#workspace-read-only-indicator") == (permission == "read")
+      end
+    end
+  end
+
+  test "readers cannot live-patch from a listing into write-only routes", %{
+    conn: conn,
+    workspace: workspace
+  } do
+    reader_conn = Phoenix.ConnTest.init_test_session(conn, %{user_id: "reader@localhost"})
+    {:ok, view, _html} = live(reader_conn, ~p"/workspaces/#{workspace.id}/assumptions")
+
+    render_patch(view, ~p"/workspaces/#{workspace.id}/assumptions/new")
+    assert_redirect(view, ~p"/workspaces/#{workspace.id}")
+  end
+
+  test "live patches check current permission even when no permission broadcast arrives", %{
+    conn: conn,
+    workspace: workspace
+  } do
+    writer_conn = Phoenix.ConnTest.init_test_session(conn, %{user_id: "writer@localhost"})
+    {:ok, view, _html} = live(writer_conn, ~p"/workspaces/#{workspace.id}/assumptions")
+
+    workspace
+    |> Ecto.Changeset.change(%{
+      permissions: Map.put(workspace.permissions, "writer@localhost", "read")
+    })
+    |> Repo.update!()
+
+    render_patch(view, ~p"/workspaces/#{workspace.id}/assumptions/new")
+    assert_redirect(view, ~p"/workspaces/#{workspace.id}")
+  end
 end
