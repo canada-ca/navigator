@@ -47,6 +47,21 @@ defmodule ValentineWeb.WorkspaceLive.Components.LabelSelectComponent do
   end
 
   def handle_event("select_item", %{"id" => id}, socket) do
+    case ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize_component(
+           socket,
+           socket.assigns.workspace_id,
+           :write
+         ) do
+      {:ok, _workspace} -> select_item(socket, id)
+      {:error, socket} -> {:noreply, socket}
+    end
+  end
+
+  def handle_event("toggle_dropdown", _, socket) do
+    {:noreply, assign(socket, :show_dropdown, !socket.assigns.show_dropdown)}
+  end
+
+  defp select_item(socket, id) do
     if Map.has_key?(socket.assigns, :parent_id) do
       send_update(
         socket.assigns.parent_id,
@@ -59,10 +74,6 @@ defmodule ValentineWeb.WorkspaceLive.Components.LabelSelectComponent do
     {:noreply,
      socket
      |> assign(show_dropdown: false)}
-  end
-
-  def handle_event("toggle_dropdown", _, socket) do
-    {:noreply, assign(socket, :show_dropdown, !socket.assigns.show_dropdown)}
   end
 
   defp get_class(items, value) do

@@ -53,6 +53,16 @@ defmodule Valentine.ComposerTest do
       assert Workspaces.list_workspaces_by_identity("collaborator") == [workspace]
     end
 
+    test "list_workspaces_by_identity/1 excludes unsupported permission values" do
+      workspace = workspace_fixture()
+
+      workspace
+      |> Ecto.Changeset.change(%{permissions: %{"legacy collaborator" => "member"}})
+      |> Valentine.Repo.update!()
+
+      assert Workspaces.list_workspaces_by_identity("legacy collaborator") == []
+    end
+
     test "get_workspace!/1 returns the workspace with given id" do
       workspace = workspace_fixture()
       assert Workspaces.get_workspace!(workspace.id) == workspace
@@ -96,7 +106,7 @@ defmodule Valentine.ComposerTest do
         url: "some updated url",
         max_threat_level: :td6,
         owner: "some updated owner",
-        permissions: %{some: "permissions"}
+        permissions: %{"some" => "read"}
       }
 
       assert {:ok, %Workspace{} = workspace} =
@@ -108,8 +118,8 @@ defmodule Valentine.ComposerTest do
       assert workspace.cloud_vendors == ["google_cloud"]
       assert workspace.url == "some updated url"
       assert workspace.max_threat_level == :td6
-      assert workspace.owner == "some updated owner"
-      assert workspace.permissions == %{some: "permissions"}
+      assert workspace.owner == "some owner"
+      assert workspace.permissions == %{}
     end
 
     test "update_workspace/2 with invalid max threat level returns error changeset" do
@@ -136,41 +146,91 @@ defmodule Valentine.ComposerTest do
       assert workspace == Workspaces.get_workspace!(workspace.id)
     end
 
-    test "update_workspace_permissions/2 with none permission removes an identity and updates the workspace permissions" do
-      workspace =
-        workspace_fixture(%{
-          permissions: %{"identity" => "permission", "another" => "permission"}
-        })
+    test "update_workspace/3 requires the current owner" do
+      workspace = workspace_fixture(%{owner: "owner@localhost"})
 
-      assert {:ok, %Workspace{} = workspace} =
-               Workspaces.update_workspace_permissions(workspace, "identity", "none")
+      assert {:error, :unauthorized} =
+               Workspaces.update_workspace(workspace, "writer@localhost", %{name: "forged"})
 
-      assert workspace.permissions == %{"another" => "permission"}
+      assert Workspaces.get_workspace!(workspace.id).name == workspace.name
+
+      assert {:ok, updated} =
+               Workspaces.update_workspace(workspace, workspace.owner, %{name: "owner update"})
+
+      assert updated.name == "owner update"
     end
 
-    test "update_workspace_permissions/2 with valid data updates the workspace permissions" do
-      workspace = workspace_fixture()
-
-      assert {:ok, %Workspace{} = workspace} =
-               Workspaces.update_workspace_permissions(workspace, "identity", "permission")
-
-      assert workspace.permissions == %{"identity" => "permission"}
-    end
-
-    test "update_workspace_permissions/2 with overwrites existing permissions" do
+    test "update_workspace_permissions/4 with none permission removes an identity" do
       workspace =
         workspace_fixture(%{
-          permissions: %{"identity" => "permission"}
+          permissions: %{"identity" => "read", "another" => "write"}
         })
 
       assert {:ok, %Workspace{} = workspace} =
                Workspaces.update_workspace_permissions(
                  workspace,
+                 workspace.owner,
                  "identity",
-                 "another_permission"
+                 "none"
                )
 
-      assert workspace.permissions == %{"identity" => "another_permission"}
+      assert workspace.permissions == %{"another" => "write"}
+    end
+
+    test "update_workspace_permissions/4 assigns read and write permissions" do
+      workspace = workspace_fixture()
+
+      assert {:ok, %Workspace{} = workspace} =
+               Workspaces.update_workspace_permissions(
+                 workspace,
+                 workspace.owner,
+                 "identity",
+                 "read"
+               )
+
+      assert {:ok, %Workspace{} = workspace} =
+               Workspaces.update_workspace_permissions(
+                 workspace,
+                 workspace.owner,
+                 "identity",
+                 "write"
+               )
+
+      assert workspace.permissions == %{"identity" => "write"}
+    end
+
+    test "update_workspace_permissions/4 rejects unsupported permissions" do
+      workspace = workspace_fixture()
+
+      assert {:error, :invalid_permission} =
+               Workspaces.update_workspace_permissions(
+                 workspace,
+                 workspace.owner,
+                 "identity",
+                 "member"
+               )
+
+      assert Workspaces.get_workspace!(workspace.id).permissions == %{}
+    end
+
+    test "update_workspace_permissions/4 rejects non-owners and owner targets" do
+      workspace = workspace_fixture()
+
+      assert {:error, :unauthorized} =
+               Workspaces.update_workspace_permissions(
+                 workspace,
+                 "not the owner",
+                 "identity",
+                 "read"
+               )
+
+      assert {:error, :cannot_change_owner_permission} =
+               Workspaces.update_workspace_permissions(
+                 workspace,
+                 workspace.owner,
+                 workspace.owner,
+                 "read"
+               )
     end
 
     test "delete_workspace/1 deletes the workspace" do
@@ -189,6 +249,15 @@ defmodule Valentine.ComposerTest do
       assert_raise Ecto.NoResultsError, fn -> Threats.get_threat_agent!(threat_agent.id) end
     end
 
+    test "delete_workspace/2 requires the current owner" do
+      workspace = workspace_fixture(%{owner: "owner@localhost"})
+
+      assert {:error, :unauthorized} =
+               Workspaces.delete_workspace(workspace, "writer@localhost")
+
+      assert Workspaces.get_workspace!(workspace.id)
+    end
+
     test "change_workspace/1 returns a workspace changeset" do
       workspace = workspace_fixture()
       assert %Ecto.Changeset{} = Workspaces.change_workspace(workspace)
@@ -197,6 +266,22 @@ defmodule Valentine.ComposerTest do
     test "check_workspace_permissions/2 returns the permission for the identity" do
       workspace = workspace_fixture(%{owner: "some owner"})
       assert Workspaces.check_workspace_permissions(workspace.id, "some owner") == "owner"
+    end
+
+    test "authorize/3 enforces the role capability matrix" do
+      workspace =
+        workspace_fixture(%{
+          owner: "owner",
+          permissions: %{"writer" => "write", "reader" => "read"}
+        })
+
+      assert {:ok, ^workspace} = Workspaces.authorize(workspace.id, "owner", :manage)
+      assert {:ok, ^workspace} = Workspaces.authorize(workspace.id, "writer", :write)
+      assert {:ok, ^workspace} = Workspaces.authorize(workspace.id, "reader", :read)
+      assert {:error, :unauthorized} = Workspaces.authorize(workspace.id, "reader", :write)
+      assert {:error, :unauthorized} = Workspaces.authorize(workspace.id, "writer", :manage)
+      assert {:error, :unauthorized} = Workspaces.authorize(workspace.id, "unknown", :read)
+      assert {:error, :not_found} = Workspaces.authorize(Ecto.UUID.generate(), "owner", :read)
     end
   end
 
@@ -1614,6 +1699,29 @@ defmodule Valentine.ComposerTest do
                )
 
       assert ApiKeys.list_api_keys_by_workspace(workspace.id) == []
+    end
+
+    test "API key listing and deletion require the current owner" do
+      workspace = workspace_fixture(%{owner: "workspace.owner@localhost"})
+      api_key = api_key_fixture(%{workspace_id: workspace.id})
+
+      assert {:error, :unauthorized} =
+               ApiKeys.list_api_keys_by_workspace(workspace.id, "writer@localhost")
+
+      assert {:error, :unauthorized} =
+               ApiKeys.delete_api_key_for_workspace(
+                 workspace.id,
+                 api_key.id,
+                 "writer@localhost"
+               )
+
+      assert ApiKeys.get_api_key(api_key.id)
+
+      assert {:ok, [_api_key]} =
+               ApiKeys.list_api_keys_by_workspace(workspace.id, workspace.owner)
+
+      assert {:ok, _api_key} =
+               ApiKeys.delete_api_key_for_workspace(workspace.id, api_key.id, workspace.owner)
     end
 
     test "update_api_key/2 with valid data updates the api_key" do

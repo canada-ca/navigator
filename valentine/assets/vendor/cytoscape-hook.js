@@ -280,6 +280,15 @@ const CytoscapeHook = {
 
     updated() {
         console.log("Cytoscape Hook updated");
+        this.readOnly = this.el.dataset.readOnly === "true";
+        this.cy.autoungrabify(this.readOnly);
+        if (this.readOnly) {
+            this.eh?.stop();
+            this.eh?.disable();
+        } else {
+            this.eh ||= this.cy.edgehandles(this.edgeOptions);
+            this.eh.enable();
+        }
         this.cy.style().fromJson(themes[this.el.dataset.selectedtheme || "light"]).update();
     },
 
@@ -294,6 +303,7 @@ const CytoscapeHook = {
         const nodes = JSON.parse(this.el.dataset.nodes || "[]");
         const edges = JSON.parse(this.el.dataset.edges || "[]");
         const theme = this.el.dataset.selectedtheme || "light";
+        this.readOnly = this.el.dataset.readOnly === "true";
 
         this.user = this.el.dataset.user || "user-" + Math.floor(Math.random() * 1000);
 
@@ -304,17 +314,18 @@ const CytoscapeHook = {
             layout: {
                 name: 'preset',
                 fit: false
-            }
+            },
+            autoungrabify: this.readOnly
         });
 
-        let defaults = {
+        this.edgeOptions = {
             // Prevent self-linking
             canConnect: function (sourceNode, targetNode) {
                 return !sourceNode.same(targetNode);
             },
             // Create edge with random ID and default label
             edgeParams: function (sourceNode, targetNode) {
-                id = "edge-" + Math.floor(Math.random() * 1000);
+                const id = "edge-" + Math.floor(Math.random() * 1000);
                 return { data: { id: id, label: "Data flow" } };
             },
             // Behavior tuning
@@ -326,7 +337,7 @@ const CytoscapeHook = {
             disableBrowserGestures: true
         };
 
-        this.eh = this.cy.edgehandles(defaults);
+        this.eh = this.readOnly ? null : this.cy.edgehandles(this.edgeOptions);
 
         this.bindEvents(this.cy);
         this.setupEventHandlers();
@@ -342,24 +353,29 @@ const CytoscapeHook = {
         });
 
         cy.on("cxttapstart", "node", (evt) => {
+            if (this.readOnly) return;
             this.eh.start(evt.target);
         });
 
         cy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge) => {
+            if (this.readOnly) return;
             this.pushEventTo(this.el, "ehcomplete", { localJs: true, edge: { id: addedEdge.id(), source: sourceNode.id(), target: targetNode.id() } });
         });
 
         cy.on("free", "node", (evt) => {
+            if (this.readOnly) return;
             evt.target.data("active_user", null);
             this.pushEventTo(this.el, "free", { localJs: true, node: { id: evt.target.id() } });
         })
 
         cy.on("grab", "node", (evt) => {
+            if (this.readOnly) return;
             evt.target.data("active_user", this.user);
             this.pushEventTo(this.el, "grab", { localJs: true, node: { id: evt.target.id() }, user: this.user });
         });
 
         cy.on("position", "node", (evt) => {
+            if (this.readOnly) return;
             if (evt.target.data("active_user") !== this.user) {
                 return;
             }
@@ -551,6 +567,7 @@ const CytoscapeHook = {
     },
 
     save() {
+        if (this.readOnly) return;
         let base64 = this.cy.png({ full: true });
         this.pushEventTo(this.el, "export", { base64: base64 });
     },

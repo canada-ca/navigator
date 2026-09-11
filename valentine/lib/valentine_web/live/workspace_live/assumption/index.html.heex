@@ -6,7 +6,11 @@
         {gettext("Export reference pack")}
       </.button>
     </a>
-    <.button is_primary phx-click={JS.patch(~p"/workspaces/#{@workspace_id}/assumptions/new")}>
+    <.button
+      :if={@workspace_can_write}
+      is_primary
+      phx-click={JS.patch(~p"/workspaces/#{@workspace_id}/assumptions/new")}
+    >
       {gettext("New Assumption")}
     </.button>
   </:actions>
@@ -31,6 +35,7 @@
         <:octicon name="discussion-closed-24" />
         <:action>
           <.button
+            :if={@workspace_can_write}
             phx-click={JS.patch(~p"/workspaces/#{@workspace_id}/assumptions/new")}
             is_primary
           >
@@ -47,6 +52,8 @@
       module={ValentineWeb.WorkspaceLive.Components.AssumptionComponent}
       id={"assumption-#{assumption.id}"}
       assumption={assumption}
+      current_user={@current_user}
+      can_write={@workspace_can_write}
     />
   </:row>
 </.box>
@@ -68,6 +75,8 @@
   id={@assumption.id}
   entity={@assumption}
   entity_type={:assumption}
+  workspace_id={@workspace_id}
+  current_user={@current_user}
   patch={~p"/workspaces/#{@workspace_id}/assumptions"}
 />
 
@@ -81,6 +90,7 @@
   linkable_entities={@mitigations}
   linked_entities={@assumption.mitigations}
   workspace_id={@workspace_id}
+  current_user={@current_user}
   patch={~p"/workspaces/#{@workspace_id}/assumptions"}
 />
 
@@ -94,5 +104,6 @@
   linkable_entities={@threats}
   linked_entities={@assumption.threats}
   workspace_id={@workspace_id}
+  current_user={@current_user}
   patch={~p"/workspaces/#{@workspace_id}/assumptions"}
 />

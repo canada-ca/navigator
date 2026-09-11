@@ -1,7 +1,11 @@
 <.subhead>
   {gettext("Listing Threat Agents")}
   <:actions>
-    <.button is_primary phx-click={JS.patch(~p"/workspaces/#{@workspace_id}/threat_agents/new")}>
+    <.button
+      :if={@workspace_can_write}
+      is_primary
+      phx-click={JS.patch(~p"/workspaces/#{@workspace_id}/threat_agents/new")}
+    >
       {gettext("New Threat Agent")}
     </.button>
   </:actions>
@@ -14,6 +18,7 @@
         <:octicon name="shield-24" />
         <:action>
           <.button
+            :if={@workspace_can_write}
             is_primary
             phx-click={JS.patch(~p"/workspaces/#{@workspace_id}/threat_agents/new")}
           >
@@ -39,6 +44,7 @@
           <h3>{threat_agent.name}</h3>
         </div>
         <.live_component
+          :if={@workspace_can_write}
           module={ValentineWeb.WorkspaceLive.Components.LabelSelectComponent}
           id={"threat-agent-td-level-#{threat_agent.id}"}
           icon="shield-16"
@@ -47,9 +53,15 @@
           field="td_level"
           items={td_level_items()}
           labels={Valentine.Composer.DeliberateThreatLevel.labels()}
+          workspace_id={@workspace_id}
+          current_user={@current_user}
         />
+        <span :if={!@workspace_can_write} class="State State--small State--open ml-2">
+          {display_td_level(threat_agent.td_level)}
+        </span>
         <div class="float-right">
           <.button
+            :if={@workspace_can_write}
             is_icon_button
             aria-label="Edit"
             phx-click={
@@ -59,6 +71,7 @@
             <.octicon name="pencil-16" />
           </.button>
           <.button
+            :if={@workspace_can_write}
             is_icon_button
             is_danger
             aria-label="Delete"

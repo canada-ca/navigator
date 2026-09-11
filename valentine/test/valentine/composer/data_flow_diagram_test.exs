@@ -87,6 +87,15 @@ defmodule Valentine.Composer.DataFlowDiagramTest do
     assert %DataFlowDiagram{id: _, workspace_id: ^workspace_id, nodes: %{}, edges: %{}} = dfd
   end
 
+  test "load/1 returns an unsaved empty diagram without creating a record or cache entry" do
+    workspace = workspace_fixture()
+
+    assert Valentine.Composer.Documents.get_data_flow_diagram_by_workspace_id(workspace.id) == nil
+    assert %DataFlowDiagram{id: nil, nodes: %{}, edges: %{}} = DataFlowDiagram.load(workspace.id)
+    assert Valentine.Composer.Documents.get_data_flow_diagram_by_workspace_id(workspace.id) == nil
+    assert Valentine.Cache.get({DataFlowDiagram, :dfd, workspace.id}) == nil
+  end
+
   test "get/2 returns the DataFlowDiagram skipping the cache", %{workspace_id: workspace_id} do
     DataFlowDiagram.add_node(workspace_id, %{"type" => "test"})
     dfd = DataFlowDiagram.get(workspace_id, false)

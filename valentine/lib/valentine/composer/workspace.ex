@@ -21,6 +21,8 @@ defmodule Valentine.Composer.Workspace do
 
   @nist_id_regex ~r/^[A-Za-z]{2}-\d+(\.\d+)?$/
   @td_levels DeliberateThreatLevel.values()
+  @stored_permissions ~w(read write)
+  @effective_permissions ~w(owner write read)
 
   schema "workspaces" do
     field :name, :string
@@ -58,7 +60,7 @@ defmodule Valentine.Composer.Workspace do
   end
 
   @doc false
-  def changeset(workspace, attrs) do
+  def changeset(%__MODULE__{id: nil} = workspace, attrs) do
     attrs = normalize_cloud_vendors(attrs)
 
     workspace
@@ -74,6 +76,60 @@ defmodule Valentine.Composer.Workspace do
     ])
     |> validate_subset(:cloud_vendors, cloud_vendor_values())
     |> validate_required([:name, :owner, :permissions])
+    |> validate_permissions()
+  end
+
+  def changeset(%__MODULE__{} = workspace, attrs) do
+    attrs = normalize_cloud_vendors(attrs)
+
+    workspace
+    |> cast(attrs, [
+      :name,
+      :cloud_profile,
+      :cloud_profile_type,
+      :cloud_vendors,
+      :url,
+      :max_threat_level
+    ])
+    |> validate_subset(:cloud_vendors, cloud_vendor_values())
+    |> validate_required([:name])
+  end
+
+  def permission_changeset(%__MODULE__{} = workspace, permissions) do
+    workspace
+    |> cast(%{permissions: permissions}, [:permissions])
+    |> validate_required([:permissions])
+    |> validate_permissions()
+  end
+
+  def stored_permissions, do: @stored_permissions
+
+  def effective_permissions, do: @effective_permissions
+
+  def valid_stored_permission?(permission), do: permission in @stored_permissions
+
+  def can_read?(permission), do: permission in @effective_permissions
+
+  def can_write?(permission), do: permission in ~w(owner write)
+
+  def can_manage?(permission), do: permission == "owner"
+
+  def can_read?(%__MODULE__{} = workspace, identity) do
+    workspace
+    |> check_workspace_permissions(identity)
+    |> can_read?()
+  end
+
+  def can_write?(%__MODULE__{} = workspace, identity) do
+    workspace
+    |> check_workspace_permissions(identity)
+    |> can_write?()
+  end
+
+  def can_manage?(%__MODULE__{} = workspace, identity) do
+    workspace
+    |> check_workspace_permissions(identity)
+    |> can_manage?()
   end
 
   def cloud_vendor_options do
@@ -141,8 +197,31 @@ defmodule Valentine.Composer.Workspace do
   def check_workspace_permissions(workspace, identity) do
     case workspace.owner do
       ^identity -> "owner"
-      _ -> workspace.permissions |> Map.get(identity)
+      _ -> valid_permission_or_nil(Map.get(workspace.permissions, identity))
     end
+  end
+
+  defp validate_permissions(changeset) do
+    validate_change(changeset, :permissions, fn :permissions, permissions ->
+      if valid_permissions_map?(permissions) do
+        []
+      else
+        [permissions: "must map identities to read or write"]
+      end
+    end)
+  end
+
+  defp valid_permissions_map?(permissions) when is_map(permissions) do
+    Enum.all?(permissions, fn
+      {identity, permission} when is_binary(identity) -> valid_stored_permission?(permission)
+      _ -> false
+    end)
+  end
+
+  defp valid_permissions_map?(_permissions), do: false
+
+  defp valid_permission_or_nil(permission) do
+    if valid_stored_permission?(permission), do: permission
   end
 
   def get_tagged_with_controls(collection) do

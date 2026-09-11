@@ -2,19 +2,25 @@
   {gettext("Application information")}
 </.subhead>
 
-<%= if @touched do %>
+<%= if @workspace_can_write && @touched do %>
   <.button is_primary class="mb-2" id="quill-save-btn">
     <.octicon name="clock-16" />
     <span>{gettext("Save")}</span>
   </.button>
 <% else %>
-  <.button is_disabled class="mb-2" id="quill-save-btn">
+  <.button :if={@workspace_can_write} is_disabled class="mb-2" id="quill-save-btn">
     <.octicon name="check-circle-16" />
     <span>{gettext("Saved")}</span>
   </.button>
+<% end %>
+<%= if !@workspace_can_write do %>
+  <span class="Label Label--secondary mb-2">{gettext("Read only")}</span>
 <% end %>
 <.live_component
   module={ValentineWeb.WorkspaceLive.Components.QuillComponent}
   id="quill_component"
   content={@application_information.content}
+  editable={@workspace_can_write}
+  workspace_id={@workspace_id}
+  current_user={@current_user}
 />

@@ -153,7 +153,11 @@ defmodule ValentineWeb.WorkspaceLive.FormComponent do
 
   defp save_workspace(socket, :edit, workspace_params) do
     if socket.assigns.workspace.owner == socket.assigns.current_user do
-      case Workspaces.update_workspace(socket.assigns.workspace, workspace_params) do
+      case Workspaces.update_workspace(
+             socket.assigns.workspace,
+             socket.assigns.current_user,
+             workspace_params
+           ) do
         {:ok, workspace} ->
           notify_parent({:saved, workspace})
           log(:info, socket.assigns.current_user, "updated", workspace.id, "workspace")

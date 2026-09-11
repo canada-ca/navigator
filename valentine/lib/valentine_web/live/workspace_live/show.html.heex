@@ -48,14 +48,20 @@
       <div class="repo-analysis-collapsible__content">
         <div class="repo-analysis-card__actions">
           <.button
-            :if={RepoAnalysis.running_status?(@latest_repo_analysis_agent.status)}
+            :if={
+              @workspace_can_manage &&
+                RepoAnalysis.running_status?(@latest_repo_analysis_agent.status)
+            }
             phx-click="cancel_repo_analysis"
             phx-value-id={@latest_repo_analysis_agent.id}
           >
             {gettext("Terminate")}
           </.button>
           <.button
-            :if={RepoAnalysis.rerunnable_status?(@latest_repo_analysis_agent.status)}
+            :if={
+              @workspace_can_manage &&
+                RepoAnalysis.rerunnable_status?(@latest_repo_analysis_agent.status)
+            }
             phx-click="retry_repo_analysis"
             phx-value-id={@latest_repo_analysis_agent.id}
           >
@@ -210,7 +216,10 @@
                   {repo_analysis_agent.progress_percent || 0}%
                 </div>
                 <.button
-                  :if={RepoAnalysis.rerunnable_status?(repo_analysis_agent.status)}
+                  :if={
+                    @workspace_can_manage &&
+                      RepoAnalysis.rerunnable_status?(repo_analysis_agent.status)
+                  }
                   phx-click="retry_repo_analysis"
                   phx-value-id={repo_analysis_agent.id}
                 >

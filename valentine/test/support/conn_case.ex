@@ -35,4 +35,10 @@ defmodule ValentineWeb.ConnCase do
     Valentine.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
+
+  def assert_forged_event_inert(view, event, params, snapshot) when is_function(snapshot, 0) do
+    before_event = snapshot.()
+    Phoenix.LiveViewTest.render_hook(view, event, params)
+    ExUnit.Assertions.assert(snapshot.() == before_event)
+  end
 end

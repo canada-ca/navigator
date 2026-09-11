@@ -124,6 +124,18 @@ defmodule Valentine.Composer.AnalysisJobs do
     QueryHelpers.get_workspace_entity!(ThreatModelQualityReviewRun, workspace_id, id, preload)
   end
 
+  def get_threat_model_quality_review_run_for_workspace(
+        workspace_id,
+        id,
+        preload \\ [:workspace, :findings]
+      ) do
+    from(run in ThreatModelQualityReviewRun,
+      where: run.workspace_id == ^workspace_id and run.id == ^id,
+      preload: ^preload
+    )
+    |> Repo.one()
+  end
+
   @doc """
   Gets a single threat model quality review run for an owner.
   """

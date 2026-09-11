@@ -41,10 +41,11 @@ function createMockCy() {
         boundingBox: vi.fn(() => ({ w: 200, h: 200 })),
         remove: vi.fn()
     };
-    const edgehandlesInstance = { start: vi.fn() };
+    const edgehandlesInstance = { start: vi.fn(), stop: vi.fn(), enable: vi.fn(), disable: vi.fn() };
     const zoom = vi.fn((value) => (typeof value === "undefined" ? 1 : value));
 
     return {
+        autoungrabify: vi.fn(),
         add: vi.fn(() => ({ unselect: vi.fn() })),
         container: vi.fn(() => ({ clientWidth: 400, clientHeight: 400 })),
         destroy: vi.fn(),
@@ -69,6 +70,7 @@ function buildHook(dataset = {}) {
     el.dataset.edges = JSON.stringify(dataset.edges || []);
     el.dataset.selectedtheme = dataset.selectedtheme || "light";
     el.dataset.user = dataset.user || "test-user";
+    el.dataset.readOnly = String(dataset.readOnly || false);
     document.body.appendChild(el);
 
     const eventHandlers = {};
@@ -176,4 +178,57 @@ describe("CytoscapeHook", () => {
 
         expect(cytoscapeState.mockCy.destroy).toHaveBeenCalledTimes(1);
     });
+
+    it("keeps reader diagrams selectable but non-mutating and applies remote refreshes", () => {
+        const hook = buildHook({ readOnly: true });
+
+        hook.mounted();
+        hook.save();
+
+        const registeredEvents = cytoscapeState.mockCy.on.mock.calls.map(([name]) => name);
+        expect(cytoscapeState.lastOptions.autoungrabify).toBe(true);
+        expect(cytoscapeState.mockCy.edgehandles).not.toHaveBeenCalled();
+        expect(registeredEvents).toContain("select");
+        for (const [event, ...args] of cytoscapeState.mockCy.on.mock.calls) {
+            if (["grab", "free", "position", "ehcomplete", "cxttapstart"].includes(event)) {
+                args.at(-1)({});
+            }
+        }
+        expect(hook.pushEventTo).not.toHaveBeenCalled();
+        expect(hook.pushEventTo).not.toHaveBeenCalledWith(hook.el, "export", expect.anything());
+
+        hook.eventHandlers.updateGraph({
+            event: "refresh_graph",
+            payload: { nodes: [{ data: { id: "remote" } }], edges: [] }
+        });
+
+        expect(cytoscapeState.mockCy.add).toHaveBeenCalledWith([
+            { data: { id: "remote" } }
+        ]);
+    });
+    it("applies live permission changes without rebinding graph handlers", () => {
+        const hook = buildHook({ readOnly: true });
+        hook.mounted();
+        const bindings = hook.cy.on.mock.calls.length;
+        const grab = hook.cy.on.mock.calls.find(([name]) => name === "grab").at(-1);
+        const node = { id: () => "node-1", data: vi.fn() };
+        hook.el.dataset.readOnly = "false";
+        hook.updated();
+        grab({ target: node });
+        expect(hook.cy.autoungrabify).toHaveBeenLastCalledWith(false);
+        expect(hook.eh.enable).toHaveBeenCalled();
+        expect(hook.pushEventTo).toHaveBeenCalledWith(hook.el, "grab", expect.anything());
+
+        hook.pushEventTo.mockClear();
+        hook.el.dataset.readOnly = "true";
+        hook.updated();
+        grab({ target: node });
+        hook.save();
+        expect(hook.cy.autoungrabify).toHaveBeenLastCalledWith(true);
+        expect(hook.eh.stop).toHaveBeenCalled();
+        expect(hook.eh.disable).toHaveBeenCalled();
+        expect(hook.pushEventTo).not.toHaveBeenCalled();
+        expect(hook.cy.on).toHaveBeenCalledTimes(bindings);
+    });
+
 });

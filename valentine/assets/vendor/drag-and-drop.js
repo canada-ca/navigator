@@ -1,6 +1,8 @@
 // Brainstorm drag & drop hook
 const BrainstormDrag = {
     mounted() {
+        this.readOnly = this.el.dataset.readOnly === "true"
+
         // Delegate events within the masonry container
         this.handleEvent("brainstorm:scroll_into_view", ({ id }) => {
             const el = this.el.querySelector(`[data-item-id='${id}']`)
@@ -10,6 +12,7 @@ const BrainstormDrag = {
         // --- Item drag logic (existing) ---
 
         this.el.addEventListener("dragstart", e => {
+            if (this.readOnly) return
             const card = e.target.closest("[data-item-id]")
             if (!card) return
             e.dataTransfer.effectAllowed = "move"
@@ -24,6 +27,7 @@ const BrainstormDrag = {
         })
 
         this.el.addEventListener("dragover", e => {
+            if (this.readOnly) return
             const column = e.target.closest("[data-type-column]")
             if (column) {
                 e.preventDefault()
@@ -40,6 +44,7 @@ const BrainstormDrag = {
         })
 
         this.el.addEventListener("drop", e => {
+            if (this.readOnly) return
             const column = e.target.closest("[data-type-column]")
             e.preventDefault()
             const draggedType = this.draggedType
@@ -63,6 +68,7 @@ const BrainstormDrag = {
 
         // --- Column drag logic ---
         this.el.addEventListener("dragstart", e => {
+            if (this.readOnly) return
             const handle = e.target.closest('.type-drag-handle')
             if (handle) {
                 const columnEl = handle.closest('[data-type-column]')
@@ -83,6 +89,7 @@ const BrainstormDrag = {
         })
 
         this.el.addEventListener('dragover', e => {
+            if (this.readOnly) return
             if (this.draggedType) {
                 const target = e.target.closest('[data-type-column]')
                 if (target) {
@@ -97,11 +104,22 @@ const BrainstormDrag = {
             if (target && !target.contains(e.relatedTarget)) target.classList.remove('drag-over-type')
         })
     },
+    updated() {
+        this.readOnly = this.el.dataset.readOnly === "true"
+        if (this.readOnly) {
+            this.draggedType = null
+            this.el.querySelectorAll('.dragging, .dragging-type').forEach(el => {
+                el.classList.remove('dragging', 'dragging-type')
+            })
+            this.clearDropHighlights()
+        }
+    },
     clearDropHighlights() {
         this.el.querySelectorAll(".drag-over").forEach(el => el.classList.remove("drag-over"))
         this.el.querySelectorAll('.drag-over-type').forEach(el => el.classList.remove('drag-over-type'))
     },
     reorderColumns(dragType, targetType) {
+        if (this.readOnly) return
         if (!dragType || !targetType || dragType === targetType) return
         const columns = Array.from(this.el.querySelectorAll('[data-type-column]'))
         const order = columns.map(c => c.dataset.typeColumn)

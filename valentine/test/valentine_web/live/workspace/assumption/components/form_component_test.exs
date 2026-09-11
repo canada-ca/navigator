@@ -99,11 +99,14 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponentTest do
     end
 
     test "returns a changeset for an existing assumption", %{socket: socket} do
+      assumption = assumption_fixture()
+
       socket =
         Map.put(socket, :assigns, %{
           __changed__: %{},
           action: :edit,
-          assumption: assumption_fixture(),
+          assumption: assumption,
+          current_user: "some owner",
           flash: %{},
           patch:
             "/workspace/00000000-0000-0000-0000-000000000000/assumption/00000000-0000-0000-0000-000000000000",
@@ -153,13 +156,16 @@ defmodule ValentineWeb.WorkspaceLive.Assumption.Components.FormComponentTest do
     end
 
     test "returns a changeset for a new assumption", %{socket: socket} do
+      workspace = workspace_fixture()
+
       socket =
         Map.put(socket, :assigns, %{
           __changed__: %{},
           action: :new,
           assumption: %Valentine.Composer.Assumption{
-            workspace_id: "00000000-0000-0000-0000-000000000000"
+            workspace_id: workspace.id
           },
+          current_user: workspace.owner,
           flash: %{},
           patch:
             "/workspace/00000000-0000-0000-0000-000000000000/assumption/00000000-0000-0000-0000-000000000000"

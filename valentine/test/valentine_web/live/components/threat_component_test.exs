@@ -9,10 +9,16 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponentTest do
   defp create_threat(_) do
     threat = threat_fixture()
 
-    assigns = %{__changed__: %{}, threat: threat, id: "threat-component"}
+    assigns = %{
+      __changed__: %{},
+      threat: threat,
+      id: "threat-component",
+      current_user: "some owner",
+      can_write: true
+    }
 
     socket = %Phoenix.LiveView.Socket{
-      assigns: assigns
+      assigns: Map.put(assigns, :flash, %{})
     }
 
     %{assigns: assigns, socket: socket}

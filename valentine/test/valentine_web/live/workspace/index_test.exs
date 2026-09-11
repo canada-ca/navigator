@@ -123,7 +123,7 @@ defmodule ValentineWeb.WorkspaceLive.IndexTest do
     test "handles delete error", %{socket: socket, workspace: workspace} do
       with_mock Workspaces,
         get_workspace!: fn _workspace_id -> workspace end,
-        delete_workspace: fn _workspace -> {:error, "some error"} end do
+        delete_workspace: fn _workspace, _identity -> {:error, "some error"} end do
         {:noreply, updated_socket} =
           ValentineWeb.WorkspaceLive.Index.handle_event(
             "delete",

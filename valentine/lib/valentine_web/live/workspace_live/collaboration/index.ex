@@ -39,12 +39,18 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.Index do
         "collaboration"
       )
 
-      {:ok, workspace} =
-        Workspaces.update_workspace_permissions(socket.assigns.workspace, email, permission)
+      case Workspaces.update_workspace_permissions(
+             socket.assigns.workspace,
+             socket.assigns.current_user,
+             email,
+             permission
+           ) do
+        {:ok, workspace} ->
+          {:noreply, assign(socket, :workspace, workspace)}
 
-      {:noreply,
-       socket
-       |> assign(:workspace, workspace)}
+        {:error, _reason} ->
+          {:noreply, put_flash(socket, :error, gettext("Unable to update workspace permission"))}
+      end
     else
       {:noreply, socket}
     end

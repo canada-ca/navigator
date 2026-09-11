@@ -60,6 +60,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EvidenceComponent do
 
       <div class="flex-shrink-0 ml-3 float-right">
         <.button
+          :if={@can_write}
           is_icon_button
           aria-label="Linked assumptions"
           phx-click={
@@ -71,6 +72,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EvidenceComponent do
           <.counter>{assoc_length(@evidence.assumptions)}</.counter>
         </.button>
         <.button
+          :if={@can_write}
           is_icon_button
           aria-label="Linked threats"
           phx-click={
@@ -82,6 +84,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EvidenceComponent do
           <.counter>{assoc_length(@evidence.threats)}</.counter>
         </.button>
         <.button
+          :if={@can_write}
           is_icon_button
           aria-label="Linked mitigations"
           phx-click={
@@ -95,12 +98,13 @@ defmodule ValentineWeb.WorkspaceLive.Components.EvidenceComponent do
         <.button
           is_icon_button
           navigate={~p"/workspaces/#{@evidence.workspace_id}/evidence/#{@evidence.id}"}
-          aria-label={gettext("Edit")}
+          aria-label={if @can_write, do: gettext("Edit"), else: gettext("View")}
           id={"edit-evidence-#{@evidence.id}"}
         >
-          <.octicon name="pencil-16" />
+          <.octicon name={if @can_write, do: "pencil-16", else: "eye-16"} />
         </.button>
         <.button
+          :if={@can_write}
           is_icon_button
           phx-click={JS.push("delete", value: %{id: @evidence.id})}
           data-confirm={gettext("Are you sure you want to delete this evidence?")}

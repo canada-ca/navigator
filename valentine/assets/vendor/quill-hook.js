@@ -8,32 +8,36 @@ const QuillHook = {
     },
 
     updated() {
-        console.log("Quill Hook updated");
+        this.readOnly = this.el.dataset.readOnly === "true";
+        this.q.enable(!this.readOnly);
+        this.bindSaveButton();
     },
 
     destroyed() {
-        console.log("Quill Hook destroyed");
+        this.saveBtn?.removeEventListener("click", this.onSave);
     },
 
     initializeQuill() {
+        this.readOnly = this.el.dataset.readOnly === "true";
         this.q = new Quill(document.getElementById("quill-editor"), {
-            theme: 'snow'
+            theme: 'snow',
+            readOnly: this.readOnly
         });
-        this.saveBtn = document.getElementById("quill-save-btn");
+        this.onSave = () => {
+            if (this.readOnly) return;
+            this.pushEventTo(this.el, "quill-save", {
+                content: this.q.getSemanticHTML()
+            });
+        };
         this.bindEvents();
         this.setupEventHandlers();
     },
 
     bindEvents() {
-
-        this.saveBtn.addEventListener("click", () => {
-            this.pushEventTo(this.el, "quill-save", {
-                content: this.q.getSemanticHTML()
-            });
-        });
+        this.bindSaveButton();
 
         this.q.on('text-change', (delta, oldDelta, source) => {
-            if (source === 'user') {
+            if (!this.readOnly && source === 'user') {
                 this.pushEventTo(this.el, "quill-change", {
                     delta: delta,
                     oldDelta: oldDelta,
@@ -41,6 +45,12 @@ const QuillHook = {
                 });
             }
         });
+    },
+
+    bindSaveButton() {
+        this.saveBtn?.removeEventListener("click", this.onSave);
+        this.saveBtn = document.getElementById("quill-save-btn");
+        this.saveBtn?.addEventListener("click", this.onSave);
     },
 
     setupEventHandlers() {

@@ -299,6 +299,23 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
 
   @impl true
   def handle_event("save_threats", _params, socket) do
+    case ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize_component(
+           socket,
+           socket.assigns.workspace_id,
+           :write
+         ) do
+      {:ok, _workspace} -> run_save(socket)
+      {:error, socket} -> {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_event("close_builder", _params, socket) do
+    send(self(), :close_threat_builder)
+    {:noreply, socket}
+  end
+
+  defp run_save(socket) do
     socket = assign(socket, :saving, true)
 
     case validate_and_save_threats(socket) do
@@ -312,12 +329,6 @@ defmodule ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponen
          |> assign(:saving, false)
          |> assign(:validation_errors, errors)}
     end
-  end
-
-  @impl true
-  def handle_event("close_builder", _params, socket) do
-    send(self(), :close_threat_builder)
-    {:noreply, socket}
   end
 
   # Private helper functions

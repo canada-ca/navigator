@@ -37,6 +37,34 @@ defmodule ValentineWeb.WorkspaceLive.BrainstormTest do
       assert html =~ brainstorm_item.raw_text
     end
 
+    test "reader can filter but cannot mutate brainstorm cards", %{
+      conn: conn,
+      workspace: workspace
+    } do
+      workspace =
+        workspace
+        |> Ecto.Changeset.change(%{permissions: %{"reader@localhost" => "read"}})
+        |> Valentine.Repo.update!()
+
+      brainstorm_item = create_brainstorm_item(workspace)
+      conn = Phoenix.ConnTest.init_test_session(conn, %{user_id: "reader@localhost"})
+      {:ok, view, html} = live(conn, ~p"/workspaces/#{workspace.id}/brainstorm")
+
+      assert html =~ brainstorm_item.raw_text
+      assert html =~ "data-read-only=\"true\""
+      refute html =~ "phx-submit=\"create_item\""
+      refute html =~ "phx-click=\"delete_item\""
+      refute html =~ "Build Threat"
+
+      render_hook(view, "update_status", %{"id" => brainstorm_item.id, "status" => "clustered"})
+
+      assert Valentine.Composer.Brainstorm.get_brainstorm_item!(brainstorm_item.id).status ==
+               :draft
+
+      render_hook(view, "filter", %{"search" => "Test"})
+      assert render(view) =~ brainstorm_item.raw_text
+    end
+
     test "creates brainstorm item", %{conn: conn, workspace: workspace} do
       conn = conn |> Phoenix.ConnTest.init_test_session(%{user_id: workspace.owner})
       {:ok, index_live, _html} = live(conn, ~p"/workspaces/#{workspace.id}/brainstorm")

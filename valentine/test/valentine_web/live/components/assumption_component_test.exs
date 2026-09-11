@@ -8,10 +8,17 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponentTest do
 
   defp create_assumption(_) do
     assumption = assumption_fixture()
-    assigns = %{__changed__: %{}, assumption: assumption, id: "assumption-component"}
+
+    assigns = %{
+      __changed__: %{},
+      assumption: assumption,
+      id: "assumption-component",
+      current_user: "some owner",
+      can_write: true
+    }
 
     socket = %Phoenix.LiveView.Socket{
-      assigns: assigns
+      assigns: Map.put(assigns, :flash, %{})
     }
 
     %{assigns: assigns, socket: socket}

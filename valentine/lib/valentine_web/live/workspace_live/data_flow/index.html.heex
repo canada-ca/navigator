@@ -8,11 +8,12 @@
   data-nodes={Jason.encode!(Map.values(@dfd.nodes))}
   data-edges={Jason.encode!(Map.values(@dfd.edges))}
   data-selectedtheme={@theme}
+  data-read-only={to_string(!@workspace_can_write)}
   user={"user-#{System.unique_integer([:positive])}"}
-  phx-window-keydown="handle_keydown"
+  phx-window-keydown={if @workspace_can_write, do: "handle_keydown"}
 >
   <div class="d-flex mb-2">
-    <div class="d-flex flex-column mr-4">
+    <div :if={@workspace_can_write} class="d-flex flex-column mr-4">
       <span class="text-small text-bold mb-1">{gettext("Save")}</span>
       <%= if @saved do %>
         <.button is_disabled id="dfd-save-btn">
@@ -26,7 +27,7 @@
         </.button>
       <% end %>
     </div>
-    <div class="d-flex flex-column mr-2">
+    <div :if={@workspace_can_write} class="d-flex flex-column mr-2">
       <span class="text-small text-bold mb-1">{gettext("History")}</span>
       <.button_group class="mr-2">
         <.button
@@ -49,7 +50,7 @@
         </.button>
       </.button_group>
     </div>
-    <div class="d-flex flex-column mr-2">
+    <div :if={@workspace_can_write} class="d-flex flex-column mr-2">
       <span class="text-small text-bold mb-1">{gettext("Entities")}</span>
       <.button_group class="mr-2">
         <.button
@@ -81,7 +82,7 @@
         </.button>
       </.button_group>
     </div>
-    <div class="d-flex flex-column mr-2">
+    <div :if={@workspace_can_write} class="d-flex flex-column mr-2">
       <span class="text-small text-bold mb-1">{gettext("Boundaries")}</span>
       <.button_group class="mr-2">
         <.button
@@ -139,7 +140,7 @@
         </.button>
       </.button_group>
     </div>
-    <div class="d-flex flex-column mr-2">
+    <div :if={@workspace_can_write} class="d-flex flex-column mr-2">
       <span class="text-small text-bold mb-1">{gettext("Destructive actions")}</span>
       <.button_group class="mr-2">
         <.button
@@ -162,7 +163,7 @@
         </.button>
       </.button_group>
     </div>
-    <div class="d-flex flex-column mr-2">
+    <div :if={@workspace_can_write} class="d-flex flex-column mr-2">
       <span class="text-small text-bold mb-1">{gettext("Import")}</span>
       <.button_group class="mr-2">
         <.button
@@ -209,17 +210,19 @@
     }
     workspace_id={@workspace_id}
     touched={@touched}
+    editable={@workspace_can_write}
   />
 </div>
 
 <.live_component
   :if={
     Kernel.map_size(Map.merge(@selected_elements["nodes"], @selected_elements["edges"])) == 1 &&
-      @show_threat_statement_generator
+      @show_threat_statement_generator && @workspace_can_write
   }
   module={ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementGeneratorComponent}
   id={:threat_statement_generator_component}
   workspace_id={@workspace_id}
+  current_user={@current_user}
   element_id={
     Map.merge(@selected_elements["nodes"], @selected_elements["edges"]) |> Map.keys() |> hd()
   }
@@ -228,17 +231,18 @@
 <.live_component
   :if={
     Kernel.map_size(Map.merge(@selected_elements["nodes"], @selected_elements["edges"])) == 1 &&
-      @show_threat_statement_linker
+      @show_threat_statement_linker && @workspace_can_write
   }
   module={ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementLinkerComponent}
   id={:threat_statement_linker_component}
   workspace_id={@workspace_id}
+  current_user={@current_user}
   element_id={
     Map.merge(@selected_elements["nodes"], @selected_elements["edges"]) |> Map.keys() |> hd()
   }
 />
 
-<%= if @show_mermaid_import do %>
+<%= if @show_mermaid_import && @workspace_can_write do %>
   <div class="cluster-dialog-overlay" role="presentation">
     <div
       class="Box Box--overlay p-0 cluster-dialog"

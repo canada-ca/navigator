@@ -8,6 +8,7 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementLinkerCo
 
   defp create_component(_) do
     dfd = data_flow_diagram_fixture()
+    workspace = Valentine.Composer.Workspaces.get_workspace!(dfd.workspace_id)
     node = Valentine.Composer.DataFlowDiagram.add_node(dfd.workspace_id, %{"type" => "test"})
 
     assigns = %{
@@ -16,7 +17,8 @@ defmodule ValentineWeb.WorkspaceLive.DataFlow.Components.ThreatStatementLinkerCo
       element_id: node["data"]["id"],
       element: node,
       error: nil,
-      workspace_id: dfd.workspace_id
+      workspace_id: dfd.workspace_id,
+      current_user: workspace.owner
     }
 
     socket = %Phoenix.LiveView.Socket{

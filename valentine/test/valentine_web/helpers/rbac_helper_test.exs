@@ -73,6 +73,53 @@ defmodule ValentineWeb.Helpers.RbacHelperTest do
         )
 
       assert socket.assigns.workspace_permission == "owner"
+      assert socket.assigns.workspace_can_read
+      assert socket.assigns.workspace_can_write
+      assert socket.assigns.workspace_can_manage
+    end
+
+    test "assigns read-only presentation capabilities for a reader" do
+      workspace =
+        Valentine.ComposerFixtures.workspace_fixture(%{
+          permissions: %{"reader@localhost" => "read"}
+        })
+
+      {:cont, socket} =
+        RbacHelper.on_mount(
+          :default,
+          %{"workspace_id" => workspace.id},
+          %{},
+          %Phoenix.LiveView.Socket{
+            assigns: %{__changed__: %{}, current_user: "reader@localhost"}
+          }
+        )
+
+      assert socket.assigns.workspace_permission == "read"
+      assert socket.assigns.workspace_can_read
+      refute socket.assigns.workspace_can_write
+      refute socket.assigns.workspace_can_manage
+    end
+
+    test "assigns writable but non-managing presentation capabilities for a writer" do
+      workspace =
+        Valentine.ComposerFixtures.workspace_fixture(%{
+          permissions: %{"writer@localhost" => "write"}
+        })
+
+      {:cont, socket} =
+        RbacHelper.on_mount(
+          :default,
+          %{"workspace_id" => workspace.id},
+          %{},
+          %Phoenix.LiveView.Socket{
+            assigns: %{__changed__: %{}, current_user: "writer@localhost"}
+          }
+        )
+
+      assert socket.assigns.workspace_permission == "write"
+      assert socket.assigns.workspace_can_read
+      assert socket.assigns.workspace_can_write
+      refute socket.assigns.workspace_can_manage
     end
 
     test "paths that do not contain a workspace_id parameter do not check rbac_permissions" do

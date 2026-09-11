@@ -55,6 +55,18 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
 
   @impl true
   def handle_info({:selected_label_dropdown, id, "td_level", value}, socket) do
+    case ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize(socket, :write) do
+      {:ok, _workspace} -> update_td_level(socket, id, value)
+      {:error, socket} -> {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_info(%{topic: "workspace_" <> workspace_id}, socket) do
+    {:noreply, assign(socket, :threat_agents, Threats.list_threat_agents(workspace_id))}
+  end
+
+  defp update_td_level(socket, id, value) do
     threat_agent_id = String.replace_prefix(id, "threat-agent-td-level-", "")
 
     case Threats.update_threat_agent(
@@ -73,11 +85,6 @@ defmodule ValentineWeb.WorkspaceLive.ThreatAgent.Index do
       {:error, _changeset} ->
         {:noreply, put_flash(socket, :error, gettext("Failed to update Threat Agent"))}
     end
-  end
-
-  @impl true
-  def handle_info(%{topic: "workspace_" <> workspace_id}, socket) do
-    {:noreply, assign(socket, :threat_agents, Threats.list_threat_agents(workspace_id))}
   end
 
   @impl true

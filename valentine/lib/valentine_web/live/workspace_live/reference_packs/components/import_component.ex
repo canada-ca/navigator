@@ -62,6 +62,17 @@ defmodule ValentineWeb.WorkspaceLive.ReferencePacks.Components.ImportComponent d
 
   @impl true
   def handle_event("save", _params, socket) do
+    case ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize_component(
+           socket,
+           socket.assigns.workspace.id,
+           :write
+         ) do
+      {:ok, _workspace} -> import_upload(socket)
+      {:error, socket} -> {:noreply, socket}
+    end
+  end
+
+  defp import_upload(socket) do
     [{result, msg}] =
       consume_uploaded_entries(socket, :import, fn %{path: path}, _entry ->
         import_file(path)

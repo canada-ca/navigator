@@ -2,7 +2,7 @@
   {gettext("Collaboration")}
 </.subhead>
 
-<%= if @permission != "owner" do %>
+<%= if @workspace_permission != "owner" do %>
   <.box>
     <.blankslate is_large>
       <:octicon name="hubot-24" />
@@ -14,7 +14,7 @@
       <p>
         {gettext(
           "Your current permission level is: %{permission}",
-          permission: @permission
+          permission: @workspace_permission
         )}
       </p>
     </.blankslate>
@@ -27,6 +27,9 @@
     <ul>
       <li>
         {gettext("Write: Can edit any aspect of the threat model.")}
+      </li>
+      <li>
+        {gettext("Read: Can view the threat model and download reports, but cannot make changes.")}
       </li>
       <li>
         {gettext("None: Cannot see or edit the threat model.")}
@@ -56,6 +59,13 @@
                 phx-value-email={user.email}
               >
                 <.radio_tabs id_prefix={user.email}>
+                  <:radio_button
+                    name="permission"
+                    value="read"
+                    label={gettext("Read")}
+                    checked={@workspace.permissions[user.email] == "read"}
+                  >
+                  </:radio_button>
                   <:radio_button
                     name="permission"
                     value="write"

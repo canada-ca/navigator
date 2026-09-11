@@ -6,6 +6,11 @@
       </.link>
     </:item>
     <:item is_full_width />
+    <:item :if={assigns[:workspace_permission] == "read"}>
+      <span id="workspace-read-only-indicator" class="Label Label--secondary">
+        <.octicon name="eye-16" /> {gettext("Read only")}
+      </span>
+    </:item>
     <:item>
       <ValentineWeb.WorkspaceLive.Components.PresenceIndicatorComponent.render
         current_user={@current_user}
@@ -361,6 +366,7 @@
           />
         </:item>
         <:item
+          :if={assigns[:workspace_can_manage]}
           is_selected={@active_module == "ApiKey"}
           navigate={~p"/workspaces/#{@workspace_id}/api_keys"}
           class="d-flex flex-items-center flex-justify-between"

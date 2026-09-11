@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 
 import BrainstormDrag from "../vendor/drag-and-drop.js";
 
-function buildHook() {
+function buildHook({ readOnly = false } = {}) {
     document.body.innerHTML = `
-    <div id="brainstorm">
+    <div id="brainstorm" data-read-only="${readOnly}">
       <div data-type-column="idea" class="drag-over">
         <button class="type-drag-handle" type="button"></button>
         <article data-item-id="item-1"></article>
@@ -59,4 +59,29 @@ describe("BrainstormDrag", () => {
         expect(document.querySelectorAll(".drag-over")).toHaveLength(0);
         expect(document.querySelectorAll(".drag-over-type")).toHaveLength(0);
     });
+
+    it("does not emit column reorders in read-only mode", () => {
+        const { hook } = buildHook({ readOnly: true });
+
+        hook.reorderColumns("idea", "mitigation");
+
+        expect(hook.pushEvent).not.toHaveBeenCalled();
+    });
+    it("applies live upgrades and clears an in-progress drag on downgrade", () => {
+        const { hook } = buildHook({ readOnly: true });
+        hook.el.dataset.readOnly = "false";
+        hook.updated();
+        hook.reorderColumns("idea", "mitigation");
+        expect(hook.pushEvent).toHaveBeenCalledTimes(1);
+
+        hook.pushEvent.mockClear();
+        hook.draggedType = "idea";
+        hook.el.dataset.readOnly = "true";
+        hook.updated();
+        hook.reorderColumns("idea", "mitigation");
+        expect(hook.draggedType).toBeNull();
+        expect(hook.pushEvent).not.toHaveBeenCalled();
+        expect(hook.el.querySelectorAll(".drag-over, .drag-over-type")).toHaveLength(0);
+    });
+
 });

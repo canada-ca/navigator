@@ -3,6 +3,7 @@
     <h1 class="h3 m-0">{gettext("Brainstorm Board")}</h1>
     <div class="d-flex flex-items-center gap-4 pb-2">
       <.form
+        :if={@workspace_can_write}
         for={%{}}
         as={:create}
         phx-submit="create_item"
@@ -92,7 +93,7 @@
       </.form>
       
 <!-- Threat Builder Button -->
-      <div :if={@total_items > 0} class="brainstorm-builder-cta">
+      <div :if={@workspace_can_write && @total_items > 0} class="brainstorm-builder-cta">
         <.button
           phx-click="open_threat_builder"
           class="btn-primary"
@@ -124,7 +125,12 @@
   </div>
   
 <!-- Masonry board layout -->
-  <div id="brainstorm-board" class="flex-auto overflow-auto p-3" phx-hook="BrainstormDrag">
+  <div
+    id="brainstorm-board"
+    class="flex-auto overflow-auto p-3"
+    phx-hook="BrainstormDrag"
+    data-read-only={to_string(!@workspace_can_write)}
+  >
     <%= if @total_items == 0 do %>
       <!-- Empty state when no items exist -->
       <div class="blankslate blankslate-spacious">
@@ -136,7 +142,11 @@
           )}
         </p>
         <p class="blankslate-body">
-          {gettext("Use the form above to add your first brainstorm item.")}
+          <%= if @workspace_can_write do %>
+            {gettext("Use the form above to add your first brainstorm item.")}
+          <% else %>
+            {gettext("A workspace editor can add the first brainstorm item.")}
+          <% end %>
         </p>
       </div>
     <% else %>
@@ -147,13 +157,16 @@
             class="brainstorm-masonry-item"
             data-type-column={Atom.to_string(type)}
             data-type={Atom.to_string(type)}
-            draggable="true"
+            draggable={to_string(@workspace_can_write)}
           >
             <div class="card d-flex flex-column" data-item-id={"type-" <> Atom.to_string(type)}>
               <% all_items = Map.get(@items_by_type, type, []) %>
               <% active_count = Enum.count(all_items, &(&1.status != :archived)) %>
               <% archived_count = Enum.count(all_items, &(&1.status == :archived)) %>
-              <div class="brainstorm-type-header type-drag-handle" draggable="true">
+              <div
+                class={"brainstorm-type-header #{if @workspace_can_write, do: "type-drag-handle"}"}
+                draggable={to_string(@workspace_can_write)}
+              >
                 <div class="brainstorm-type-header-main">
                   <div class="brainstorm-type-title">
                     <.octicon name={type_icon(type)} class="mr-1" />
@@ -173,6 +186,7 @@
                   </div>
                 </div>
                 <div
+                  :if={@workspace_can_write}
                   class="brainstorm-type-header-handle"
                   title={gettext("Drag to reorder category")}
                 >
@@ -194,12 +208,12 @@
                     <div
                       class={"Box Box--condensed mb-2 brainstorm-item status-#{item.status} #{if item.cluster_key, do: "is-clustered"} #{if @editing_item == item.id, do: "editing"}"}
                       data-item-id={item.id}
-                      draggable={if @editing_item == item.id, do: "false", else: "true"}
+                      draggable={to_string(@workspace_can_write && @editing_item != item.id)}
                       data-status={item.status}
                       data-cluster={item.cluster_key || ""}
                     >
                       <div class="Box-body p-2 brainstorm-item-body">
-                        <%= if @editing_item == item.id do %>
+                        <%= if @workspace_can_write && @editing_item == item.id do %>
                           <div class="brainstorm-edit-form">
                             <.form
                               for={%{}}
@@ -274,7 +288,7 @@
                         <% else %>
                           <div
                             class="mb-2 brainstorm-item-text"
-                            phx-click="start_editing"
+                            phx-click={if @workspace_can_write, do: "start_editing"}
                             phx-value-id={item.id}
                             style="cursor:pointer; line-height:1.3;"
                           >
@@ -295,7 +309,7 @@
                               </span>
                             <% end %>
                           </div>
-                          <div class="brainstorm-item-actions">
+                          <div :if={@workspace_can_write} class="brainstorm-item-actions">
                             <%= case item.status do %>
                               <% :draft -> %>
                                 <button
@@ -432,7 +446,7 @@
   </div>
   
 <!-- Cluster Assignment Dialog -->
-  <%= if @assigning_cluster_item do %>
+  <%= if @workspace_can_write && @assigning_cluster_item do %>
     <div class="cluster-dialog-overlay" role="presentation">
       <div
         class="Box Box--overlay p-0 cluster-dialog"
@@ -516,11 +530,12 @@
   <% end %>
   
 <!-- Threat Builder Component -->
-  <%= if @show_threat_builder do %>
+  <%= if @workspace_can_write && @show_threat_builder do %>
     <.live_component
       module={ValentineWeb.WorkspaceLive.Brainstorm.Components.ThreatBuilderComponent}
       id="threat-builder"
       workspace_id={@workspace_id}
+      current_user={@current_user}
       cluster_key={@builder_cluster_key}
     />
   <% end %>

@@ -1,18 +1,37 @@
 <.subhead>
-  <%= if @threat.id do %>
+  <%= if @threat.id && @workspace_can_write do %>
     {gettext("Edit Threat Statement")}
   <% else %>
-    {gettext("New Threat Statement")}
+    <%= if @threat.id do %>
+      {gettext("Threat Statement")}
+    <% else %>
+      {gettext("New Threat Statement")}
+    <% end %>
   <% end %>
   <:actions>
     <.link navigate={~p"/workspaces/#{@workspace_id}/threats"}>
       <.button>{gettext("Back")}</.button>
     </.link>
-    <.button phx-click="save" is_primary>{gettext("Save")}</.button>
+    <.button :if={@workspace_can_write} phx-click="save" is_primary>{gettext("Save")}</.button>
   </:actions>
 </.subhead>
 
-<div class="clearfix">
+<.box :if={!@workspace_can_write} class="p-4">
+  <h3>{gettext("Statement")}</h3>
+  <.styled_html>{Valentine.Composer.Threat.show_statement(@threat)}</.styled_html>
+  <h3 class="mt-4">{gettext("Comments")}</h3>
+  <ValentineWeb.WorkspaceLive.Components.MarkdownComponent.render text={@threat.comments} />
+  <p class="mt-4"><strong>{gettext("Status")}:</strong> {@threat.status}</p>
+  <p><strong>{gettext("Priority")}:</strong> {@threat.priority}</p>
+  <p><strong>{gettext("STRIDE")}:</strong> {Enum.join(@threat.stride || [], ", ")}</p>
+  <p><strong>{gettext("Tags")}:</strong> {Enum.join(@threat.tags || [], ", ")}</p>
+  <h4 class="mt-3">{gettext("Linked Assumptions")}</h4>
+  <p :for={assumption <- @threat.assumptions || []}>{assumption.content}</p>
+  <h4 class="mt-3">{gettext("Linked Mitigations")}</h4>
+  <p :for={mitigation <- @threat.mitigations || []}>{mitigation.content}</p>
+</.box>
+
+<div :if={@workspace_can_write} class="clearfix">
   <div class="float-left col-8">
     <.box class="p-4">
       <h3>{gettext("Statement")}</h3>

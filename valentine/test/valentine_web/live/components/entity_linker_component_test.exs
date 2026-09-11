@@ -27,6 +27,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       linked_entities: [],
       linkable_entities: [mitigation],
       workspace_id: workspace.id,
+      current_user: workspace.owner,
       patch: ~p"/workspaces/#{mitigation.workspace_id}/mitigations"
     }
 
@@ -39,7 +40,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
       assumption: assumption,
       mitigation: mitigation,
       socket: socket,
-      threat: threat
+      threat: threat,
+      workspace: workspace
     }
   end
 
@@ -82,6 +84,57 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
 
       assert socket.assigns.linked_entities == []
       assert socket.assigns.linkable_entities == [assumption]
+    end
+
+    test "rejects a reader-forged relationship save", %{
+      assumption: assumption,
+      mitigation: mitigation,
+      socket: socket,
+      workspace: workspace
+    } do
+      {:ok, _workspace} =
+        Valentine.Composer.Workspaces.update_workspace_permissions(
+          workspace,
+          workspace.owner,
+          "reader@localhost",
+          "read"
+        )
+
+      socket =
+        update_in(socket.assigns, fn assigns ->
+          assigns
+          |> Map.put(:entity, Valentine.Repo.preload(assumption, :mitigations))
+          |> Map.put(:linked_entities, [mitigation])
+          |> Map.put(:current_user, "reader@localhost")
+          |> Map.put(:flash, %{})
+        end)
+
+      {:noreply, _socket} = EntityLinkerComponent.handle_event("save", %{}, socket)
+
+      assert (Mitigations.get_mitigation!(mitigation.id)
+              |> Valentine.Repo.preload(:assumptions)).assumptions == []
+    end
+
+    test "rejects targets from another workspace", %{
+      assumption: assumption,
+      socket: socket
+    } do
+      foreign_mitigation = mitigation_fixture()
+
+      socket =
+        update_in(socket.assigns, fn assigns ->
+          assigns
+          |> Map.put(:entity, Valentine.Repo.preload(assumption, :mitigations))
+          |> Map.put(:linked_entities, [foreign_mitigation])
+          |> Map.put(:flash, %{})
+        end)
+
+      {:noreply, socket} = EntityLinkerComponent.handle_event("save", %{}, socket)
+
+      assert socket.assigns.flash["error"] =~ "belong to this workspace"
+
+      assert (Mitigations.get_mitigation!(foreign_mitigation.id)
+              |> Valentine.Repo.preload(:assumptions)).assumptions == []
     end
 
     test "links a mitigation to an assumption", %{
@@ -482,6 +535,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
           linked_entities: [assumption],
           linkable_entities: [],
           workspace_id: workspace.id,
+          current_user: workspace.owner,
           patch: ~p"/workspaces/#{workspace.id}/evidence",
           flash: %{}
         }
@@ -516,6 +570,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
           linked_entities: [],
           linkable_entities: [assumption],
           workspace_id: workspace.id,
+          current_user: workspace.owner,
           patch: ~p"/workspaces/#{workspace.id}/evidence",
           flash: %{}
         }
@@ -539,6 +594,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
           linked_entities: [threat],
           linkable_entities: [],
           workspace_id: workspace.id,
+          current_user: workspace.owner,
           patch: ~p"/workspaces/#{workspace.id}/evidence",
           flash: %{}
         }
@@ -573,6 +629,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
           linked_entities: [],
           linkable_entities: [threat],
           workspace_id: workspace.id,
+          current_user: workspace.owner,
           patch: ~p"/workspaces/#{workspace.id}/evidence",
           flash: %{}
         }
@@ -600,6 +657,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
           linked_entities: [mitigation],
           linkable_entities: [],
           workspace_id: workspace.id,
+          current_user: workspace.owner,
           patch: ~p"/workspaces/#{workspace.id}/evidence",
           flash: %{}
         }
@@ -634,6 +692,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
           linked_entities: [],
           linkable_entities: [mitigation],
           workspace_id: workspace.id,
+          current_user: workspace.owner,
           patch: ~p"/workspaces/#{workspace.id}/evidence",
           flash: %{}
         }
@@ -656,6 +715,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
         linked_entities: [assumption],
         linkable_entities: [],
         workspace_id: evidence.workspace_id,
+        current_user: "some owner",
         patch: ~p"/workspaces/#{evidence.workspace_id}/evidence"
       }
 
@@ -678,6 +738,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.EntityLinkerComponentTest do
           linked_entities: [assumption],
           linkable_entities: [],
           workspace_id: workspace.id,
+          current_user: workspace.owner,
           patch: ~p"/workspaces/#{workspace.id}/evidence",
           flash: %{}
         }

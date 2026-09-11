@@ -19,6 +19,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
           <h3>Assumption {@assumption.numeric_id}</h3>
         </div>
         <.live_component
+          :if={@can_write}
           module={ValentineWeb.WorkspaceLive.Components.LabelSelectComponent}
           id={"assumptions-status-#{@assumption.id}"}
           parent_id={@myself}
@@ -26,13 +27,19 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
           default_value="Not set"
           value={@assumption.status}
           field="status"
+          workspace_id={@assumption.workspace_id}
+          current_user={@current_user}
           items={[
             {:confirmed, "State--open"},
             {:unconfirmed, "State--closed"}
           ]}
         />
+        <span :if={!@can_write} class="State State--small State--open ml-2">
+          {@assumption.status}
+        </span>
         <div class="float-right">
           <.button
+            :if={@can_write}
             is_icon_button
             aria-label="Linked threats"
             phx-click={
@@ -46,6 +53,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
             <.counter>{assoc_length(@assumption.threats)}</.counter>
           </.button>
           <.button
+            :if={@can_write}
             is_icon_button
             aria-label="Linked mitigations"
             phx-click={
@@ -59,6 +67,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
             <.counter>{assoc_length(@assumption.mitigations)}</.counter>
           </.button>
           <.button
+            :if={@can_write}
             is_icon_button
             aria-label="Categorize"
             phx-click={
@@ -71,6 +80,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
             <.octicon name="dependabot-16" />
           </.button>
           <.button
+            :if={@can_write}
             is_icon_button
             aria-label="Edit"
             phx-click={
@@ -81,6 +91,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
             <.octicon name="pencil-16" />
           </.button>
           <.button
+            :if={@can_write}
             is_icon_button
             is_danger
             aria-label="Delete"
@@ -100,6 +111,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
       <details class="mt-4" {if @summary_state, do: %{open: true}, else: %{}}>
         <summary phx-click="toggle_summary_state" phx-target={@myself}>{gettext("Comments")}</summary>
         <.live_component
+          :if={@can_write}
           module={ValentineWeb.WorkspaceLive.Components.TabNavComponent}
           id={"tabs-component-assumption-#{@assumption.id}"}
           tabs={[
@@ -136,10 +148,14 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
             </form>
           </:tab_content>
         </.live_component>
+        <ValentineWeb.WorkspaceLive.Components.MarkdownComponent.render
+          :if={!@can_write}
+          text={@assumption.comments}
+        />
       </details>
       <hr />
       <div class="clearfix">
-        <div class="float-left col-2 mr-2 mt-1">
+        <div :if={@can_write} class="float-left col-2 mr-2 mt-1">
           <.text_input
             id={"#{@assumption.id}-tag-field"}
             name={"#{@assumption.id}-tag"}
@@ -159,7 +175,13 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
             <.button phx-click="view_control_modal" phx-value-nist_id={tag}>
               <span>{tag}</span>
             </.button>
-            <.button is_icon_button phx-click="remove_tag" phx-value-tag={tag} phx-target={@myself}>
+            <.button
+              :if={@can_write}
+              is_icon_button
+              phx-click="remove_tag"
+              phx-value-tag={tag}
+              phx-target={@myself}
+            >
               <.octicon name="x-16" />
             </.button>
           </.button_group>
@@ -171,16 +193,24 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
 
   @impl true
   def update(%{selected_label_dropdown: {_id, field, value}}, socket) do
-    {:ok, assumption} =
-      Assumptions.update_assumption(
-        socket.assigns.assumption,
-        %{}
-        |> Map.put(field, value)
-      )
+    case ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize_component(
+           socket,
+           socket.assigns.assumption.workspace_id,
+           :write
+         ) do
+      {:ok, _workspace} ->
+        {:ok, assumption} =
+          Assumptions.update_assumption(
+            socket.assigns.assumption,
+            %{}
+            |> Map.put(field, value)
+          )
 
-    {:ok,
-     socket
-     |> assign(:assumption, assumption)}
+        {:ok, assign(socket, :assumption, assumption)}
+
+      {:error, socket} ->
+        {:ok, socket}
+    end
   end
 
   @impl true
@@ -194,61 +224,67 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
   @impl true
   def handle_event("add_tag", _params, %{assigns: %{tag: tag}} = socket)
       when byte_size(tag) > 0 do
-    current_tags = socket.assigns.assumption.tags || []
+    with_write(socket, fn socket ->
+      current_tags = socket.assigns.assumption.tags || []
 
-    if tag not in current_tags do
-      updated_tags = current_tags ++ [tag]
+      if tag not in current_tags do
+        updated_tags = current_tags ++ [tag]
 
-      case Assumptions.update_assumption(socket.assigns.assumption, %{tags: updated_tags}) do
-        {:ok, assumption} ->
-          broadcast_assumption_change(assumption)
+        case Assumptions.update_assumption(socket.assigns.assumption, %{tags: updated_tags}) do
+          {:ok, assumption} ->
+            broadcast_assumption_change(assumption)
 
-          {:noreply,
-           socket
-           |> assign(:tag, "")
-           |> assign(:assumption, assumption)}
+            {:noreply,
+             socket
+             |> assign(:tag, "")
+             |> assign(:assumption, assumption)}
 
-        {:error, _changeset} ->
-          {:noreply, socket}
+          {:error, _changeset} ->
+            {:noreply, socket}
+        end
+      else
+        {:noreply, socket}
       end
-    else
-      {:noreply, socket}
-    end
+    end)
   end
 
   def handle_event("add_tag", _, socket), do: {:noreply, socket}
 
   @impl true
   def handle_event("remove_tag", %{"tag" => tag}, socket) do
-    updated_tags = List.delete(socket.assigns.assumption.tags, tag)
+    with_write(socket, fn socket ->
+      updated_tags = List.delete(socket.assigns.assumption.tags, tag)
 
-    case Assumptions.update_assumption(socket.assigns.assumption, %{tags: updated_tags}) do
-      {:ok, assumption} ->
-        broadcast_assumption_change(assumption)
-        {:noreply, assign(socket, :assumption, assumption)}
+      case Assumptions.update_assumption(socket.assigns.assumption, %{tags: updated_tags}) do
+        {:ok, assumption} ->
+          broadcast_assumption_change(assumption)
+          {:noreply, assign(socket, :assumption, assumption)}
 
-      {:error, _changeset} ->
-        {:noreply, socket}
-    end
+        {:error, _changeset} ->
+          {:noreply, socket}
+      end
+    end)
   end
 
   @impl true
   def handle_event("save_comments", %{"comments" => comments}, socket) do
-    # Forces a changeset change
-    case Assumptions.update_assumption(Map.put(socket.assigns.assumption, :comments, nil), %{
-           :comments => comments
-         }) do
-      {:ok, assumption} ->
-        broadcast_assumption_change(assumption)
+    with_write(socket, fn socket ->
+      # Forces a changeset change
+      case Assumptions.update_assumption(Map.put(socket.assigns.assumption, :comments, nil), %{
+             :comments => comments
+           }) do
+        {:ok, assumption} ->
+          broadcast_assumption_change(assumption)
 
-        {:noreply,
-         socket
-         |> assign(:summary_state, nil)
-         |> assign(:assumption, assumption)}
+          {:noreply,
+           socket
+           |> assign(:summary_state, nil)
+           |> assign(:assumption, assumption)}
 
-      {:error, _changeset} ->
-        {:noreply, socket}
-    end
+        {:error, _changeset} ->
+          {:noreply, socket}
+      end
+    end)
   end
 
   @impl true
@@ -274,5 +310,16 @@ defmodule ValentineWeb.WorkspaceLive.Components.AssumptionComponent do
       "assumption_updated",
       %{}
     )
+  end
+
+  defp with_write(socket, fun) do
+    case ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize_component(
+           socket,
+           socket.assigns.assumption.workspace_id,
+           :write
+         ) do
+      {:ok, _workspace} -> fun.(socket)
+      {:error, socket} -> {:noreply, socket}
+    end
   end
 end

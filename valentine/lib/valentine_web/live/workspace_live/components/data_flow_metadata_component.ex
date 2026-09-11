@@ -3,7 +3,12 @@ defmodule ValentineWeb.WorkspaceLive.Components.DataFlowMetadataComponent do
   use PrimerLive
 
   def update(assigns, socket) do
-    dfd = Valentine.Composer.DataFlowDiagram.get(assigns.workspace_id)
+    dfd =
+      if assigns.editable do
+        Valentine.Composer.DataFlowDiagram.get(assigns.workspace_id)
+      else
+        Valentine.Composer.DataFlowDiagram.load(assigns.workspace_id)
+      end
 
     element = resolve_element(dfd, assigns.element_id)
 
@@ -16,6 +21,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.DataFlowMetadataComponent do
 
     {:ok,
      socket
+     |> assign(assigns)
      |> assign(:element, element)
      |> assign(:threats, threats)}
   end
@@ -33,7 +39,21 @@ defmodule ValentineWeb.WorkspaceLive.Components.DataFlowMetadataComponent do
     <div>
       <.box :if={@element} class="p-4 mt-2">
         <h3>Properties</h3>
-        <div class="clearfix">
+        <div :if={!@editable} class="p-2">
+          <p><strong>{gettext("Name")}:</strong> {@element["data"]["label"]}</p>
+          <p><strong>{gettext("Description")}:</strong> {@element["data"]["description"]}</p>
+          <p :for={{label, field} <- read_only_metadata_fields()}>
+            <strong>{label}:</strong> {Enum.join(@element["data"][field] || [], ", ")}
+          </p>
+          <p><strong>{gettext("Out of scope")}:</strong> {@element["data"]["out_of_scope"]}</p>
+          <h4>{gettext("Associated threat statements")}</h4>
+          <p :for={threat <- @threats}>
+            <.link href={~p"/workspaces/#{threat.workspace_id}/threats/#{threat.id}"}>
+              {Valentine.Composer.Threat.show_statement(threat)}
+            </.link>
+          </p>
+        </div>
+        <div :if={@editable} class="clearfix">
           <div class="float-left col-4 p-2">
             <.text_input
               name="name"
@@ -274,6 +294,14 @@ defmodule ValentineWeb.WorkspaceLive.Components.DataFlowMetadataComponent do
       end
 
     Map.merge(generic_options, specific_options)
+  end
+
+  defp read_only_metadata_fields do
+    [
+      {gettext("Data features"), "data_tags"},
+      {gettext("Security features"), "security_tags"},
+      {gettext("Technology features"), "technology_tags"}
+    ]
   end
 
   defp security_options(type) do

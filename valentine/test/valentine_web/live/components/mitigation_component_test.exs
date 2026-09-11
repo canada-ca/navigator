@@ -8,10 +8,17 @@ defmodule ValentineWeb.WorkspaceLive.Components.MitigationComponentTest do
 
   defp create_mitigation(_) do
     mitigation = mitigation_fixture()
-    assigns = %{__changed__: %{}, mitigation: mitigation, id: "mitigation-component"}
+
+    assigns = %{
+      __changed__: %{},
+      mitigation: mitigation,
+      id: "mitigation-component",
+      current_user: "some owner",
+      can_write: true
+    }
 
     socket = %Phoenix.LiveView.Socket{
-      assigns: assigns
+      assigns: Map.put(assigns, :flash, %{})
     }
 
     %{assigns: assigns, socket: socket}

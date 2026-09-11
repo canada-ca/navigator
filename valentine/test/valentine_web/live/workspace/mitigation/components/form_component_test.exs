@@ -96,11 +96,14 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponentTest do
     end
 
     test "returns a changeset for an existing mitigation", %{socket: socket} do
+      mitigation = mitigation_fixture()
+
       socket =
         Map.put(socket, :assigns, %{
           __changed__: %{},
           action: :edit,
-          mitigation: mitigation_fixture(),
+          mitigation: mitigation,
+          current_user: "some owner",
           flash: %{},
           on_cancel: "/workspace/00000000-0000-0000-0000-000000000000/mitigations",
           patch:
@@ -147,13 +150,16 @@ defmodule ValentineWeb.WorkspaceLive.Mitigation.Components.FormComponentTest do
     end
 
     test "returns a changeset for a new mitigation", %{socket: socket} do
+      workspace = workspace_fixture()
+
       socket =
         Map.put(socket, :assigns, %{
           __changed__: %{},
           action: :new,
           mitigation: %Valentine.Composer.Mitigation{
-            workspace_id: "00000000-0000-0000-0000-000000000000"
+            workspace_id: workspace.id
           },
+          current_user: workspace.owner,
           flash: %{},
           patch:
             "/workspace/00000000-0000-0000-0000-000000000000/mitigation/00000000-0000-0000-0000-000000000000"

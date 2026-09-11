@@ -47,14 +47,16 @@ defmodule ValentineWeb.WorkspaceLive.Architecture.Index do
   # Local change
   @impl true
   def handle_info({:quill_change, delta}, socket) do
-    Valentine.Composer.Architecture.push_cache(socket.assigns.workspace_id, [delta["ops"]])
+    with_write(socket, fn socket ->
+      Valentine.Composer.Architecture.push_cache(socket.assigns.workspace_id, [delta["ops"]])
 
-    broadcast("workspace_architecture:#{socket.assigns.workspace_id}", %{
-      event: :quill_change,
-      payload: delta
-    })
+      broadcast("workspace_architecture:#{socket.assigns.workspace_id}", %{
+        event: :quill_change,
+        payload: delta
+      })
 
-    {:noreply, socket |> assign(:touched, true)}
+      {:noreply, assign(socket, :touched, true)}
+    end)
   end
 
   # Remote edit change
@@ -83,33 +85,30 @@ defmodule ValentineWeb.WorkspaceLive.Architecture.Index do
   # Save button clicked
   @impl true
   def handle_info({:quill_save, content}, socket) do
-    # Create or update new application information
-    workspace = get_workspace(socket.assigns.workspace_id)
+    with_write(socket, fn socket ->
+      workspace = get_workspace(socket.assigns.workspace_id)
 
-    case workspace.architecture do
-      nil ->
-        log(:info, socket.assigns.current_user, "created", workspace.id, "architecture")
-        Documents.create_architecture(%{content: content, workspace_id: workspace.id})
+      case workspace.architecture do
+        nil ->
+          log(:info, socket.assigns.current_user, "created", workspace.id, "architecture")
+          Documents.create_architecture(%{content: content, workspace_id: workspace.id})
 
-      _ ->
-        log(:info, socket.assigns.current_user, "updated", workspace.id, "architecture")
+        _ ->
+          log(:info, socket.assigns.current_user, "updated", workspace.id, "architecture")
 
-        Documents.update_architecture(workspace.architecture, %{
-          content: content
-        })
-    end
+          Documents.update_architecture(workspace.architecture, %{
+            content: content
+          })
+      end
 
-    # Flush the cache
-    Valentine.Composer.Architecture.flush_cache(workspace.id)
+      Valentine.Composer.Architecture.flush_cache(workspace.id)
 
-    # Broadcast the change
-    broadcast("workspace_architecture:#{socket.assigns.workspace_id}", %{
-      event: :quill_saved
-    })
+      broadcast("workspace_architecture:#{socket.assigns.workspace_id}", %{
+        event: :quill_saved
+      })
 
-    {:noreply,
-     socket
-     |> assign(:touched, false)}
+      {:noreply, assign(socket, :touched, false)}
+    end)
   end
 
   defp broadcast(topic, payload) do
@@ -118,5 +117,12 @@ defmodule ValentineWeb.WorkspaceLive.Architecture.Index do
 
   defp get_workspace(workspace_id) do
     Workspaces.get_workspace!(workspace_id, [:architecture])
+  end
+
+  defp with_write(socket, fun) do
+    case ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize(socket, :write) do
+      {:ok, _workspace} -> fun.(socket)
+      {:error, socket} -> {:noreply, socket}
+    end
   end
 end

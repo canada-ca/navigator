@@ -9,6 +9,7 @@ vi.mock("quill", () => ({
     default: vi.fn(function MockQuill() {
         quillState.handlers = {};
         quillState.instance = {
+            enable: vi.fn(),
             clipboard: {
                 dangerouslyPasteHTML: vi.fn()
             },
@@ -28,11 +29,11 @@ vi.mock("quill/dist/quill.snow.css", () => ({}));
 import Quill from "quill";
 import QuillHook from "../vendor/quill-hook.js";
 
-function buildHook() {
+function buildHook({ readOnly = false, includeSaveButton = true } = {}) {
     document.body.innerHTML = `
     <div id="quill-editor"></div>
-    <button id="quill-save-btn" type="button">Save</button>
-    <div id="quill-hook"></div>
+    ${includeSaveButton ? '<button id="quill-save-btn" type="button">Save</button>' : ''}
+    <div id="quill-hook" data-read-only="${readOnly}"></div>
   `;
 
     const eventHandlers = {};
@@ -61,7 +62,8 @@ describe("QuillHook", () => {
         document.getElementById("quill-save-btn").click();
 
         expect(Quill).toHaveBeenCalledWith(document.getElementById("quill-editor"), {
-            theme: "snow"
+            theme: "snow",
+            readOnly: false
         });
         expect(hook.pushEventTo).toHaveBeenCalledWith(hook.el, "quill-save", {
             content: "<p>Saved</p>"
@@ -97,4 +99,45 @@ describe("QuillHook", () => {
             ops: [{ insert: "World" }]
         });
     });
+
+    it("keeps readers non-editable without emitting local changes or saves", () => {
+        const hook = buildHook({ readOnly: true, includeSaveButton: false });
+        const delta = { ops: [{ insert: "remote" }] };
+
+        hook.mounted();
+        quillState.handlers["text-change"](delta, { ops: [] }, "user");
+        hook.eventHandlers.updateQuill({ event: "text_change", payload: delta });
+
+        expect(Quill).toHaveBeenCalledWith(document.getElementById("quill-editor"), {
+            theme: "snow",
+            readOnly: true
+        });
+        expect(hook.pushEventTo).not.toHaveBeenCalled();
+        expect(quillState.instance.updateContents).toHaveBeenCalledWith(delta);
+    });
+    it("applies live upgrades and downgrades and binds newly rendered Save buttons once", () => {
+        const hook = buildHook({ readOnly: true, includeSaveButton: false });
+        hook.mounted();
+        const button = document.createElement("button");
+        button.id = "quill-save-btn";
+        document.body.appendChild(button);
+        hook.el.dataset.readOnly = "false";
+        hook.updated();
+        hook.updated();
+        button.click();
+        expect(quillState.instance.enable).toHaveBeenCalledWith(true);
+        expect(hook.pushEventTo).toHaveBeenCalledTimes(1);
+
+        hook.pushEventTo.mockClear();
+        hook.el.dataset.readOnly = "true";
+        hook.updated();
+        button.click();
+        const delta = { ops: [{ insert: "hello" }] };
+        quillState.handlers["text-change"](delta, { ops: [] }, "user");
+        hook.eventHandlers.updateQuill({ event: "text_change", payload: delta });
+        expect(quillState.instance.enable).toHaveBeenLastCalledWith(false);
+        expect(hook.pushEventTo).not.toHaveBeenCalled();
+        expect(quillState.instance.updateContents).toHaveBeenCalledWith(delta);
+    });
+
 });

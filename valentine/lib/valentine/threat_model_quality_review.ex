@@ -19,9 +19,7 @@ defmodule Valentine.ThreatModelQualityReview do
   def workspace_topic(workspace_id), do: "threat_model_quality_reviews:workspace:#{workspace_id}"
 
   def start_review(workspace_id, identity) do
-    workspace = Workspaces.get_workspace!(workspace_id)
-
-    with :ok <- ensure_workspace_access(workspace, identity),
+    with {:ok, workspace} <- Workspaces.authorize(workspace_id, identity, :write),
          :ok <- ensure_no_running_review(workspace.id),
          {:ok, run} <-
            AnalysisJobs.create_threat_model_quality_review_run(%{
@@ -89,34 +87,20 @@ defmodule Valentine.ThreatModelQualityReview do
 
   def cancel_for_owner(id, owner) do
     case AnalysisJobs.get_threat_model_quality_review_run_for_owner(id, owner) do
-      nil ->
-        {:error, :not_found}
+      nil -> {:error, :not_found}
+      run -> cancel_for_workspace(run.id, run.workspace_id, owner)
+    end
+  end
 
-      run ->
-        with {:ok, run} <- AnalysisJobs.request_threat_model_quality_review_run_cancel(run) do
-          case run.runtime_agent_id && Valentine.Jido.whereis(run.runtime_agent_id) do
-            pid when is_pid(pid) ->
-              :ok =
-                AgentServer.cast(
-                  pid,
-                  Signal.new!("quality_review.cancel", %{}, source: "/quality_review")
-                )
-
-              broadcast(run)
-              {:ok, run}
-
-            _ ->
-              {:ok, updated_run} =
-                AnalysisJobs.update_threat_model_quality_review_run(run, %{
-                  status: :cancelled,
-                  completed_at: DateTime.utc_now(),
-                  progress_message: "Threat model quality review cancelled"
-                })
-
-              broadcast(updated_run)
-              {:ok, updated_run}
-          end
-        end
+  def cancel_for_workspace(id, workspace_id, actor) do
+    with %ThreatModelQualityReviewRun{} = run <-
+           AnalysisJobs.get_threat_model_quality_review_run_for_workspace(workspace_id, id),
+         :ok <- authorize_lifecycle(run, actor),
+         {:ok, run} <- AnalysisJobs.request_threat_model_quality_review_run_cancel(run) do
+      cancel_run(run)
+    else
+      nil -> {:error, :not_found}
+      error -> error
     end
   end
 
@@ -125,15 +109,24 @@ defmodule Valentine.ThreatModelQualityReview do
       nil ->
         {:error, :not_found}
 
-      %ThreatModelQualityReviewRun{workspace: %Workspace{} = workspace} = run ->
-        if rerunnable_status?(run.status) do
-          start_review(workspace.id, owner)
-        else
-          {:error, :not_retryable}
-        end
+      %ThreatModelQualityReviewRun{} = run ->
+        retry_for_workspace(run.id, run.workspace_id, owner)
 
       _ ->
         {:error, :not_found}
+    end
+  end
+
+  def retry_for_workspace(id, workspace_id, actor) do
+    with %ThreatModelQualityReviewRun{} = run <-
+           AnalysisJobs.get_threat_model_quality_review_run_for_workspace(workspace_id, id),
+         :ok <- authorize_lifecycle(run, actor),
+         true <- rerunnable_status?(run.status) do
+      start_review(workspace_id, actor)
+    else
+      nil -> {:error, :not_found}
+      false -> {:error, :not_retryable}
+      error -> error
     end
   end
 
@@ -143,17 +136,32 @@ defmodule Valentine.ThreatModelQualityReview do
         {:error, :not_found}
 
       run ->
-        stop_runtime(run.runtime_agent_id)
-
-        case AnalysisJobs.delete_threat_model_quality_review_run(run) do
-          {:ok, deleted_run} ->
-            broadcast(deleted_run)
-            {:ok, deleted_run}
-
-          error ->
-            error
-        end
+        delete_for_workspace(run.id, run.workspace_id, owner)
     end
+  end
+
+  def delete_for_workspace(id, workspace_id, actor) do
+    with %ThreatModelQualityReviewRun{} = run <-
+           AnalysisJobs.get_threat_model_quality_review_run_for_workspace(workspace_id, id),
+         :ok <- authorize_lifecycle(run, actor) do
+      stop_runtime(run.runtime_agent_id)
+
+      case AnalysisJobs.delete_threat_model_quality_review_run(run) do
+        {:ok, deleted_run} ->
+          broadcast(deleted_run)
+          {:ok, deleted_run}
+
+        error ->
+          error
+      end
+    else
+      nil -> {:error, :not_found}
+      error -> error
+    end
+  end
+
+  def can_manage?(%ThreatModelQualityReviewRun{} = run, actor) do
+    authorize_lifecycle(run, actor) == :ok
   end
 
   def running_status?(status)
@@ -212,10 +220,42 @@ defmodule Valentine.ThreatModelQualityReview do
 
   def runtime_agent_id(job_id), do: "threat-model-quality-review-#{job_id}"
 
-  defp ensure_workspace_access(%Workspace{} = workspace, identity) do
-    case Workspace.check_workspace_permissions(workspace, identity) do
-      nil -> {:error, :not_found}
-      _permission -> :ok
+  defp authorize_lifecycle(%ThreatModelQualityReviewRun{} = run, actor) do
+    cond do
+      match?({:ok, %Workspace{}}, Workspaces.authorize(run.workspace_id, actor, :manage)) ->
+        :ok
+
+      run.owner == actor and
+          match?({:ok, %Workspace{}}, Workspaces.authorize(run.workspace_id, actor, :write)) ->
+        :ok
+
+      true ->
+        {:error, :unauthorized}
+    end
+  end
+
+  defp cancel_run(run) do
+    case run.runtime_agent_id && Valentine.Jido.whereis(run.runtime_agent_id) do
+      pid when is_pid(pid) ->
+        :ok =
+          AgentServer.cast(
+            pid,
+            Signal.new!("quality_review.cancel", %{}, source: "/quality_review")
+          )
+
+        broadcast(run)
+        {:ok, run}
+
+      _ ->
+        {:ok, updated_run} =
+          AnalysisJobs.update_threat_model_quality_review_run(run, %{
+            status: :cancelled,
+            completed_at: DateTime.utc_now(),
+            progress_message: "Threat model quality review cancelled"
+          })
+
+        broadcast(updated_run)
+        {:ok, updated_run}
     end
   end
 

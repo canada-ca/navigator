@@ -83,7 +83,7 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.IndexTest do
       {:noreply, socket} =
         ValentineWeb.WorkspaceLive.Collaboration.Index.handle_event(
           "update_permission",
-          %{"email" => "some.other.user@localhost", "permission" => "member"},
+          %{"email" => "some.other.user@localhost", "permission" => "read"},
           socket
         )
 
@@ -107,11 +107,11 @@ defmodule ValentineWeb.WorkspaceLive.Collaboration.IndexTest do
       {:noreply, socket} =
         ValentineWeb.WorkspaceLive.Collaboration.Index.handle_event(
           "update_permission",
-          %{"email" => "some.other.user@localhost", "permission" => "member"},
+          %{"email" => "some.other.user@localhost", "permission" => "read"},
           socket
         )
 
-      assert socket.assigns.workspace.permissions == %{"some.other.user@localhost" => "member"}
+      assert socket.assigns.workspace.permissions == %{"some.other.user@localhost" => "read"}
     end
   end
 end

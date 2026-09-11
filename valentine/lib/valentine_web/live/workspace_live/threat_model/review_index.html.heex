@@ -20,7 +20,10 @@
         )}
       </div>
 
-      <div class="repo-analysis-card__actions review-runs-page__intro-actions">
+      <div
+        :if={@workspace_can_write}
+        class="repo-analysis-card__actions review-runs-page__intro-actions"
+      >
         <.button phx-click="start_threat_model_quality_review">
           {gettext("Run quality review")}
         </.button>
@@ -118,13 +121,27 @@
               </td>
               <td class="review-runs-table__actions">
                 <.button
-                  :if={ThreatModelQualityReview.running_status?(run.status)}
+                  :if={
+                    can_manage_review?(run, @current_user) &&
+                      ThreatModelQualityReview.running_status?(run.status)
+                  }
                   phx-click="cancel_threat_model_quality_review"
                   phx-value-id={run.id}
                 >
                   {gettext("Terminate")}
                 </.button>
+                <.button
+                  :if={
+                    can_manage_review?(run, @current_user) &&
+                      ThreatModelQualityReview.rerunnable_status?(run.status)
+                  }
+                  phx-click="retry_threat_model_quality_review"
+                  phx-value-id={run.id}
+                >
+                  {gettext("Retry")}
+                </.button>
                 <button
+                  :if={can_manage_review?(run, @current_user)}
                   class="btn btn-sm btn-danger"
                   phx-click="delete_threat_model_quality_review"
                   phx-value-id={run.id}

@@ -22,6 +22,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
             <h3>Threat {@threat.numeric_id}</h3>
           </div>
           <.live_component
+            :if={@can_write}
             module={ValentineWeb.WorkspaceLive.Components.LabelSelectComponent}
             id={"threat-priority-#{@threat.id}"}
             parent_id={@myself}
@@ -29,6 +30,8 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
             default_value="Not set"
             value={@threat.priority}
             field="priority"
+            workspace_id={@threat.workspace_id}
+            current_user={@current_user}
             items={[
               {:low, "State--open"},
               {:medium, "color-bg-accent-emphasis color-fg-on-emphasis"},
@@ -36,6 +39,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
             ]}
           />
           <.live_component
+            :if={@can_write}
             module={ValentineWeb.WorkspaceLive.Components.LabelSelectComponent}
             id={"threat-status-#{@threat.id}"}
             parent_id={@myself}
@@ -43,14 +47,20 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
             default_value="Not set"
             value={@threat.status}
             field="status"
+            workspace_id={@threat.workspace_id}
+            current_user={@current_user}
             items={[
               {:identified, "State--closed"},
               {:resolved, "State--open"},
               {:not_useful, nil}
             ]}
           />
+          <span :if={!@can_write} class="State State--small State--open ml-2">
+            {@threat.status} / {@threat.priority}
+          </span>
           <div class="float-right">
             <.button
+              :if={@can_write}
               is_icon_button
               aria-label="Linked assumptions"
               phx-click={
@@ -62,6 +72,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
               <.counter>{assoc_length(@threat.assumptions)}</.counter>
             </.button>
             <.button
+              :if={@can_write}
               is_icon_button
               aria-label="Linked mitigations"
               phx-click={
@@ -74,12 +85,13 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
             </.button>
             <.button
               is_icon_button
-              aria-label="Edit"
+              aria-label={if @can_write, do: "Edit", else: "View"}
               navigate={~p"/workspaces/#{@threat.workspace_id}/threats/#{@threat.id}"}
             >
-              <.octicon name="pencil-16" />
+              <.octicon name={if @can_write, do: "pencil-16", else: "eye-16"} />
             </.button>
             <.button
+              :if={@can_write}
               is_icon_button
               is_danger
               aria-label="Delete"
@@ -96,6 +108,7 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
         <details class="mt-4" {if @summary_state, do: %{open: true}, else: %{}}>
           <summary phx-click="toggle_summary_state" phx-target={@myself}>{gettext("Comments")}</summary>
           <.live_component
+            :if={@can_write}
             module={ValentineWeb.WorkspaceLive.Components.TabNavComponent}
             id={"tabs-component-threat-#{@threat.id}"}
             tabs={[
@@ -132,10 +145,14 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
               </form>
             </:tab_content>
           </.live_component>
+          <ValentineWeb.WorkspaceLive.Components.MarkdownComponent.render
+            :if={!@can_write}
+            text={@threat.comments}
+          />
         </details>
         <hr />
         <div class="clearfix mt-4">
-          <div class="float-left col-2 mr-2 mt-1">
+          <div :if={@can_write} class="float-left col-2 mr-2 mt-1">
             <.text_input
               id={"#{@threat.id}-tag-field"}
               name={"#{@threat.id}-tag"}
@@ -155,7 +172,13 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
               <.button phx-click="view_control_modal" phx-value-nist_id={tag}>
                 <span>{tag}</span>
               </.button>
-              <.button is_icon_button phx-click="remove_tag" phx-value-tag={tag} phx-target={@myself}>
+              <.button
+                :if={@can_write}
+                is_icon_button
+                phx-click="remove_tag"
+                phx-value-tag={tag}
+                phx-target={@myself}
+              >
                 <.octicon name="x-16" />
               </.button>
             </.button_group>
@@ -171,16 +194,16 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
 
   @impl true
   def update(%{selected_label_dropdown: {_id, field, value}}, socket) do
-    {:ok, threat} =
-      Threats.update_threat(
-        socket.assigns.threat,
-        %{}
-        |> Map.put(field, value)
-      )
+    case authorize_write(socket) do
+      {:ok, _workspace} ->
+        {:ok, threat} =
+          Threats.update_threat(socket.assigns.threat, Map.put(%{}, field, value))
 
-    {:ok,
-     socket
-     |> assign(:threat, threat)}
+        {:ok, assign(socket, :threat, threat)}
+
+      {:error, socket} ->
+        {:ok, socket}
+    end
   end
 
   @impl true
@@ -194,61 +217,66 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
   @impl true
   def handle_event("add_tag", _params, %{assigns: %{tag: tag}} = socket)
       when byte_size(tag) > 0 do
-    current_tags = socket.assigns.threat.tags || []
+    with_write(socket, fn socket ->
+      current_tags = socket.assigns.threat.tags || []
 
-    if tag not in current_tags do
-      updated_tags = current_tags ++ [tag]
+      if tag not in current_tags do
+        updated_tags = current_tags ++ [tag]
 
-      case Threats.update_threat(socket.assigns.threat, %{tags: updated_tags}) do
-        {:ok, threat} ->
-          broadcast_threat_change(threat)
+        case Threats.update_threat(socket.assigns.threat, %{tags: updated_tags}) do
+          {:ok, threat} ->
+            broadcast_threat_change(threat)
 
-          {:noreply,
-           socket
-           |> assign(:tag, "")
-           |> assign(:threat, threat)}
+            {:noreply,
+             socket
+             |> assign(:tag, "")
+             |> assign(:threat, threat)}
 
-        {:error, _changeset} ->
-          {:noreply, socket}
+          {:error, _changeset} ->
+            {:noreply, socket}
+        end
+      else
+        {:noreply, socket}
       end
-    else
-      {:noreply, socket}
-    end
+    end)
   end
 
   def handle_event("add_tag", _, socket), do: {:noreply, socket}
 
   @impl true
   def handle_event("remove_tag", %{"tag" => tag}, socket) do
-    updated_tags = List.delete(socket.assigns.threat.tags, tag)
+    with_write(socket, fn socket ->
+      updated_tags = List.delete(socket.assigns.threat.tags, tag)
 
-    case Threats.update_threat(socket.assigns.threat, %{tags: updated_tags}) do
-      {:ok, threat} ->
-        broadcast_threat_change(threat)
-        {:noreply, assign(socket, :threat, threat)}
+      case Threats.update_threat(socket.assigns.threat, %{tags: updated_tags}) do
+        {:ok, threat} ->
+          broadcast_threat_change(threat)
+          {:noreply, assign(socket, :threat, threat)}
 
-      {:error, _changeset} ->
-        {:noreply, socket}
-    end
+        {:error, _changeset} ->
+          {:noreply, socket}
+      end
+    end)
   end
 
   @impl true
   def handle_event("save_comments", %{"comments" => comments}, socket) do
-    # Forces a changeset change
-    case Threats.update_threat(Map.put(socket.assigns.threat, :comments, nil), %{
-           :comments => comments
-         }) do
-      {:ok, threat} ->
-        broadcast_threat_change(threat)
+    with_write(socket, fn socket ->
+      case Threats.update_threat(Map.put(socket.assigns.threat, :comments, nil), %{
+             :comments => comments
+           }) do
+        {:ok, threat} ->
+          broadcast_threat_change(threat)
 
-        {:noreply,
-         socket
-         |> assign(:summary_state, nil)
-         |> assign(:threat, threat)}
+          {:noreply,
+           socket
+           |> assign(:summary_state, nil)
+           |> assign(:threat, threat)}
 
-      {:error, _changeset} ->
-        {:noreply, socket}
-    end
+        {:error, _changeset} ->
+          {:noreply, socket}
+      end
+    end)
   end
 
   @impl true
@@ -273,6 +301,21 @@ defmodule ValentineWeb.WorkspaceLive.Components.ThreatComponent do
       "workspace_" <> threat.workspace_id,
       "threat_updated",
       %{}
+    )
+  end
+
+  defp with_write(socket, fun) do
+    case authorize_write(socket) do
+      {:ok, _workspace} -> fun.(socket)
+      {:error, socket} -> {:noreply, socket}
+    end
+  end
+
+  defp authorize_write(socket) do
+    ValentineWeb.Helpers.WorkspaceAuthorizationHelper.authorize_component(
+      socket,
+      socket.assigns.threat.workspace_id,
+      :write
     )
   end
 end
