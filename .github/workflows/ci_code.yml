@@ -34,8 +34,8 @@ jobs:
       - name: Setup Elixir
         uses: erlef/setup-beam@v1
         with:
-          otp-version: 27.2
-          elixir-version: 1.18.4
+          otp-version: 27.3
+          elixir-version: 1.19.7
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
